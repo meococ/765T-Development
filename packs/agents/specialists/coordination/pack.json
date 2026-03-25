@@ -1,0 +1,51 @@
+﻿{
+    "PackType":  "agent-pack",
+    "PackId":  "bim765t.agents.specialist.coordination",
+    "Version":  "1.0.0",
+    "DisplayName":  "Coordination Specialist",
+    "Description":  "Specialist for clash, clearance, opening, and penetration workflows.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "coordination-specialist",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "agent"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "coordination"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "hard_clash",
+                       "clearance_soft_clash"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

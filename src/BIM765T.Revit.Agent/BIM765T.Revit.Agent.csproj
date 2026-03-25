@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>BIM765T.Revit.Agent</AssemblyName>
+    <RootNamespace>BIM765T.Revit.Agent</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>$(Revit2024InstallDir)\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(Revit2024InstallDir)\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BIM765T.Revit.Agent.Core\BIM765T.Revit.Agent.Core.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Contracts\BIM765T.Revit.Contracts.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Contracts.Proto\BIM765T.Revit.Contracts.Proto.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Copilot.Core\BIM765T.Revit.Copilot.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\docs\agent\skills\tool-intelligence\TOOL_GRAPH.overlay.json">
+      <Link>tool-intelligence\TOOL_GRAPH.overlay.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\docs\agent\personas\*.json">
+      <Link>personas\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\rulesets\*.json">
+      <Link>rulesets\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

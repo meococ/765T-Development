@@ -1,0 +1,105 @@
+{
+  "objective": "Implement user authentication feature with JWT tokens",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Research & Exploration",
+      "parallel": true,
+      "tasks": [
+        {
+          "id": "research_auth_patterns",
+          "description": "Research modern authentication best practices",
+          "agent_type": "research",
+          "prompt": "Research JWT vs session-based authentication in 2024. Compare:\n1. Security implications\n2. Scalability characteristics\n3. Implementation complexity\n4. Best practices for token storage\n\nProvide a recommendation with rationale.",
+          "expected_output": "Comparison table with clear recommendation"
+        },
+        {
+          "id": "explore_existing_code",
+          "description": "Find existing authentication-related code",
+          "agent_type": "explore",
+          "prompt": "Search the codebase for:\n1. Existing auth middleware\n2. User models/schemas\n3. Login/logout routes\n4. Token handling utilities\n\nList all relevant files with brief descriptions.",
+          "expected_output": "List of files with authentication-related code"
+        },
+        {
+          "id": "research_security",
+          "description": "Research security considerations for JWT",
+          "agent_type": "deep-research",
+          "prompt": "Deep dive into JWT security:\n1. Common vulnerabilities (OWASP)\n2. Token expiration strategies\n3. Refresh token patterns\n4. Secure storage in browsers\n\nInclude edge cases and potential pitfalls.",
+          "expected_output": "Security checklist and implementation guidelines"
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Implementation",
+      "parallel": false,
+      "depends_on": [1],
+      "tasks": [
+        {
+          "id": "implement_auth_system",
+          "description": "Implement the authentication system",
+          "agent_type": "implement",
+          "prompt": "Based on the research from {{research_auth_patterns}} and security guidelines from {{research_security}}, implement JWT authentication:\n\n1. Create auth middleware using patterns from {{explore_existing_code}}\n2. Implement login/register endpoints\n3. Add token refresh logic\n4. Handle secure token storage\n\nFollow the security checklist from the research.",
+          "inputs": ["research_auth_patterns", "explore_existing_code", "research_security"],
+          "expected_output": "Complete auth implementation with all required files"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Review & Testing",
+      "parallel": true,
+      "depends_on": [2],
+      "tasks": [
+        {
+          "id": "security_review",
+          "description": "Security audit of the implementation",
+          "agent_type": "review",
+          "prompt": "Review the implementation from {{implement_auth_system}} for:\n1. OWASP Top 10 vulnerabilities\n2. Proper token handling\n3. SQL injection risks\n4. XSS prevention\n\nProvide a security audit report with findings and recommendations.",
+          "inputs": ["implement_auth_system"],
+          "expected_output": "Security audit report with severity ratings"
+        },
+        {
+          "id": "write_tests",
+          "description": "Write comprehensive unit tests",
+          "agent_type": "implement",
+          "prompt": "Write comprehensive tests for {{implement_auth_system}}:\n1. Unit tests for auth utilities\n2. Integration tests for login/logout flow\n3. Edge cases: expired tokens, invalid tokens, rate limiting\n4. Mock external dependencies",
+          "inputs": ["implement_auth_system"],
+          "expected_output": "Test files with high coverage"
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Final Fixes",
+      "parallel": false,
+      "depends_on": [3],
+      "tasks": [
+        {
+          "id": "apply_security_fixes",
+          "description": "Apply fixes from security review",
+          "agent_type": "implement",
+          "prompt": "Address all issues found in {{security_review}}:\n1. Fix any vulnerabilities identified\n2. Apply recommended security enhancements\n3. Ensure all tests from {{write_tests}} still pass",
+          "inputs": ["security_review", "write_tests"],
+          "expected_output": "Updated implementation with all security fixes applied"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "steps": [
+      "Run all tests: npm test",
+      "Manual test: complete login flow in browser",
+      "Verify: JWT tokens expire correctly",
+      "Verify: refresh token rotation works",
+      "Check: no sensitive data in token payload"
+    ],
+    "success_criteria": [
+      "All unit and integration tests pass",
+      "No high/critical security vulnerabilities",
+      "Login/logout/refresh flow works correctly",
+      "Tokens stored securely (httpOnly cookies)",
+      "Rate limiting active on auth endpoints"
+    ]
+  }
+}

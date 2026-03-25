@@ -1,0 +1,54 @@
+﻿{
+    "PackType":  "agent-pack",
+    "PackId":  "bim765t.agents.specialist.governance",
+    "Version":  "1.0.0",
+    "DisplayName":  "Governance Specialist",
+    "Description":  "Specialist for standards, sheets/views, parameters, and workset governance.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "governance-specialist",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "agent"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "naming_convention",
+                       "sheet_package",
+                       "parameter_population",
+                       "warning_triage",
+                       "lod_loi_compliance"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

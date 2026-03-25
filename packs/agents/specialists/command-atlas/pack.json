@@ -1,0 +1,24 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.command-atlas",
+  "Version": "1.0.0",
+  "DisplayName": "Command Atlas Specialist",
+  "Description": "Behavioral specialist for quick-path command lookup, atlas coverage, and safe command dispatch.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [ "2024" ],
+    "SupportedHosts": [ "workerhost", "revit-agent" ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "command-atlas-specialist"
+    }
+  ],
+  "EnabledByDefault": true,
+  "CapabilityDomains": [ "intent", "governance" ],
+  "SupportedDisciplines": [ "common", "architecture" ],
+  "IssueKinds": [ "intent_compile", "sheet_package", "naming_convention" ]
+}

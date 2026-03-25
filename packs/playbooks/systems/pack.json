@@ -1,0 +1,61 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.systems",
+    "Version":  "1.0.0",
+    "DisplayName":  "Systems Playbooks",
+    "Description":  "Playbooks for connectivity, disconnected systems, slope remediation, and limited routing.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "system_disconnected_fix.v1",
+                        "RelativePath":  "assets/system_disconnected_fix.v1.json",
+                        "ExportKind":  "playbook"
+                    },
+                    {
+                        "ExportId":  "system_slope_remediation.v1",
+                        "RelativePath":  "assets/system_slope_remediation.v1.json",
+                        "ExportKind":  "playbook"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "systems"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "disconnected_system",
+                       "slope_continuity",
+                       "basic_routing",
+                       "system_sizing"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

@@ -1,0 +1,48 @@
+﻿{
+    "PackType":  "skill-pack",
+    "PackId":  "bim765t.skills.intent",
+    "Version":  "1.0.0",
+    "DisplayName":  "Intent Skills",
+    "Description":  "Guidance for NL task compilation and validation into deterministic task plans.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "intent-skill",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "skill"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "intent"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "intent_compile"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "report_only"
+                          ]
+}

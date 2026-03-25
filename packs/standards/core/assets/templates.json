@@ -1,0 +1,9 @@
+{
+  "view_templates": {
+    "architectural_plan": "BIM765T_Arch_Plan_v2",
+    "structural_plan": "BIM765T_Str_Plan_v1",
+    "mep_plan": "BIM765T_MEP_Plan_v3",
+    "section": "BIM765T_Section_General",
+    "sheet_review": "BIM765T_Sheet_QC_v1"
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "765T Agent Router — Agent Discovery & Collaboration Registry",
+  "_description": "Machine-readable registry so agents auto-discover capabilities, route problems, and collaborate without hardcoded references.",
+  "_version": "1.0.0",
+  "_updated": "2026-03-21",
+
+  "agents": {
+    "bim-manager-pro": {
+      "displayName": "BIM Manager Pro",
+      "persona": "bim_manager_pro",
+      "model": "sonnet",
+      "teamRole": "lead",
+      "capabilities": [
+        "bim-strategy",
+        "standards-review",
+        "lod-compliance",
+        "workflow-design",
+        "quality-gate",
+        "risk-assessment",
+        "domain-translation",
+        "coordination-planning",
+        "clash-strategy",
+        "deliverable-planning"
+      ],
+      "domains": ["bim", "standards", "coordination", "project-management", "quality"],
+      "canHandle": {
+        "questions": ["Is this BIM-compliant?", "What LOD do we need?", "How does this affect coordination?", "Is this safe for production?"],
+        "tasks": ["review-plan", "approve-mutation", "set-bim-strategy", "define-naming-convention", "evaluate-risk"],
+        "triggers": ["before:tier2-mutation", "before:release", "on:architecture-decision", "on:standards-question"]
+      },
+      "escalatesTo": null,
+      "delegatesTo": {
+        "technical-feasibility": "revit-api-developer",
+        "user-research": "research-frontend-organizer",
+        "ui-implementation": "revit-ui-engineer",
+        "release-publish": "marketing-repo-manager"
+      },
+      "memoryNamespace": "agent.bim-manager-pro",
+      "priority": 100
+    },
+
+    "revit-api-developer": {
+      "displayName": "Revit API Developer",
+      "persona": "revit_api_developer",
+      "model": "sonnet",
+      "teamRole": "specialist",
+      "capabilities": [
+        "revit-api-research",
+        "csharp-implementation",
+        "tool-development",
+        "transaction-management",
+        "performance-optimization",
+        "filteredelementcollector",
+        "family-api",
+        "parameter-api",
+        "geometry-api",
+        "mep-api",
+        "ifc-export",
+        "extensible-storage",
+        "external-event",
+        "powershell-scripting",
+        "grpc-integration",
+        "named-pipe-protocol"
+      ],
+      "domains": ["revit-api", "csharp", "dotnet", "backend", "automation", "testing"],
+      "canHandle": {
+        "questions": ["Can Revit API do X?", "How to query elements by Y?", "What's the transaction pattern for Z?"],
+        "tasks": ["implement-tool", "fix-api-bug", "optimize-collector", "write-tests", "create-workflow-script"],
+        "triggers": ["on:implementation-needed", "on:api-question", "on:performance-issue", "on:test-failure"]
+      },
+      "escalatesTo": "bim-manager-pro",
+      "delegatesTo": {
+        "ui-binding": "revit-ui-engineer",
+        "feature-spec": "research-frontend-organizer",
+        "code-commit": "marketing-repo-manager"
+      },
+      "memoryNamespace": "agent.revit-api-developer",
+      "priority": 90
+    },
+
+    "revit-ui-engineer": {
+      "displayName": "Revit UI Engineer",
+      "persona": "revit_ui_engineer",
+      "model": "sonnet",
+      "teamRole": "specialist",
+      "capabilities": [
+        "xaml-implementation",
+        "wpf-layout",
+        "mvvm-architecture",
+        "viewmodel-design",
+        "data-binding",
+        "ui-threading",
+        "custom-controls",
+        "theme-system",
+        "accessibility",
+        "animation",
+        "virtualization",
+        "resource-dictionary",
+        "dockable-pane",
+        "dispatcher-marshaling"
+      ],
+      "domains": ["wpf", "xaml", "mvvm", "ui", "frontend", "accessibility", "theming"],
+      "canHandle": {
+        "questions": ["How to bind X to UI?", "Best XAML layout for Y?", "How to make this accessible?"],
+        "tasks": ["implement-xaml", "create-viewmodel", "build-component", "add-theme", "fix-ui-bug", "add-accessibility"],
+        "triggers": ["on:wireframe-ready", "on:ui-bug", "on:new-tab-needed", "on:theme-change"]
+      },
+      "escalatesTo": "bim-manager-pro",
+      "delegatesTo": {
+        "backend-api": "revit-api-developer",
+        "ux-design": "research-frontend-organizer",
+        "ui-screenshot": "marketing-repo-manager"
+      },
+      "memoryNamespace": "agent.revit-ui-engineer",
+      "priority": 85
+    },
+
+    "research-frontend-organizer": {
+      "displayName": "Research & Frontend Organizer",
+      "persona": "research_frontend_organizer",
+      "model": "sonnet",
+      "teamRole": "specialist",
+      "capabilities": [
+        "user-research",
+        "competitive-analysis",
+        "feature-discovery",
+        "pain-point-analysis",
+        "ux-design",
+        "wireframing",
+        "information-architecture",
+        "skill-pack-curation",
+        "task-template-design",
+        "persona-mapping",
+        "value-proposition",
+        "workflow-observation"
+      ],
+      "domains": ["ux", "research", "design", "features", "competitive-intelligence", "skill-packs"],
+      "canHandle": {
+        "questions": ["What do users need?", "What do competitors offer?", "How should this feature work?"],
+        "tasks": ["research-users", "analyze-competitors", "design-feature", "create-wireframe", "curate-skill-pack", "design-task-template"],
+        "triggers": ["on:new-feature-idea", "on:user-complaint", "on:market-research", "on:skill-pack-update"]
+      },
+      "escalatesTo": "bim-manager-pro",
+      "delegatesTo": {
+        "xaml-build": "revit-ui-engineer",
+        "api-feasibility": "revit-api-developer",
+        "publish-content": "marketing-repo-manager"
+      },
+      "memoryNamespace": "agent.research-frontend-organizer",
+      "priority": 80
+    },
+
+    "marketing-repo-manager": {
+      "displayName": "Marketing & Repo Manager",
+      "persona": "marketing_repo_manager",
+      "model": "sonnet",
+      "teamRole": "specialist",
+      "capabilities": [
+        "git-workflow",
+        "commit-management",
+        "branch-strategy",
+        "pr-management",
+        "release-engineering",
+        "changelog-generation",
+        "web-development",
+        "content-marketing",
+        "documentation",
+        "community-management",
+        "ci-cd-pipeline",
+        "semantic-versioning"
+      ],
+      "domains": ["devops", "git", "web", "marketing", "documentation", "release", "community"],
+      "canHandle": {
+        "questions": ["How to version this?", "What goes in the changelog?", "How to announce this feature?"],
+        "tasks": ["commit-code", "create-pr", "manage-release", "write-announcement", "update-docs", "build-website", "manage-issues"],
+        "triggers": ["on:code-ready", "on:release-needed", "on:docs-outdated", "on:feature-shipped"]
+      },
+      "escalatesTo": "bim-manager-pro",
+      "delegatesTo": {
+        "domain-review": "bim-manager-pro",
+        "tech-changelog": "revit-api-developer",
+        "feature-content": "research-frontend-organizer"
+      },
+      "memoryNamespace": "agent.marketing-repo-manager",
+      "priority": 75
+    }
+  },
+
+  "routing": {
+    "_description": "Rules for automatically routing tasks/questions to the right agent",
+
+    "matchStrategy": "capability-first",
+
+    "rules": [
+      {
+        "id": "R001",
+        "name": "BIM domain questions → Agent 1",
+        "condition": "keywords INTERSECT ['LOD', 'BIM', 'coordination', 'clash', 'standard', 'ISO', 'naming convention', 'BEP', 'CDE']",
+        "target": "bim-manager-pro",
+        "priority": 100
+      },
+      {
+        "id": "R002",
+        "name": "Revit API / C# code → Agent 2",
+        "condition": "keywords INTERSECT ['Revit API', 'C#', 'transaction', 'FilteredElementCollector', 'ExternalEvent', 'tool development', 'ToolModule']",
+        "target": "revit-api-developer",
+        "priority": 90
+      },
+      {
+        "id": "R003",
+        "name": "XAML / WPF / UI → Agent 5",
+        "condition": "keywords INTERSECT ['XAML', 'WPF', 'ViewModel', 'binding', 'UserControl', 'theme', 'dark mode', 'accessibility', 'UI component']",
+        "target": "revit-ui-engineer",
+        "priority": 85
+      },
+      {
+        "id": "R004",
+        "name": "User research / UX / features → Agent 3",
+        "condition": "keywords INTERSECT ['user research', 'competitive', 'feature proposal', 'wireframe', 'pain point', 'pyRevit', 'DiRoots', 'skill pack']",
+        "target": "research-frontend-organizer",
+        "priority": 80
+      },
+      {
+        "id": "R005",
+        "name": "Git / release / web / docs → Agent 4",
+        "condition": "keywords INTERSECT ['commit', 'branch', 'PR', 'release', 'changelog', 'website', 'marketing', 'announcement', 'deploy']",
+        "target": "marketing-repo-manager",
+        "priority": 75
+      },
+      {
+        "id": "R006",
+        "name": "Tier 2 mutation → Agent 1 approval required",
+        "condition": "task.riskTier == 2",
+        "target": "bim-manager-pro",
+        "priority": 200,
+        "action": "require-approval"
+      },
+      {
+        "id": "R007",
+        "name": "Cross-domain task → multi-agent pipeline",
+        "condition": "keywords SPAN MULTIPLE agent.domains",
+        "target": "bim-manager-pro",
+        "priority": 150,
+        "action": "orchestrate-pipeline"
+      }
+    ],
+
+    "fallback": {
+      "strategy": "escalate-to-lead",
+      "target": "bim-manager-pro",
+      "message": "Không match được agent nào — chuyển cho đội trưởng phân công."
+    },
+
+    "collaboration": {
+      "maxConcurrentAgents": 3,
+      "messageFormat": "relay",
+      "stateSharing": "via-memory-namespace",
+      "conflictResolution": "lead-decides"
+    }
+  },
+
+  "pipelines": {
+    "feature": {
+      "name": "Feature Development Pipeline",
+      "steps": [
+        { "agent": "bim-manager-pro", "action": "strategy-review", "gate": true },
+        { "agent": "research-frontend-organizer", "action": "user-research", "gate": false },
+        { "agent": "research-frontend-organizer", "action": "wireframe-design", "gate": true },
+        { "agent": "revit-ui-engineer", "action": "xaml-prototype", "gate": false },
+        { "agent": "revit-api-developer", "action": "backend-implementation", "gate": false },
+        { "agent": "revit-ui-engineer", "action": "frontend-integration", "gate": false },
+        { "agent": "bim-manager-pro", "action": "quality-review", "gate": true },
+        { "agent": "marketing-repo-manager", "action": "commit-release", "gate": false }
+      ]
+    },
+    "bugfix": {
+      "name": "Bug Fix Pipeline",
+      "steps": [
+        { "agent": "revit-api-developer", "action": "diagnose", "gate": false },
+        { "agent": "bim-manager-pro", "action": "impact-review", "gate": true },
+        { "agent": "revit-api-developer", "action": "fix-implement", "gate": false },
+        { "agent": "revit-ui-engineer", "action": "ui-fix-if-needed", "gate": false },
+        { "agent": "marketing-repo-manager", "action": "commit-changelog", "gate": false }
+      ]
+    },
+    "content": {
+      "name": "Content Creation Pipeline",
+      "steps": [
+        { "agent": "research-frontend-organizer", "action": "research-topic", "gate": false },
+        { "agent": "bim-manager-pro", "action": "domain-validate", "gate": true },
+        { "agent": "marketing-repo-manager", "action": "write-publish", "gate": false }
+      ]
+    }
+  }
+}

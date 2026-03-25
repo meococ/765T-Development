@@ -1,0 +1,20 @@
+{
+  "ScheduleName": "Mii_Pen-Rectangle Axis Review",
+  "CategoryName": "Generic Models",
+  "IsItemized": true,
+  "ShowGrandTotal": true,
+  "Fields": [
+    { "ParameterName": "Family",    "ColumnHeading": "Family" },
+    { "ParameterName": "Type",      "ColumnHeading": "Type" },
+    { "ParameterName": "Mark",      "ColumnHeading": "Mark" },
+    { "ParameterName": "Level",     "ColumnHeading": "Level" },
+    { "ParameterName": "Comments",  "ColumnHeading": "Axis Audit Status" }
+  ],
+  "Filters": [
+    { "ParameterName": "Family", "Operator": "Contains", "Value": "Mii_Pen-Rec" }
+  ],
+  "Sorts": [
+    { "ParameterName": "Family",  "Ascending": true },
+    { "ParameterName": "Type",    "Ascending": true }
+  ]
+}

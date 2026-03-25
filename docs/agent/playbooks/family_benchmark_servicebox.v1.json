@@ -1,0 +1,160 @@
+{
+  "PlaybookId": "family_benchmark_servicebox",
+  "Version": "1.0",
+  "Description": "Benchmark deterministic cho family authoring backend: document -> params -> planes -> forms -> visibility/material -> type catalog -> verify.",
+  "Lane": "B",
+  "RequiredContext": "family_document",
+  "PresetRef": "docs/agent/presets/family_benchmark_servicebox.v1.json",
+  "DecisionGate": {
+    "Use_When": [
+      "muon harden backend family authoring bang benchmark deterministic",
+      "muon stress test lane parameter/formula/reference plane/type catalog",
+      "muon co artifact pass/fail ro rang truoc khi mo connector/alignment/exotic geometry"
+    ],
+    "Dont_Use_When": [
+      "muc tieu la giao commercial family production-ready ngay",
+      "task bat buoc connector, nested family, hoac adaptive geometry ngay tu pass dau",
+      "can full flex geometry theo type catalog truoc khi xac nhan lane alignment"
+    ],
+    "Prefer_Over": "family_create_parametric.v1.json khi muc tieu la hardening backend truoc, khong phai geometry showcase."
+  },
+  "Steps": [
+    {
+      "StepNum": 1,
+      "StepName": "create_document",
+      "Tool": "family.create_document_safe",
+      "Purpose": "Tao family benchmark moi va activate vao UI de cac buoc sau target dung family doc.",
+      "Verify": "document.get_active -> IsFamilyDocument = true, Title contains benchmark family name."
+    },
+    {
+      "StepNum": 2,
+      "StepName": "add_parameters",
+      "Tool": "family.add_parameter_safe",
+      "Purpose": "Tao parameter graph cho geometry, formulas, visibility, va material.",
+      "Repeat": 17,
+      "Verify": "family.xray shows type + instance parameters for Width/Height/Depth/visibility/material."
+    },
+    {
+      "StepNum": 3,
+      "StepName": "add_reference_planes",
+      "Tool": "family.add_reference_plane_safe",
+      "Purpose": "Tao 7 reference planes on dinh cho dimension va benchmark verification.",
+      "Repeat": 7,
+      "Verify": "family.list_geometry shows required reference plane names."
+    },
+    {
+      "StepNum": 4,
+      "StepName": "create_subcategories",
+      "Tool": "family.create_subcategory_safe",
+      "Purpose": "Tao Body / Accessories / Voids de benchmark graphics + grouping lane.",
+      "Repeat": 3,
+      "Verify": "Subcategories exist and can be reused by geometry forms."
+    },
+    {
+      "StepNum": 5,
+      "StepName": "create_forms",
+      "Tool": "family.create_extrusion_safe",
+      "Purpose": "Tao 4 forms deterministic: body, cavity void, access panel, inspection window.",
+      "Repeat": 4,
+      "OutputCapture": [
+        "body_form_id",
+        "cavity_void_form_id",
+        "access_panel_form_id",
+        "inspection_window_form_id"
+      ],
+      "Verify": "family.list_geometry shows >= 4 forms."
+    },
+    {
+      "StepNum": 6,
+      "StepName": "assign_subcategories",
+      "Tool": "family.set_subcategory_safe",
+      "Purpose": "Gan subcategory ro rang cho tung form thay vi rely vao magic defaults.",
+      "Repeat": 4,
+      "Verify": "family.list_geometry shows expected SubcategoryName values."
+    },
+    {
+      "StepNum": 7,
+      "StepName": "bind_materials",
+      "Tool": "family.bind_material_safe",
+      "Purpose": "Bind material parameters vao body va accessory forms.",
+      "Repeat": 3,
+      "Verify": "No fatal diagnostics; material binding degrades to warning neu family/editor khong ho tro toan bo path."
+    },
+    {
+      "StepNum": 8,
+      "StepName": "bind_visibility",
+      "Tool": "family.set_parameter_visibility_safe",
+      "Purpose": "Gan yes/no visibility cho access panel va inspection window.",
+      "Repeat": 2,
+      "Verify": "family.xray shows HasAccessPanel / HasInspectionWindow and no fatal visibility diagnostics."
+    },
+    {
+      "StepNum": 9,
+      "StepName": "add_dimensions",
+      "Tool": "family.add_dimension_safe",
+      "Purpose": "Tao width / depth / height dimensions giua reference planes va bind vao parameters.",
+      "Repeat": 3,
+      "Verify": "No FAMILY_DIMENSION_INVALID errors."
+    },
+    {
+      "StepNum": 10,
+      "StepName": "set_formulas",
+      "Tool": "family.set_parameter_formula_safe",
+      "Purpose": "Khoi dong formula graph de harden parameter/formula lane.",
+      "Repeat": 7,
+      "Verify": "family.xray -> FormulaParameters count >= 7."
+    },
+    {
+      "StepNum": 11,
+      "StepName": "set_type_catalog",
+      "Tool": "family.set_type_catalog_safe",
+      "Purpose": "Tao 5 benchmark types co visibility/config combinations khac nhau.",
+      "Verify": "family.xray -> TypesCount >= 5 and required type names exist."
+    },
+    {
+      "StepNum": 12,
+      "StepName": "save",
+      "Tool": "family.save_safe",
+      "Purpose": "Luu benchmark family ra file .rfa.",
+      "Verify": "SAVE_SUCCEEDED."
+    },
+    {
+      "StepNum": 13,
+      "StepName": "verify_xray",
+      "Tool": "family.xray",
+      "Purpose": "Kiem tra anatomy benchmark sau khi setup xong.",
+      "Verify": "TypesCount >= 5, formulas present, reference planes present."
+    },
+    {
+      "StepNum": 14,
+      "StepName": "verify_geometry",
+      "Tool": "family.list_geometry",
+      "Purpose": "Kiem tra forms/subcategories/reference planes.",
+      "Verify": "Forms >= 4 and required subcategories/reference planes exist."
+    }
+  ],
+  "StretchScenarios": [
+    {
+      "ScenarioId": "alignment_smoke",
+      "EnabledByDefault": false,
+      "Goal": "Test family.add_alignment_safe cho top/bottom face, tách riêng khỏi core benchmark.",
+      "ReasonDeferred": "Face indexing va view-specific alignment can fail noisy; khong de nhieu benchmark core."
+    },
+    {
+      "ScenarioId": "connector_smoke",
+      "EnabledByDefault": false,
+      "Goal": "Test family.add_connector_safe tren template Mechanical Equipment.",
+      "ReasonDeferred": "Connector semantics va system classification la lane khac, nen mo sau khi core generic benchmark on dinh."
+    }
+  ],
+  "ExpectedResult": {
+    "FamilyName": "ME_Benchmark_Parametric_ServiceBox_v1",
+    "Category": "Generic Models",
+    "ParametersMin": 17,
+    "ReferencePlanesMin": 7,
+    "GeometryFormsMin": 4,
+    "VisibilityControlledForms": 2,
+    "FormulaCountMin": 7,
+    "TypesMin": 5
+  }
+}

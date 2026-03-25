@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "agent-pack",
+    "PackId":  "bim765t.agents.specialist.integration",
+    "Version":  "1.0.0",
+    "DisplayName":  "Integration Specialist",
+    "Description":  "Specialist for adapters, sync previews, and external cost/time context.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "integration-specialist",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "agent"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "integration"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "external_sync",
+                       "scan_to_bim",
+                       "large_model_split"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

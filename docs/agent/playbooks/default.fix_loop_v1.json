@@ -1,0 +1,77 @@
+{
+  "PlaybookName": "default.fix_loop_v1",
+  "Version": "1.0",
+  "ParameterHygieneRules": [
+    {
+      "ParameterName": "Comments",
+      "Strategy": "batch_fill",
+      "FillValue": "REVIEW_REQUIRED",
+      "RiskLevel": "medium",
+      "Priority": 30,
+      "Recommendation": "recommended"
+    },
+    {
+      "ParameterName": "Mark",
+      "Strategy": "import_file",
+      "RiskLevel": "high",
+      "Priority": 10,
+      "Recommendation": "review_only"
+    },
+    {
+      "ParameterName": "Type Comments",
+      "Strategy": "batch_fill",
+      "FillValue": "REVIEW_REQUIRED",
+      "RiskLevel": "medium",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    }
+  ],
+  "SafeCleanup": {
+    "DeleteDuplicateGroups": true,
+    "DeleteUnusedViews": true,
+    "IncludeUnusedFamiliesReview": true,
+    "ChunkSize": 25
+  },
+  "ViewTemplateRules": [
+    {
+      "ViewType": "FloorPlan",
+      "TargetTemplateName": "PLAN",
+      "TargetTemplateNameContains": "PLAN",
+      "RiskLevel": "low",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    },
+    {
+      "ViewType": "CeilingPlan",
+      "TargetTemplateName": "RCP",
+      "TargetTemplateNameContains": "RCP",
+      "RiskLevel": "low",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    },
+    {
+      "ViewType": "Section",
+      "TargetTemplateName": "SECTION",
+      "TargetTemplateNameContains": "SECTION",
+      "RiskLevel": "low",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    },
+    {
+      "ViewType": "Elevation",
+      "TargetTemplateName": "ELEV",
+      "TargetTemplateNameContains": "ELEV",
+      "RiskLevel": "low",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    },
+    {
+      "ViewType": "ThreeD",
+      "TargetTemplateName": "3D",
+      "TargetTemplateNameContains": "3D",
+      "RiskLevel": "low",
+      "Priority": 20,
+      "Recommendation": "recommended"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "sheet_filters": {
+    "architectural_plan": [
+      "BIM765T_Filter_Levels",
+      "BIM765T_Filter_Zones"
+    ],
+    "mep_plan": [
+      "BIM765T_Filter_Ducts",
+      "BIM765T_Filter_Pipes"
+    ]
+  }
+}

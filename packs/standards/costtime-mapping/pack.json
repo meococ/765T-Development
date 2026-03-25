@@ -1,0 +1,48 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.costtime.mapping",
+    "Version":  "1.0.0",
+    "DisplayName":  "Cost/Time Mapping Standards",
+    "Description":  "External sync mappings for BOQ, cost, time, and change-delta reporting.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "mapping",
+                        "RelativePath":  "assets/mapping.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "integration"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "external_sync",
+                       "large_model_split"
+                   ],
+    "VerificationModes":  [
+                              "report_only"
+                          ]
+}

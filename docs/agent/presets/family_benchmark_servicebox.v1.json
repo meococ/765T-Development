@@ -1,0 +1,250 @@
+{
+  "PresetId": "family_benchmark_servicebox_v1",
+  "Description": "Default preset cho benchmark family authoring deterministic ServiceBox v1. Gia tri hinh hoc dung internal Revit feet.",
+  "FamilyName": "ME_Benchmark_Parametric_ServiceBox_v1",
+  "TemplateCategory": "generic_model",
+  "UnitSystem": "metric",
+  "OutputRoot": "{repoRoot}\\artifacts\\family-authoring-benchmark\\families",
+  "ArtifactRoot": "{repoRoot}\\artifacts\\family-authoring-benchmark\\runs",
+  "Parameters": [
+    { "ParameterName": "Width", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "3.0", "Description": "Tong be rong benchmark box." },
+    { "ParameterName": "Height", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "2.0", "Description": "Tong chieu cao benchmark box." },
+    { "ParameterName": "Depth", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "1.5", "Description": "Tong be sau benchmark box." },
+    { "ParameterName": "WallThickness", "ParameterType": "Length", "ParameterGroup": "constraints", "IsInstance": false, "DefaultValue": "0.125", "Description": "Do day thanh box." },
+    { "ParameterName": "PanelThickness", "ParameterType": "Length", "ParameterGroup": "constraints", "IsInstance": false, "DefaultValue": "0.0625", "Description": "Do day tam access panel." },
+    { "ParameterName": "Clearance", "ParameterType": "Length", "ParameterGroup": "constraints", "IsInstance": false, "DefaultValue": "0.125", "Description": "Clearance benchmark cho lane formula." },
+    { "ParameterName": "InnerWidth", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "2.75", "Description": "Derived inner width." },
+    { "ParameterName": "InnerHeight", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "1.75", "Description": "Derived inner height." },
+    { "ParameterName": "InnerDepth", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "1.375", "Description": "Derived inner depth." },
+    { "ParameterName": "PanelOffset", "ParameterType": "Length", "ParameterGroup": "constraints", "IsInstance": false, "DefaultValue": "0.75", "Description": "Derived panel offset." },
+    { "ParameterName": "WindowWidth", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "1.0", "Description": "Inspection window width." },
+    { "ParameterName": "WindowHeight", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "0.3333", "Description": "Inspection window height." },
+    { "ParameterName": "VoidDepth", "ParameterType": "Length", "ParameterGroup": "geometry", "IsInstance": false, "DefaultValue": "1.625", "Description": "Derived benchmark void depth." },
+    { "ParameterName": "HasAccessPanel", "ParameterType": "YesNo", "ParameterGroup": "data", "IsInstance": false, "DefaultValue": "1", "Description": "Visibility gate cho access panel." },
+    { "ParameterName": "HasInspectionWindow", "ParameterType": "YesNo", "ParameterGroup": "data", "IsInstance": false, "DefaultValue": "1", "Description": "Visibility gate cho inspection window." },
+    { "ParameterName": "BodyMaterial", "ParameterType": "Material", "ParameterGroup": "materials", "IsInstance": false, "DefaultValue": "", "Description": "Material binding cho body form." },
+    { "ParameterName": "AccessoryMaterial", "ParameterType": "Material", "ParameterGroup": "materials", "IsInstance": false, "DefaultValue": "", "Description": "Material binding cho accessory forms." }
+  ],
+  "ReferencePlanes": [
+    { "Name": "Left", "OriginX": -1.5, "OriginY": 0.0, "OriginZ": 0.0, "NormalX": 1.0, "NormalY": 0.0, "NormalZ": 0.0, "ExtentFeet": 4.0 },
+    { "Name": "Right", "OriginX": 1.5, "OriginY": 0.0, "OriginZ": 0.0, "NormalX": 1.0, "NormalY": 0.0, "NormalZ": 0.0, "ExtentFeet": 4.0 },
+    { "Name": "Front", "OriginX": 0.0, "OriginY": -0.75, "OriginZ": 0.0, "NormalX": 0.0, "NormalY": 1.0, "NormalZ": 0.0, "ExtentFeet": 4.0 },
+    { "Name": "Back", "OriginX": 0.0, "OriginY": 0.75, "OriginZ": 0.0, "NormalX": 0.0, "NormalY": 1.0, "NormalZ": 0.0, "ExtentFeet": 4.0 },
+    { "Name": "Ref_Level", "OriginX": 0.0, "OriginY": 0.0, "OriginZ": 0.0, "NormalX": 0.0, "NormalY": 0.0, "NormalZ": 1.0, "ExtentFeet": 4.0 },
+    { "Name": "Top_Extent", "OriginX": 0.0, "OriginY": 0.0, "OriginZ": 2.0, "NormalX": 0.0, "NormalY": 0.0, "NormalZ": 1.0, "ExtentFeet": 4.0 },
+    { "Name": "Mid_Height", "OriginX": 0.0, "OriginY": 0.0, "OriginZ": 1.0, "NormalX": 0.0, "NormalY": 0.0, "NormalZ": 1.0, "ExtentFeet": 4.0 }
+  ],
+  "Subcategories": [
+    { "SubcategoryName": "Benchmark_Body", "LineWeight": 4, "LineColorR": 90, "LineColorG": 90, "LineColorB": 90, "MaterialName": "" },
+    { "SubcategoryName": "Benchmark_Accessories", "LineWeight": 2, "LineColorR": 0, "LineColorG": 120, "LineColorB": 215, "MaterialName": "" },
+    { "SubcategoryName": "Benchmark_Voids", "LineWeight": 1, "LineColorR": 180, "LineColorG": 0, "LineColorB": 0, "MaterialName": "" }
+  ],
+  "Geometry": [
+    {
+      "Key": "body",
+      "Tool": "family.create_extrusion_safe",
+      "Payload": {
+        "Profile": [
+          { "X": -1.5, "Y": -0.75 },
+          { "X": 1.5, "Y": -0.75 },
+          { "X": 1.5, "Y": 0.75 },
+          { "X": -1.5, "Y": 0.75 }
+        ],
+        "StartOffset": 0.0,
+        "EndOffset": 2.0,
+        "IsVoid": false,
+        "SketchPlaneName": "",
+        "SubcategoryName": "",
+        "MaterialParameterName": ""
+      }
+    },
+    {
+      "Key": "cavity_void",
+      "Tool": "family.create_extrusion_safe",
+      "Payload": {
+        "Profile": [
+          { "X": -1.375, "Y": -0.625 },
+          { "X": 1.375, "Y": -0.625 },
+          { "X": 1.375, "Y": 0.625 },
+          { "X": -1.375, "Y": 0.625 }
+        ],
+        "StartOffset": 0.125,
+        "EndOffset": 1.875,
+        "IsVoid": true,
+        "SketchPlaneName": "",
+        "SubcategoryName": "",
+        "MaterialParameterName": ""
+      }
+    },
+    {
+      "Key": "access_panel",
+      "Tool": "family.create_extrusion_safe",
+      "Payload": {
+        "Profile": [
+          { "X": -1.125, "Y": -0.5625 },
+          { "X": 1.125, "Y": -0.5625 },
+          { "X": 1.125, "Y": 0.5625 },
+          { "X": -1.125, "Y": 0.5625 }
+        ],
+        "StartOffset": 1.875,
+        "EndOffset": 1.9375,
+        "IsVoid": false,
+        "SketchPlaneName": "",
+        "SubcategoryName": "",
+        "MaterialParameterName": ""
+      }
+    },
+    {
+      "Key": "inspection_window",
+      "Tool": "family.create_extrusion_safe",
+      "Payload": {
+        "Profile": [
+          { "X": -0.5, "Y": -0.1875 },
+          { "X": 0.5, "Y": -0.1875 },
+          { "X": 0.5, "Y": 0.1875 },
+          { "X": -0.5, "Y": 0.1875 }
+        ],
+        "StartOffset": 1.9375,
+        "EndOffset": 2.0,
+        "IsVoid": false,
+        "SketchPlaneName": "",
+        "SubcategoryName": "",
+        "MaterialParameterName": ""
+      }
+    }
+  ],
+  "SubcategoryAssignments": [
+    { "GeometryKey": "body", "SubcategoryName": "Benchmark_Body" },
+    { "GeometryKey": "cavity_void", "SubcategoryName": "Benchmark_Voids" },
+    { "GeometryKey": "access_panel", "SubcategoryName": "Benchmark_Accessories" },
+    { "GeometryKey": "inspection_window", "SubcategoryName": "Benchmark_Accessories" }
+  ],
+  "MaterialBindings": [
+    { "GeometryKey": "body", "MaterialParameterName": "BodyMaterial", "DefaultMaterialName": "" },
+    { "GeometryKey": "access_panel", "MaterialParameterName": "AccessoryMaterial", "DefaultMaterialName": "" },
+    { "GeometryKey": "inspection_window", "MaterialParameterName": "AccessoryMaterial", "DefaultMaterialName": "" }
+  ],
+  "VisibilityBindings": [
+    { "GeometryKey": "access_panel", "VisibilityParameterName": "HasAccessPanel", "DefaultVisible": true },
+    { "GeometryKey": "inspection_window", "VisibilityParameterName": "HasInspectionWindow", "DefaultVisible": true }
+  ],
+  "Dimensions": [
+    { "ReferencePlane1Name": "Left", "ReferencePlane2Name": "Right", "LabelParameterName": "Width", "IsLocked": false, "DimensionType": "linear" },
+    { "ReferencePlane1Name": "Front", "ReferencePlane2Name": "Back", "LabelParameterName": "Depth", "IsLocked": false, "DimensionType": "linear" },
+    { "ReferencePlane1Name": "Ref_Level", "ReferencePlane2Name": "Top_Extent", "LabelParameterName": "Height", "IsLocked": false, "DimensionType": "linear" }
+  ],
+  "Formulas": [
+    { "ParameterName": "InnerWidth", "Formula": "Width - (WallThickness * 2)" },
+    { "ParameterName": "InnerHeight", "Formula": "Height - (WallThickness * 2)" },
+    { "ParameterName": "InnerDepth", "Formula": "Depth - WallThickness" },
+    { "ParameterName": "PanelOffset", "Formula": "Width / 4" },
+    { "ParameterName": "WindowWidth", "Formula": "Width / 3" },
+    { "ParameterName": "WindowHeight", "Formula": "Height / 6" },
+    { "ParameterName": "VoidDepth", "Formula": "Depth + Clearance" }
+  ],
+  "TypeCatalog": {
+    "DeleteExistingTypes": false,
+    "Types": [
+      {
+        "TypeName": "SB36x24x18_Access",
+        "ParameterValues": {
+          "Width": "3.0",
+          "Height": "2.0",
+          "Depth": "1.5",
+          "WallThickness": "0.125",
+          "PanelThickness": "0.0625",
+          "Clearance": "0.125",
+          "HasAccessPanel": "1",
+          "HasInspectionWindow": "1"
+        }
+      },
+      {
+        "TypeName": "SB48x30x24_Access",
+        "ParameterValues": {
+          "Width": "4.0",
+          "Height": "2.5",
+          "Depth": "2.0",
+          "WallThickness": "0.125",
+          "PanelThickness": "0.0625",
+          "Clearance": "0.125",
+          "HasAccessPanel": "1",
+          "HasInspectionWindow": "1"
+        }
+      },
+      {
+        "TypeName": "SB60x36x24_NoWindow",
+        "ParameterValues": {
+          "Width": "5.0",
+          "Height": "3.0",
+          "Depth": "2.0",
+          "WallThickness": "0.125",
+          "PanelThickness": "0.0625",
+          "Clearance": "0.125",
+          "HasAccessPanel": "1",
+          "HasInspectionWindow": "0"
+        }
+      },
+      {
+        "TypeName": "SB72x42x30_SolidDoor",
+        "ParameterValues": {
+          "Width": "6.0",
+          "Height": "3.5",
+          "Depth": "2.5",
+          "WallThickness": "0.1875",
+          "PanelThickness": "0.0625",
+          "Clearance": "0.1875",
+          "HasAccessPanel": "1",
+          "HasInspectionWindow": "0"
+        }
+      },
+      {
+        "TypeName": "SB84x48x36_Minimal",
+        "ParameterValues": {
+          "Width": "7.0",
+          "Height": "4.0",
+          "Depth": "3.0",
+          "WallThickness": "0.1875",
+          "PanelThickness": "0.0625",
+          "Clearance": "0.1875",
+          "HasAccessPanel": "0",
+          "HasInspectionWindow": "0"
+        }
+      }
+    ]
+  },
+  "Verify": {
+    "MinimumForms": 4,
+    "MinimumReferencePlanes": 7,
+    "MinimumFormulaCount": 7,
+    "MinimumTypeCount": 5,
+    "RequiredReferencePlanes": [
+      "Left",
+      "Right",
+      "Front",
+      "Back",
+      "Ref_Level",
+      "Top_Extent",
+      "Mid_Height"
+    ],
+    "RequiredTypeNames": [
+      "SB36x24x18_Access",
+      "SB48x30x24_Access",
+      "SB60x36x24_NoWindow",
+      "SB72x42x30_SolidDoor",
+      "SB84x48x36_Minimal"
+    ],
+    "RequiredIssueFree": false
+  },
+  "StretchScenarios": [
+    {
+      "Name": "alignment_smoke",
+      "EnabledByDefault": false,
+      "Notes": "Them alignment top/bottom sau khi core benchmark da on dinh."
+    },
+    {
+      "Name": "connector_smoke",
+      "EnabledByDefault": false,
+      "Notes": "Muon connector thi chuyen sang template mechanical_equipment o wave sau."
+    }
+  ]
+}

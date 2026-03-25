@@ -1,0 +1,43 @@
+{
+  "PackType": "command-pack",
+  "PackId": "bim765t.commands.revit-core",
+  "Version": "1.0.0",
+  "DisplayName": "765T Revit Core Command Atlas",
+  "Description": "Baseline command atlas entries for core Revit command families, mapped to native commands, safe tools, and workflow wrappers.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent",
+      "mcp"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "command",
+      "RelativePath": "assets/core-command-atlas.json",
+      "ExportId": "baseline-core-atlas"
+    }
+  ],
+  "EnabledByDefault": true,
+  "CapabilityDomains": [
+    "governance",
+    "annotation",
+    "intent",
+    "family_qa"
+  ],
+  "SupportedDisciplines": [
+    "common",
+    "architecture",
+    "mep",
+    "structure"
+  ],
+  "VerificationModes": [
+    "report_only",
+    "policy_check"
+  ]
+}

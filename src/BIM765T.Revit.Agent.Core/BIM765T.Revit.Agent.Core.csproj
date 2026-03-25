@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>BIM765T.Revit.Agent.Core</AssemblyName>
+    <RootNamespace>BIM765T.Revit.Agent.Core</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BIM765T.Revit.Contracts\BIM765T.Revit.Contracts.csproj" />
+  </ItemGroup>
+</Project>

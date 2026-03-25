@@ -1,0 +1,48 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.iso19650",
+    "Version":  "1.0.0",
+    "DisplayName":  "ISO 19650 Naming Standards",
+    "Description":  "ISO 19650-aligned naming and numbering rules for views, sheets, and deliverables.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "naming",
+                        "RelativePath":  "assets/naming.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "naming_convention",
+                       "sheet_package"
+                   ],
+    "VerificationModes":  [
+                              "policy_check"
+                          ]
+}

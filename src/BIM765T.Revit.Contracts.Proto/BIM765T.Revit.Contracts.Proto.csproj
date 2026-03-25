@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>BIM765T.Revit.Contracts.Proto</AssemblyName>
+    <RootNamespace>BIM765T.Revit.Contracts.Proto</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.29.3" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.66.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.66.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\common.proto" ProtoRoot="Protos" GrpcServices="None" />
+    <Protobuf Include="Protos\catalog.proto" ProtoRoot="Protos" GrpcServices="Both" />
+    <Protobuf Include="Protos\context.proto" ProtoRoot="Protos" GrpcServices="Both" />
+    <Protobuf Include="Protos\mission.proto" ProtoRoot="Protos" GrpcServices="Both" />
+    <Protobuf Include="Protos\compat.proto" ProtoRoot="Protos" GrpcServices="Both" />
+    <Protobuf Include="Protos\kernel.proto" ProtoRoot="Protos" GrpcServices="None" />
+  </ItemGroup>
+</Project>

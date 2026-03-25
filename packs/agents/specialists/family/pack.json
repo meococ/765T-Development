@@ -1,0 +1,26 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.family",
+  "Version": "1.0.0",
+  "DisplayName": "Family Specialist",
+  "Description": "Family authoring/review specialist pack.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "family-specialist"
+    }
+  ],
+  "EnabledByDefault": true
+}

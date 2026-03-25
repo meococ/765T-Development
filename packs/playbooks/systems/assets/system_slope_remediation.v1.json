@@ -1,0 +1,74 @@
+﻿{
+    "PlaybookId":  "system_slope_remediation.v1",
+    "Version":  "1.0",
+    "Description":  "Plan slope remediation with residual/manual-review buckets.",
+    "Lane":  "systems",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "slope remediation",
+                                          "slope continuity",
+                                          "drainage slope"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "manual invert elevation edits"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "graph",
+                      "Purpose":  "Capture slope-relevant graph snapshot.",
+                      "Tool":  "system.capture_graph",
+                      "StepName":  "Capture graph",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Load slope defaults.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "plan",
+                      "Purpose":  "Prepare slope fix scaffold.",
+                      "Tool":  "system.plan_slope_remediation",
+                      "StepName":  "Plan slope fix",
+                      "StepKind":  "tool"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Slope issues are grouped into supported vs manual-review fixes.",
+                   "Tool":  "system.plan_slope_remediation"
+               },
+    "PackId":  "bim765t.playbooks.systems",
+    "TriggerPhrases":  [
+                           "slope continuity",
+                           "fix slope",
+                           "do doc ong"
+                       ],
+    "StandardsRefs":  [
+                          "routing.json#routing.slope_defaults"
+                      ],
+    "RequiredInputs":  [
+                           "system_name"
+                       ],
+    "ReportTemplate":  "system_slope_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.systems"
+                               ],
+    "CapabilityDomain":  "systems",
+    "DeterminismLevel":  "scaffold",
+    "VerificationMode":  "system_consistency",
+    "SupportedDisciplines":  [
+                                 "plumbing",
+                                 "mep"
+                             ],
+    "IssueKinds":  [
+                       "slope_continuity"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.routing.rules"
+                      ]
+}

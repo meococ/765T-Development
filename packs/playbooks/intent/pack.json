@@ -1,0 +1,51 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.intent",
+    "Version":  "1.0.0",
+    "DisplayName":  "Intent Playbooks",
+    "Description":  "Playbooks for natural-language query/compile workflows.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  {
+                    "ExportId":  "intent_nl_query_compile.v1",
+                    "RelativePath":  "assets/intent_nl_query_compile.v1.json",
+                    "ExportKind":  "playbook"
+                },
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "intent"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "intent_compile"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

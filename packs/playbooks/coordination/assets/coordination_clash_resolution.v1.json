@@ -1,0 +1,85 @@
+﻿{
+    "PlaybookId":  "coordination_clash_resolution.v1",
+    "Version":  "1.0",
+    "Description":  "Detect clashes, resolve priority rules, and prepare preview/verify loops.",
+    "Lane":  "coordination",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "hard clash",
+                                          "opening clash",
+                                          "penetration"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "flat clash detect only"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Load clash priority and clearance rules.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "scan",
+                      "Purpose":  "Collect coordination issues.",
+                      "Tool":  "spatial.clash_detect",
+                      "StepName":  "Detect clashes",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "specialist",
+                      "Purpose":  "Route to coordination specialist.",
+                      "Tool":  "specialist.resolve",
+                      "StepName":  "Resolve specialists",
+                      "StepKind":  "routing"
+                  },
+                  {
+                      "StepId":  "compile",
+                      "Purpose":  "Compile fix/verify plan.",
+                      "Tool":  "intent.compile",
+                      "StepName":  "Compile plan",
+                      "StepKind":  "routing"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Clashes are classified and fix lanes are proposed.",
+                   "Tool":  "spatial.clash_detect"
+               },
+    "PackId":  "bim765t.playbooks.coordination",
+    "TriggerPhrases":  [
+                           "hard clash",
+                           "xung dot",
+                           "penetration"
+                       ],
+    "StandardsRefs":  [
+                          "routing.json#routing.priority",
+                          "clearance.json#clearance.AHU_front_mm"
+                      ],
+    "RequiredInputs":  [
+                           "target_zone"
+                       ],
+    "ReportTemplate":  "coordination_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.coordination"
+                               ],
+    "CapabilityDomain":  "coordination",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "geometry_check",
+    "SupportedDisciplines":  [
+                                 "mep",
+                                 "structure",
+                                 "architecture"
+                             ],
+    "IssueKinds":  [
+                       "hard_clash",
+                       "clearance_soft_clash"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.mep.clearance",
+                          "bim765t.standards.routing.rules"
+                      ]
+}

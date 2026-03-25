@@ -1,0 +1,26 @@
+{
+  "PackType": "skill-pack",
+  "PackId": "bim765t.skills.core",
+  "Version": "1.0.0",
+  "DisplayName": "BIM765T Skill Guidance Core",
+  "Description": "Thin guidance pack for anti-patterns, heuristics, and review checklists.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "assistant",
+      "workerhost"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "skill",
+      "RelativePath": "assets/README.md",
+      "ExportId": "skill-index"
+    }
+  ],
+  "EnabledByDefault": true
+}

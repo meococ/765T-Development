@@ -1,0 +1,26 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.audit",
+  "Version": "1.0.0",
+  "DisplayName": "Audit Specialist",
+  "Description": "Audit/QC specialist pack for model health, compliance, and evidence review.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "audit-specialist"
+    }
+  ],
+  "EnabledByDefault": true
+}

@@ -1,0 +1,10 @@
+{
+  "UseActiveViewOnly": false,
+  "IncludeAlignedItems": true,
+  "TreatMirroredAsMismatch": true,
+  "AngleToleranceDegrees": 1.0,
+  "MaxElements": 6500,
+  "MaxIssues": 500,
+  "AnalyzeNestedFamilies": false,
+  "HighlightInUi": true
+}

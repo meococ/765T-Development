@@ -1,0 +1,243 @@
+﻿{
+    "GeneratedAtUtc":  "2026-03-24T02:11:09.7642561Z",
+    "PathMode":  "repo-relative",
+    "Playbooks":  [
+                      {
+                          "PlaybookId":  "annotation_smart_tag_dimension.v1",
+                          "PackId":  "bim765t.playbooks.annotation",
+                          "Description":  "Smart annotation pass with overlap-aware tagging and dimension checks.",
+                          "TriggerPhrases":  [
+                                                 "smart tag",
+                                                 "dimensioning",
+                                                 "tag door room"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "target_view"
+                                             ],
+                          "StandardsRefs":  [
+                                                "naming.json#iso19650.view_name"
+                                            ],
+                          "SourcePath":  "packs/playbooks/annotation/assets/annotation_smart_tag_dimension.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "room_finish_generate.v1",
+                          "PackId":  "bim765t.playbooks.annotation",
+                          "Description":  "Generate room-based floor/ceiling finishes from room boundaries with preview first.",
+                          "TriggerPhrases":  [
+                                                 "ceiling by room",
+                                                 "floor by room",
+                                                 "room finish"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "level"
+                                             ],
+                          "StandardsRefs":  [
+
+                                            ],
+                          "SourcePath":  "packs/playbooks/annotation/assets/room_finish_generate.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "coordination_clash_resolution.v1",
+                          "PackId":  "bim765t.playbooks.coordination",
+                          "Description":  "Detect clashes, resolve priority rules, and prepare preview/verify loops.",
+                          "TriggerPhrases":  [
+                                                 "hard clash",
+                                                 "xung dot",
+                                                 "penetration"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "target_zone"
+                                             ],
+                          "StandardsRefs":  [
+                                                "routing.json#routing.priority",
+                                                "clearance.json#clearance.AHU_front_mm"
+                                            ],
+                          "SourcePath":  "packs/playbooks/coordination/assets/coordination_clash_resolution.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "family_benchmark_servicebox",
+                          "PackId":  "bim765t.playbooks.core",
+                          "Description":  "Benchmark deterministic cho family authoring backend: document -\u003e params -\u003e planes -\u003e forms -\u003e visibility/material -\u003e type catalog -\u003e verify.",
+                          "TriggerPhrases":  [
+                                                 "family benchmark service box"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "family_name"
+                                             ],
+                          "StandardsRefs":  [
+
+                                            ],
+                          "SourcePath":  "packs/playbooks/core/assets/family_benchmark_servicebox.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "sheet_create_arch_package.v1",
+                          "PackId":  "bim765t.playbooks.core",
+                          "Description":  "Create one architectural sheet package per requested level using workspace standards, then run sheet QC and aggregate report.",
+                          "TriggerPhrases":  [
+                                                 "tao sheet a",
+                                                 "create sheet a",
+                                                 "tao sheet kien truc",
+                                                 "sheet tang"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "levels"
+                                             ],
+                          "StandardsRefs":  [
+                                                "naming.json#sheet.architectural.format",
+                                                "naming.json#view.floor_plan",
+                                                "templates.json#view_templates.architectural_plan",
+                                                "title_blocks.json#title_blocks.A1",
+                                                "filters.json#sheet_filters.architectural_plan",
+                                                "scales.json#view_scales.architectural_plan",
+                                                "parameters.json#required_sheet_parameters",
+                                                "qc_rules.json#sheet_qc"
+                                            ],
+                          "SourcePath":  "packs/playbooks/core/assets/sheet_create_arch_package.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "sheet_create_mep_package.v1",
+                          "PackId":  "bim765t.playbooks.core",
+                          "Description":  "Create one MEP sheet package per requested level using workspace standards, then run sheet QC and aggregate report.",
+                          "TriggerPhrases":  [
+                                                 "tao sheet mep",
+                                                 "create mep sheet"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "levels"
+                                             ],
+                          "StandardsRefs":  [
+                                                "naming.json#sheet.mep.format",
+                                                "naming.json#view.floor_plan",
+                                                "templates.json#view_templates.mep_plan",
+                                                "title_blocks.json#title_blocks.A1",
+                                                "filters.json#sheet_filters.mep_plan",
+                                                "scales.json#view_scales.mep_plan",
+                                                "parameters.json#required_sheet_parameters",
+                                                "qc_rules.json#sheet_qc"
+                                            ],
+                          "SourcePath":  "packs/playbooks/core/assets/sheet_create_mep_package.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "sheet_review_team_standard.v1",
+                          "PackId":  "bim765t.playbooks.core",
+                          "Description":  "Review a sheet against workspace team standards and summarize evidence.",
+                          "TriggerPhrases":  [
+                                                 "review sheet",
+                                                 "qc sheet",
+                                                 "sheet standard"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "sheet_number_or_active_sheet"
+                                             ],
+                          "StandardsRefs":  [
+                                                "qc_rules.json#sheet_qc",
+                                                "title_blocks.json#title_blocks.A1",
+                                                "naming.json#sheet.architectural.format"
+                                            ],
+                          "SourcePath":  "packs/playbooks/core/assets/sheet_review_team_standard.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "family_intake_qa.v1",
+                          "PackId":  "bim765t.playbooks.family-qa",
+                          "Description":  "Run family intake QA before content is accepted into the project.",
+                          "TriggerPhrases":  [
+                                                 "family qa",
+                                                 "load family",
+                                                 "kiem duyet family"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "family_name"
+                                             ],
+                          "StandardsRefs":  [
+                                                "lodloi.json#lodloi.family_limits"
+                                            ],
+                          "SourcePath":  "packs/playbooks/family-qa/assets/family_intake_qa.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "parameter_import_fill.v1",
+                          "PackId":  "bim765t.playbooks.governance",
+                          "Description":  "Preview and apply external parameter population with diff + verify.",
+                          "TriggerPhrases":  [
+                                                 "parameter import",
+                                                 "excel spec",
+                                                 "batch fill parameter"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "source_file"
+                                             ],
+                          "StandardsRefs":  [
+                                                "bep.json#bep.workset_assignment",
+                                                "lodloi.json#lodloi.required_parameters"
+                                            ],
+                          "SourcePath":  "packs/playbooks/governance/assets/parameter_import_fill.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "warning_triage_safe.v1",
+                          "PackId":  "bim765t.playbooks.governance",
+                          "Description":  "Triage Revit warnings into safe-fix and manual-review buckets.",
+                          "TriggerPhrases":  [
+                                                 "warning triage",
+                                                 "kiem tra warning",
+                                                 "model health"
+                                             ],
+                          "RequiredInputs":  [
+
+                                             ],
+                          "StandardsRefs":  [
+                                                "bep.json#bep.warning_triage"
+                                            ],
+                          "SourcePath":  "packs/playbooks/governance/assets/warning_triage_safe.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "intent_nl_query_compile.v1",
+                          "PackId":  "bim765t.playbooks.intent",
+                          "Description":  "Compile natural-language instructions into validated task plans.",
+                          "TriggerPhrases":  [
+                                                 "highlight mau do",
+                                                 "natural language",
+                                                 "auto scripting"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "query"
+                                             ],
+                          "StandardsRefs":  [
+
+                                            ],
+                          "SourcePath":  "packs/playbooks/intent/assets/intent_nl_query_compile.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "system_disconnected_fix.v1",
+                          "PackId":  "bim765t.playbooks.systems",
+                          "Description":  "Capture graph and propose bounded fixes for disconnected systems.",
+                          "TriggerPhrases":  [
+                                                 "disconnected system",
+                                                 "open end",
+                                                 "noi kin he thong"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "system_name"
+                                             ],
+                          "StandardsRefs":  [
+                                                "routing.json#routing.priority"
+                                            ],
+                          "SourcePath":  "packs/playbooks/systems/assets/system_disconnected_fix.v1.json"
+                      },
+                      {
+                          "PlaybookId":  "system_slope_remediation.v1",
+                          "PackId":  "bim765t.playbooks.systems",
+                          "Description":  "Plan slope remediation with residual/manual-review buckets.",
+                          "TriggerPhrases":  [
+                                                 "slope continuity",
+                                                 "fix slope",
+                                                 "do doc ong"
+                                             ],
+                          "RequiredInputs":  [
+                                                 "system_name"
+                                             ],
+                          "StandardsRefs":  [
+                                                "routing.json#routing.slope_defaults"
+                                            ],
+                          "SourcePath":  "packs/playbooks/systems/assets/system_slope_remediation.v1.json"
+                      }
+                  ]
+}

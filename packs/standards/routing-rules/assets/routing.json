@@ -1,0 +1,16 @@
+﻿{
+    "routing":  {
+                    "priority":  [
+                                     "gravity_pipe",
+                                     "structure",
+                                     "cable_tray",
+                                     "duct_branch",
+                                     "pipe_branch"
+                                 ],
+                    "slope_defaults":  {
+                                           "condensate":  "1%",
+                                           "sanitary":  "2%"
+                                       },
+                    "default_offset_mm":  150
+                }
+}

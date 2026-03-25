@@ -1,0 +1,15 @@
+﻿{
+    "lodloi":  {
+                   "required_parameters":  [
+                                               "Manufacturer",
+                                               "Model",
+                                               "Voltage",
+                                               "Capacity"
+                                           ],
+                   "family_limits":  {
+                                         "max_file_size_mb":  5,
+                                         "purge_before_load":  true
+                                     },
+                   "stage":  "LOD300"
+               }
+}

@@ -1,0 +1,15 @@
+{
+  "PackType": "skill-pack",
+  "PackId": "contoso.skills.firm",
+  "Version": "1.0.0",
+  "DisplayName": "Contoso Firm Skills",
+  "Description": "Firm-specific skill overlay for BIM765T /init workspaces.",
+  "Owner": "Contoso BIM",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": ["2024"],
+    "SupportedHosts": ["workerhost", "agent", "mcp"]
+  },
+  "Exports": [],
+  "EnabledByDefault": false
+}

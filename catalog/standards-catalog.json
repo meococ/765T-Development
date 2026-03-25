@@ -1,0 +1,71 @@
+﻿{
+    "GeneratedAtUtc":  "2026-03-24T02:11:09.7677570Z",
+    "PathMode":  "repo-relative",
+    "Standards":  [
+                      {
+                          "FileName":  "bep.json",
+                          "RelativePath":  "packs\\standards\\bep-core\\assets\\bep.json",
+                          "SourcePath":  "packs/standards/bep-core/assets/bep.json"
+                      },
+                      {
+                          "FileName":  "filters.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\filters.json",
+                          "SourcePath":  "packs/standards/core/assets/filters.json"
+                      },
+                      {
+                          "FileName":  "naming.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\naming.json",
+                          "SourcePath":  "packs/standards/core/assets/naming.json"
+                      },
+                      {
+                          "FileName":  "parameters.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\parameters.json",
+                          "SourcePath":  "packs/standards/core/assets/parameters.json"
+                      },
+                      {
+                          "FileName":  "qc_rules.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\qc_rules.json",
+                          "SourcePath":  "packs/standards/core/assets/qc_rules.json"
+                      },
+                      {
+                          "FileName":  "scales.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\scales.json",
+                          "SourcePath":  "packs/standards/core/assets/scales.json"
+                      },
+                      {
+                          "FileName":  "templates.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\templates.json",
+                          "SourcePath":  "packs/standards/core/assets/templates.json"
+                      },
+                      {
+                          "FileName":  "title_blocks.json",
+                          "RelativePath":  "packs\\standards\\core\\assets\\title_blocks.json",
+                          "SourcePath":  "packs/standards/core/assets/title_blocks.json"
+                      },
+                      {
+                          "FileName":  "mapping.json",
+                          "RelativePath":  "packs\\standards\\costtime-mapping\\assets\\mapping.json",
+                          "SourcePath":  "packs/standards/costtime-mapping/assets/mapping.json"
+                      },
+                      {
+                          "FileName":  "naming.json",
+                          "RelativePath":  "packs\\standards\\iso19650\\assets\\naming.json",
+                          "SourcePath":  "packs/standards/iso19650/assets/naming.json"
+                      },
+                      {
+                          "FileName":  "clearance.json",
+                          "RelativePath":  "packs\\standards\\mep-clearance\\assets\\clearance.json",
+                          "SourcePath":  "packs/standards/mep-clearance/assets/clearance.json"
+                      },
+                      {
+                          "FileName":  "lodloi.json",
+                          "RelativePath":  "packs\\standards\\mep-lodloi\\assets\\lodloi.json",
+                          "SourcePath":  "packs/standards/mep-lodloi/assets/lodloi.json"
+                      },
+                      {
+                          "FileName":  "routing.json",
+                          "RelativePath":  "packs\\standards\\routing-rules\\assets\\routing.json",
+                          "SourcePath":  "packs/standards/routing-rules/assets/routing.json"
+                      }
+                  ]
+}

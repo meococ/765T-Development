@@ -1,0 +1,61 @@
+{
+  "Scripts": [
+    {
+      "ScriptId": "builtin.audit_family_parameters",
+      "DisplayName": "Audit Family Parameters",
+      "Version": "1.0.0",
+      "Description": "Built-in family QA audit for unused, duplicate, and formula-light parameters.",
+      "SourceKind": "internal",
+      "SourceRef": "builtin",
+      "EntryPoint": "builtin.audit_family_parameters",
+      "CapabilityDomain": "family_qa",
+      "SupportedDisciplines": [ "common" ],
+      "AllowedSurfaces": [ "worker", "expert_lab" ],
+      "SafetyClass": "read_only",
+      "ApprovalRequirement": 0,
+      "VerificationMode": "report_only",
+      "InputSchemaHint": "{ \"ScriptId\": \"builtin.audit_family_parameters\" }",
+      "Tags": [ "family", "qa", "audit" ],
+      "Approved": true,
+      "VerificationRecipe": "read_back"
+    },
+    {
+      "ScriptId": "builtin.batch_rename_types",
+      "DisplayName": "Batch Rename Family Types",
+      "Version": "1.0.0",
+      "Description": "Built-in family utility for deterministic type renaming with review/approval.",
+      "SourceKind": "internal",
+      "SourceRef": "builtin",
+      "EntryPoint": "builtin.batch_rename_types",
+      "CapabilityDomain": "family_qa",
+      "SupportedDisciplines": [ "common" ],
+      "AllowedSurfaces": [ "worker", "expert_lab" ],
+      "SafetyClass": "previewed_mutation",
+      "ApprovalRequirement": 1,
+      "VerificationMode": "policy_check",
+      "InputSchemaHint": "{ \"ScriptId\": \"builtin.batch_rename_types\", \"Parameters\": { \"Prefix\": \"Type\" } }",
+      "Tags": [ "family", "rename", "types" ],
+      "Approved": true,
+      "VerificationRecipe": "review renamed types + read_back"
+    },
+    {
+      "ScriptId": "builtin.create_parametric_column",
+      "DisplayName": "Create Parametric Column",
+      "Version": "1.0.0",
+      "Description": "Built-in family authoring script to generate a parametric rectangular column family stub.",
+      "SourceKind": "internal",
+      "SourceRef": "builtin",
+      "EntryPoint": "builtin.create_parametric_column",
+      "CapabilityDomain": "general",
+      "SupportedDisciplines": [ "structure" ],
+      "AllowedSurfaces": [ "expert_lab" ],
+      "SafetyClass": "previewed_mutation",
+      "ApprovalRequirement": 1,
+      "VerificationMode": "policy_check",
+      "InputSchemaHint": "{ \"ScriptId\": \"builtin.create_parametric_column\", \"Parameters\": { \"Width\": \"300\", \"Depth\": \"300\", \"Height\": \"3000\" } }",
+      "Tags": [ "family-authoring", "column" ],
+      "Approved": true,
+      "VerificationRecipe": "family preview + parameter read_back"
+    }
+  ]
+}

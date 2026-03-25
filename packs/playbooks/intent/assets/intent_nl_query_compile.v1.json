@@ -1,0 +1,75 @@
+﻿{
+    "PlaybookId":  "intent_nl_query_compile.v1",
+    "Version":  "1.0",
+    "Description":  "Compile natural-language instructions into validated task plans.",
+    "Lane":  "intent",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "highlight",
+                                          "filter",
+                                          "natural language",
+                                          "script"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "manual tool chaining"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "compile",
+                      "Purpose":  "Compile NL task into typed plan.",
+                      "Tool":  "intent.compile",
+                      "StepName":  "Compile",
+                      "StepKind":  "routing"
+                  },
+                  {
+                      "StepId":  "validate",
+                      "Purpose":  "Validate compiled plan.",
+                      "Tool":  "intent.validate",
+                      "StepName":  "Validate",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "guidance",
+                      "Purpose":  "Show curated tool lane guidance.",
+                      "Tool":  "tool.get_guidance",
+                      "StepName":  "Guidance",
+                      "StepKind":  "guidance"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Compiled plan is valid or surfaces gaps clearly.",
+                   "Tool":  "intent.validate"
+               },
+    "PackId":  "bim765t.playbooks.intent",
+    "TriggerPhrases":  [
+                           "highlight mau do",
+                           "natural language",
+                           "auto scripting"
+                       ],
+    "StandardsRefs":  [
+
+                      ],
+    "RequiredInputs":  [
+                           "query"
+                       ],
+    "ReportTemplate":  "intent_compile_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.governance",
+                                   "bim765t.agents.specialist.integration"
+                               ],
+    "CapabilityDomain":  "intent",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "common"
+                             ],
+    "IssueKinds":  [
+                       "intent_compile"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.bep.core"
+                      ]
+}

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option csharp_namespace = "BIM765T.Revit.Contracts.Proto";
+
+package bim765t.worker.v2;
+
+import "common.proto";
+
+message ContextRequest {
+  EnvelopeMetadata meta = 1;
+  int32 max_recent_operations = 2;
+  int32 max_recent_events = 3;
+  string query = 4;
+  int32 top_k = 5;
+}
+
+message MemoryHit {
+  string id = 1;
+  string kind = 2;
+  string title = 3;
+  string snippet = 4;
+  string source_ref = 5;
+  string document_key = 6;
+  string created_utc = 7;
+  double score = 8;
+  repeated string tags = 9;
+}
+
+message ContextReply {
+  StatusEnvelope status = 1;
+  string payload_json = 2;
+}
+
+message SearchMemoryReply {
+  StatusEnvelope status = 1;
+  repeated MemoryHit hits = 2;
+}
+
+service ContextService {
+  rpc GetContext(ContextRequest) returns (ContextReply);
+  rpc GetDeltaSummary(ContextRequest) returns (ContextReply);
+  rpc SearchMemory(ContextRequest) returns (SearchMemoryReply);
+}

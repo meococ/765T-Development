@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Live library docs injection — up-to-date, version-specific docs for any library"
+    },
+    "mem0": {
+      "command": "python",
+      "args": [".claude/mcp/mem0-server.py"],
+      "description": "Persistent AI memory — user prefs, project decisions, lessons learned (self-hosted)",
+      "env": {
+        "MEM0_LLM_PROVIDER": "openai",
+        "MEM0_LLM_MODEL": "gpt-4.1-nano"
+      }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Dynamic reasoning chains for complex multi-step BIM analysis and planning"
+    },
+    "qdrant": {
+      "command": "uvx",
+      "args": ["mcp-server-qdrant"],
+      "description": "Vector search for BIM semantic memory — search across project knowledge",
+      "env": {
+        "QDRANT_URL": "http://127.0.0.1:6333",
+        "COLLECTION_NAME": "bim765t"
+      }
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/security/block-dangerous.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "./.claude/hooks/quality/pre-build-validate.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/quality/post-write-csharp-lint.sh",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "./.claude/hooks/quality/architecture-guard.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Verify quality before stopping: 1) Check if any .cs files were modified (git diff --name-only). 2) If yes, run dotnet build on the solution. 3) Check for architecture violations (Contracts/WorkerHost/McpHost referencing RevitAPI). 4) Verify no .Result deadlock patterns. Return JSON {ok: true/false, reason: string}. $ARGUMENTS",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(powershell -File .\\tools\\* *)",
+      "Bash(dir *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cat *)",
+      "Bash(type *)",
+      "Bash(echo *)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Agent(*)",
+      "mcp__context7__*",
+      "mcp__mem0__*",
+      "mcp__memory__*",
+      "mcp__sequential-thinking__*",
+      "mcp__qdrant__*"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf /*)",
+      "Bash(del /s /q C:\\*)"
+    ]
+  }
+}

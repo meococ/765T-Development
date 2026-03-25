@@ -1,0 +1,42 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.external-broker",
+  "Version": "1.0.0",
+  "DisplayName": "External AI Broker Pack",
+  "Description": "Neutral adapter pack for external AI delegation and broker-facing assistant assets.",
+  "Owner": "bim765t",
+  "Dependencies": [
+    {
+      "PackId": "bim765t.agents.shared",
+      "VersionRange": ">=1.0.0"
+    }
+  ],
+  "Compatibility": {
+    "SupportedRevitYears": ["2024"],
+    "SupportedHosts": ["workerhost", "external_ai"]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "external-broker-readme"
+    },
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/delegate-external-ai.md",
+      "ExportId": "external-ai-delegation"
+    },
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/onboard.md",
+      "ExportId": "external-broker-onboard"
+    },
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/BROKER.adapter.md",
+      "ExportId": "external-broker-adapter"
+    }
+  ],
+  "LegacyPackIds": ["bim765t.agents.claude"],
+  "EnabledByDefault": true
+}

@@ -1,0 +1,49 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.mep.lodloi",
+    "Version":  "1.0.0",
+    "DisplayName":  "MEP LOD/LOI Standards",
+    "Description":  "LOD/LOI rules for MEP equipment parameter completeness and family QA.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "lodloi",
+                        "RelativePath":  "assets/lodloi.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance",
+                              "family_qa"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "lod_loi_compliance",
+                       "family_qa"
+                   ],
+    "VerificationModes":  [
+                              "policy_check"
+                          ]
+}

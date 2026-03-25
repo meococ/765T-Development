@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "skill-pack",
+    "PackId":  "bim765t.skills.governance",
+    "Version":  "1.0.0",
+    "DisplayName":  "Governance Skills",
+    "Description":  "Guidance for naming, sheets/views, parameters, worksets, and standards compliance.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "governance-skill",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "skill"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "naming_convention",
+                       "sheet_package",
+                       "parameter_population",
+                       "warning_triage",
+                       "lod_loi_compliance"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "report_only"
+                          ]
+}

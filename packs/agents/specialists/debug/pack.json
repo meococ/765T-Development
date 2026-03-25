@@ -1,0 +1,26 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.debug",
+  "Version": "1.0.0",
+  "DisplayName": "Debug Specialist",
+  "Description": "Debug/repair specialist pack for diagnostics and residual issue triage.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "debug-specialist"
+    }
+  ],
+  "EnabledByDefault": true
+}

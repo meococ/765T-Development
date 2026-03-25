@@ -1,0 +1,62 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.governance",
+    "Version":  "1.0.0",
+    "DisplayName":  "Governance Playbooks",
+    "Description":  "Playbooks for standards-driven view/sheet governance, warning triage, parameter import, and workset hygiene.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "parameter_import_fill.v1",
+                        "RelativePath":  "assets/parameter_import_fill.v1.json",
+                        "ExportKind":  "playbook"
+                    },
+                    {
+                        "ExportId":  "warning_triage_safe.v1",
+                        "RelativePath":  "assets/warning_triage_safe.v1.json",
+                        "ExportKind":  "playbook"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "naming_convention",
+                       "sheet_package",
+                       "parameter_population",
+                       "warning_triage",
+                       "lod_loi_compliance"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

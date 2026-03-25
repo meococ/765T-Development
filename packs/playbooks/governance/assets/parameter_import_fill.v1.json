@@ -1,0 +1,85 @@
+﻿{
+    "PlaybookId":  "parameter_import_fill.v1",
+    "Version":  "1.0",
+    "Description":  "Preview and apply external parameter population with diff + verify.",
+    "Lane":  "governance",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "parameter import",
+                                          "excel spec",
+                                          "fill parameter"
+                                      ],
+                         "Dont_Use_When":  [
+                                               "family document"
+                                           ],
+                         "Prefer_Over":  "flat tool search"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Resolve BEP and parameter standards.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "preview",
+                      "Purpose":  "Preview external diff.",
+                      "Tool":  "data.preview_import",
+                      "StepName":  "Preview import",
+                      "StepKind":  "tool"
+                  },
+                  {
+                      "StepId":  "apply",
+                      "Purpose":  "Apply approved changes.",
+                      "Tool":  "data.import_safe",
+                      "StepName":  "Apply import",
+                      "StepKind":  "tool"
+                  },
+                  {
+                      "StepId":  "verify",
+                      "Purpose":  "Verify completeness and residual issues.",
+                      "Tool":  "review.parameter_completeness",
+                      "StepName":  "Verify completeness",
+                      "StepKind":  "qc"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "All required parameters are either populated or reported.",
+                   "Tool":  "review.parameter_completeness"
+               },
+    "PackId":  "bim765t.playbooks.governance",
+    "TriggerPhrases":  [
+                           "parameter import",
+                           "excel spec",
+                           "batch fill parameter"
+                       ],
+    "StandardsRefs":  [
+                          "bep.json#bep.workset_assignment",
+                          "lodloi.json#lodloi.required_parameters"
+                      ],
+    "RequiredInputs":  [
+                           "source_file"
+                       ],
+    "ReportTemplate":  "parameter_import_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.governance"
+                               ],
+    "CapabilityDomain":  "governance",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "mep",
+                                 "architecture"
+                             ],
+    "IssueKinds":  [
+                       "parameter_population",
+                       "lod_loi_compliance"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.bep.core",
+                          "bim765t.standards.mep.lodloi"
+                      ]
+}

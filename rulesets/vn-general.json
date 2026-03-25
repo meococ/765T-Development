@@ -1,0 +1,11 @@
+{
+  "Name": "vn-general",
+  "Description": "Ruleset thực dụng cho project BIM tổng quát ở VN: ưu tiên naming, sheet metadata, warnings và links.",
+  "Rules": [
+    { "RuleId": "DOC_WARNINGS_LIMIT", "CheckKey": "model.warnings_threshold", "Title": "Model warnings should stay under threshold", "Category": "document", "Severity": "warning", "Threshold": 40, "StandardRef": "VN-GENERAL", "SuggestedAction": "Dọn warning trước khi issue/export." },
+    { "RuleId": "LINKS_UNLOADED", "CheckKey": "model.unloaded_links", "Title": "Linked models should be loaded", "Category": "coordination", "Severity": "warning", "StandardRef": "VN-GENERAL", "SuggestedAction": "Xác nhận links trước coordination/QC." },
+    { "RuleId": "VIEW_NAMING", "CheckKey": "naming.violations", "Title": "View names should follow naming hygiene", "Category": "naming", "Severity": "warning", "Scope": "views", "MaxItems": 15, "StandardRef": "VN-GENERAL", "SuggestedAction": "Chuẩn hóa naming view/sheet trước phát hành." },
+    { "RuleId": "SHEET_TITLEBLOCK", "CheckKey": "sheets.missing_titleblock", "Title": "Sheets should contain title blocks", "Category": "documentation", "Severity": "warning", "MaxItems": 15, "StandardRef": "VN-GENERAL", "SuggestedAction": "Không phát hành sheet thiếu title block." },
+    { "RuleId": "SHEET_REQUIRED_PARAMETERS", "CheckKey": "sheets.parameter_completeness", "Title": "Required sheet parameters should be filled", "Category": "documentation", "Severity": "warning", "MaxItems": 15, "StandardRef": "VN-GENERAL", "SuggestedAction": "Điền đủ sheet metadata trước issue." }
+  ]
+}

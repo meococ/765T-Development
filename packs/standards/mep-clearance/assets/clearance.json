@@ -1,0 +1,8 @@
+﻿{
+    "clearance":  {
+                      "electrical_panel_front_mm":  1000,
+                      "FCU_front_mm":  900,
+                      "AHU_front_mm":  1200,
+                      "min_service_height_mm":  2100
+                  }
+}

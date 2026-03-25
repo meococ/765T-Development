@@ -1,0 +1,16 @@
+﻿{
+    "mapping":  {
+                    "cost":  {
+                                 "baseline":  "estimate_v1",
+                                 "currency":  "USD"
+                             },
+                    "boq":  {
+                                "key":  "Type Mark",
+                                "source":  "RevitSchedule"
+                            },
+                    "schedule":  {
+                                     "task_key":  "WBS",
+                                     "baseline":  "construction_v1"
+                                 }
+                }
+}

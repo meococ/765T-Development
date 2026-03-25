@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- Override Directory.Build.props ImplicitUsings=disable; WorkerHost is a standalone ASP.NET Core host (net8.0) and benefits from the default implicit usings for Microsoft.Extensions.* / ASP.NET Core namespaces -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AssemblyName>BIM765T.Revit.WorkerHost</AssemblyName>
+    <RootNamespace>BIM765T.Revit.WorkerHost</RootNamespace>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BIM765T.Revit.Contracts\BIM765T.Revit.Contracts.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Contracts.Proto\BIM765T.Revit.Contracts.Proto.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Copilot.Core\BIM765T.Revit.Copilot.Core.csproj" />
+  </ItemGroup>
+</Project>

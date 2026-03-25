@@ -1,0 +1,7 @@
+﻿{
+    "iso19650":  {
+                     "view_name":  "ZZ-{discipline}-{level}-{description}",
+                     "revision":  "P01|C01|A01",
+                     "sheet_number":  "A-{originator}-{volume}-{level}-{type}-{role}-{number}"
+                 }
+}

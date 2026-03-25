@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "BIM765T.Revit.Contracts.Proto";
+
+package bim765t.worker.v2;
+
+import "common.proto";
+
+message CompatToolRequest {
+  EnvelopeMetadata meta = 1;
+  string tool_name = 2;
+  string payload_json = 3;
+  bool dry_run = 4;
+  string approval_token = 5;
+  string expected_context_json = 6;
+  string preview_run_id = 7;
+  string scope_descriptor_json = 8;
+}
+
+message CompatToolReply {
+  StatusEnvelope status = 1;
+  string tool_name = 2;
+  string payload_json = 3;
+  string approval_token = 4;
+  string preview_run_id = 5;
+  repeated int32 changed_ids = 6;
+  repeated string artifacts = 7;
+  string diff_summary_json = 8;
+  string review_summary_json = 9;
+  bool confirmation_required = 10;
+  string protocol_version = 11;
+}
+
+service CompatibilityService {
+  rpc InvokeTool(CompatToolRequest) returns (CompatToolReply);
+}

@@ -1,0 +1,77 @@
+﻿{
+    "PlaybookId":  "system_disconnected_fix.v1",
+    "Version":  "1.0",
+    "Description":  "Capture graph and propose bounded fixes for disconnected systems.",
+    "Lane":  "systems",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "disconnected system",
+                                          "open end",
+                                          "connect fixture"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "manual hunt"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "graph",
+                      "Purpose":  "Capture system graph snapshot.",
+                      "Tool":  "system.capture_graph",
+                      "StepName":  "Capture graph",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Load routing priorities.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "plan",
+                      "Purpose":  "Prepare bounded fix proposals.",
+                      "Tool":  "system.plan_connectivity_fix",
+                      "StepName":  "Plan fix",
+                      "StepKind":  "tool"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Open ends and disconnected nodes are reported with candidate fixes.",
+                   "Tool":  "system.capture_graph"
+               },
+    "PackId":  "bim765t.playbooks.systems",
+    "TriggerPhrases":  [
+                           "disconnected system",
+                           "open end",
+                           "noi kin he thong"
+                       ],
+    "StandardsRefs":  [
+                          "routing.json#routing.priority"
+                      ],
+    "RequiredInputs":  [
+                           "system_name"
+                       ],
+    "ReportTemplate":  "system_connectivity_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.systems"
+                               ],
+    "CapabilityDomain":  "systems",
+    "DeterminismLevel":  "scaffold",
+    "VerificationMode":  "system_consistency",
+    "SupportedDisciplines":  [
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "disconnected_system",
+                       "basic_routing"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.routing.rules"
+                      ]
+}

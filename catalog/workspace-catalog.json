@@ -1,0 +1,135 @@
+﻿{
+    "GeneratedAtUtc":  "2026-03-24T02:11:09.7612589Z",
+    "PathMode":  "repo-relative",
+    "Workspaces":  [
+                       {
+                           "WorkspaceId":  "default",
+                           "DisplayName":  "Default 765T Assistant Workspace",
+                           "RootPath":  "workspaces/default",
+                           "EnabledPacks":  [
+                                                "bim765t.standards.core",
+                                                "bim765t.standards.iso19650",
+                                                "bim765t.standards.bep.core",
+                                                "bim765t.standards.mep.clearance",
+                                                "bim765t.standards.mep.lodloi",
+                                                "bim765t.standards.routing.rules",
+                                                "bim765t.standards.costtime.mapping",
+                                                "bim765t.playbooks.core",
+                                                "bim765t.playbooks.governance",
+                                                "bim765t.playbooks.annotation",
+                                                "bim765t.playbooks.family-qa",
+                                                "bim765t.playbooks.coordination",
+                                                "bim765t.playbooks.systems",
+                                                "bim765t.playbooks.intent",
+                                                "bim765t.commands.revit-core",
+                                                "bim765t.scripts.curated-internal",
+                                                "bim765t.skills.core",
+                                                "bim765t.skills.governance",
+                                                "bim765t.skills.annotation",
+                                                "bim765t.skills.family-qa",
+                                                "bim765t.skills.coordination",
+                                                "bim765t.skills.systems",
+                                                "bim765t.skills.intent",
+                                                "bim765t.skills.integration",
+                                                "bim765t.agents.shared",
+                                                "bim765t.agents.external-broker",
+                                                "bim765t.agents.internal-assistant",
+                                                "bim765t.agents.orchestrator",
+                                                "bim765t.agents.specialist.sheet",
+                                                "bim765t.agents.specialist.audit",
+                                                "bim765t.agents.specialist.family",
+                                                "bim765t.agents.specialist.delivery",
+                                                "bim765t.agents.specialist.debug",
+                                                "bim765t.agents.specialist.governance",
+                                                "bim765t.agents.specialist.annotation",
+                                                "bim765t.agents.specialist.coordination",
+                                                "bim765t.agents.specialist.systems",
+                                                "bim765t.agents.specialist.integration",
+                                                "bim765t.agents.specialist.command-atlas",
+                                                "bim765t.agents.specialist.documentation",
+                                                "bim765t.agents.specialist.script-broker",
+                                                "bim765t.agents.specialist.memory-librarian",
+                                                "bim765t.connectors.local",
+                                                "bim765t.plugins.local"
+                                            ],
+                           "PreferredStandardsPacks":  [
+                                                           "bim765t.standards.core",
+                                                           "bim765t.standards.iso19650",
+                                                           "bim765t.standards.bep.core",
+                                                           "bim765t.standards.mep.clearance",
+                                                           "bim765t.standards.mep.lodloi",
+                                                           "bim765t.standards.routing.rules",
+                                                           "bim765t.standards.costtime.mapping"
+                                                       ],
+                           "PreferredPlaybookPacks":  [
+                                                          "bim765t.playbooks.core",
+                                                          "bim765t.playbooks.governance",
+                                                          "bim765t.playbooks.annotation",
+                                                          "bim765t.playbooks.family-qa",
+                                                          "bim765t.playbooks.coordination",
+                                                          "bim765t.playbooks.systems",
+                                                          "bim765t.playbooks.intent"
+                                                      ],
+                           "AllowedAgents":  [
+                                                 "bim765t.agents.orchestrator",
+                                                 "bim765t.agents.external-broker",
+                                                 "bim765t.agents.internal-assistant"
+                                             ],
+                           "AllowedSpecialists":  [
+                                                      "bim765t.agents.specialist.sheet",
+                                                      "bim765t.agents.specialist.audit",
+                                                      "bim765t.agents.specialist.family",
+                                                      "bim765t.agents.specialist.delivery",
+                                                      "bim765t.agents.specialist.debug",
+                                                      "bim765t.agents.specialist.governance",
+                                                      "bim765t.agents.specialist.annotation",
+                                                      "bim765t.agents.specialist.coordination",
+                                                      "bim765t.agents.specialist.systems",
+                                                      "bim765t.agents.specialist.integration",
+                                                      "bim765t.agents.specialist.command-atlas",
+                                                      "bim765t.agents.specialist.documentation",
+                                                      "bim765t.agents.specialist.script-broker",
+                                                      "bim765t.agents.specialist.memory-librarian"
+                                                  ]
+                       },
+                       {
+                           "WorkspaceId":  "runtime-smoke",
+                           "DisplayName":  "Runtime Smoke",
+                           "RootPath":  "workspaces/runtime-smoke",
+                           "EnabledPacks":  [
+                                                "bim765t.standards.core",
+                                                "bim765t.playbooks.core",
+                                                "bim765t.skills.core",
+                                                "bim765t.agents.shared",
+                                                "bim765t.agents.external-broker",
+                                                "bim765t.agents.internal-assistant",
+                                                "bim765t.agents.orchestrator",
+                                                "bim765t.agents.specialist.sheet",
+                                                "bim765t.agents.specialist.audit",
+                                                "bim765t.agents.specialist.family",
+                                                "bim765t.agents.specialist.delivery",
+                                                "bim765t.agents.specialist.debug",
+                                                "bim765t.connectors.local",
+                                                "bim765t.plugins.local"
+                                            ],
+                           "PreferredStandardsPacks":  [
+                                                           "bim765t.standards.core"
+                                                       ],
+                           "PreferredPlaybookPacks":  [
+                                                          "bim765t.playbooks.core"
+                                                      ],
+                           "AllowedAgents":  [
+                                                 "bim765t.agents.orchestrator",
+                                                 "bim765t.agents.external-broker",
+                                                 "bim765t.agents.internal-assistant"
+                                             ],
+                           "AllowedSpecialists":  [
+                                                      "bim765t.agents.specialist.sheet",
+                                                      "bim765t.agents.specialist.audit",
+                                                      "bim765t.agents.specialist.family",
+                                                      "bim765t.agents.specialist.delivery",
+                                                      "bim765t.agents.specialist.debug"
+                                                  ]
+                       }
+                   ]
+}

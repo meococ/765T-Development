@@ -1,0 +1,72 @@
+{
+  "PlaybookId": "family_nested_type_sync",
+  "Version": "1.0",
+  "Description": "Nested family type sync — map nested family types theo parent type. Pattern da stable (95/95 proven).",
+  "Lane": "B",
+  "RequiredContext": "family_document",
+  "DecisionGate": {
+    "Use_When": [
+      "family co nested family instance can type mapping per parent type",
+      "task yeu cau nested child family doi type theo parent type",
+      "pattern: parent type A -> nested child type X, parent type B -> nested child type Y"
+    ],
+    "Dont_Use_When": [
+      "nested family chi co 1 type — khong can sync",
+      "task chi can load nested family — dung family.load_nested_safe don le",
+      "family khong co nested family instances"
+    ],
+    "Prefer_Over": "Manual ChangeTypeId() approach — FamilyManager.Set per-type la cach dung duy nhat de persist."
+  },
+  "Steps": [
+    {
+      "StepName": "inspect_parent",
+      "Tool": "family.xray",
+      "Purpose": "Xem danh sach types cua parent family va nested families.",
+      "Verify": "TypesCount > 1, NestedFamilies list populated."
+    },
+    {
+      "StepName": "identify_nested_instance",
+      "Tool": "family.list_geometry",
+      "Purpose": "Tim nested family instances trong family doc. Lay nested instance id.",
+      "Verify": "NestedInstances list co it nhat 1 entry."
+    },
+    {
+      "StepName": "setup_control_parameter",
+      "Tool": "family.add_parameter_safe",
+      "Purpose": "Tao family control parameter (type parameter, FamilyType) de lien ket nested type.",
+      "Condition": "Chi can neu chua co control parameter.",
+      "Params": { "hint": "ControlParam_NestedType (FamilyType, Instance)" },
+      "Verify": "family.xray shows new control parameter."
+    },
+    {
+      "StepName": "associate_nested_type",
+      "Tool": "family.set_type_catalog_safe",
+      "Purpose": "Associate nested type parameter voi control parameter. Set value per parent type.",
+      "Params": {
+        "hint": "Per parent type: fm.CurrentType = parentTypeA; fm.Set(controlParam, nestedTypeX.Id)"
+      },
+      "Verify": "family.xray shows control parameter set per type."
+    },
+    {
+      "StepName": "verify_per_type",
+      "Tool": "family.xray",
+      "Purpose": "Verify moi parent type co nested type mapping dung.",
+      "Verify": "TypeParameters shows controlParam values differ per type."
+    },
+    {
+      "StepName": "save",
+      "Tool": "family.save_safe",
+      "Purpose": "Luu family.",
+      "Verify": "SAVE_SUCCEEDED."
+    }
+  ],
+  "QcStep": {
+    "Tool": "family.xray",
+    "ExpectedOutcome": "Moi parent type co nested type value rieng. ControlParam visible per type."
+  },
+  "StablePattern": {
+    "ProvenAt": "2026-03-16",
+    "SuccessRate": "95/95",
+    "Reference": "PROJECT_MEMORY.md#nested-family-type-sync-pattern"
+  }
+}

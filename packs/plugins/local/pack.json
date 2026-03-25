@@ -1,0 +1,27 @@
+{
+  "PackType": "plugin-pack",
+  "PackId": "bim765t.plugins.local",
+  "Version": "1.0.0",
+  "DisplayName": "Local Plugin Pack",
+  "Description": "Companion plugin manifest pack for non-Revit-kernel utilities.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "mcp",
+      "bridge"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "plugin",
+      "RelativePath": "assets/README.md",
+      "ExportId": "local-plugins"
+    }
+  ],
+  "EnabledByDefault": true
+}

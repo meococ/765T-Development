@@ -1,0 +1,60 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.annotation",
+    "Version":  "1.0.0",
+    "DisplayName":  "Annotation Playbooks",
+    "Description":  "Playbooks for smart tagging, dimension placement, and room finish generation.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "annotation_smart_tag_dimension.v1",
+                        "RelativePath":  "assets/annotation_smart_tag_dimension.v1.json",
+                        "ExportKind":  "playbook"
+                    },
+                    {
+                        "ExportId":  "room_finish_generate.v1",
+                        "RelativePath":  "assets/room_finish_generate.v1.json",
+                        "ExportKind":  "playbook"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "annotation"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "tag_overlap",
+                       "dimension_collision",
+                       "room_finish_generation"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore Contracts
+        run: dotnet restore src/BIM765T.Revit.Contracts/BIM765T.Revit.Contracts.csproj
+
+      - name: Build Contracts
+        run: dotnet build src/BIM765T.Revit.Contracts/BIM765T.Revit.Contracts.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Bridge
+        run: dotnet restore src/BIM765T.Revit.Bridge/BIM765T.Revit.Bridge.csproj
+
+      - name: Build Bridge
+        run: dotnet build src/BIM765T.Revit.Bridge/BIM765T.Revit.Bridge.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Copilot.Core
+        run: dotnet restore src/BIM765T.Revit.Copilot.Core/BIM765T.Revit.Copilot.Core.csproj
+
+      - name: Build Copilot.Core
+        run: dotnet build src/BIM765T.Revit.Copilot.Core/BIM765T.Revit.Copilot.Core.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Agent.Core
+        run: dotnet restore src/BIM765T.Revit.Agent.Core/BIM765T.Revit.Agent.Core.csproj
+
+      - name: Build Agent.Core
+        run: dotnet build src/BIM765T.Revit.Agent.Core/BIM765T.Revit.Agent.Core.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore McpHost
+        run: dotnet restore src/BIM765T.Revit.McpHost/BIM765T.Revit.McpHost.csproj
+
+      - name: Build McpHost
+        run: dotnet build src/BIM765T.Revit.McpHost/BIM765T.Revit.McpHost.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore WorkerHost
+        run: dotnet restore src/BIM765T.Revit.WorkerHost/BIM765T.Revit.WorkerHost.csproj
+
+      - name: Build WorkerHost
+        run: dotnet build src/BIM765T.Revit.WorkerHost/BIM765T.Revit.WorkerHost.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore WorkerHost Tests
+        run: dotnet restore tests/BIM765T.Revit.WorkerHost.Tests/BIM765T.Revit.WorkerHost.Tests.csproj
+
+      - name: Build WorkerHost Tests
+        run: dotnet build tests/BIM765T.Revit.WorkerHost.Tests/BIM765T.Revit.WorkerHost.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Contracts Tests
+        run: dotnet restore tests/BIM765T.Revit.Contracts.Tests/BIM765T.Revit.Contracts.Tests.csproj
+
+      - name: Build Contracts Tests
+        run: dotnet build tests/BIM765T.Revit.Contracts.Tests/BIM765T.Revit.Contracts.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Agent.Core Tests
+        run: dotnet restore tests/BIM765T.Revit.Agent.Core.Tests/BIM765T.Revit.Agent.Core.Tests.csproj
+
+      - name: Build Agent.Core Tests
+        run: dotnet build tests/BIM765T.Revit.Agent.Core.Tests/BIM765T.Revit.Agent.Core.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore Architecture Tests
+        run: dotnet restore tests/BIM765T.Revit.Architecture.Tests/BIM765T.Revit.Architecture.Tests.csproj
+
+      - name: Build Architecture Tests
+        run: dotnet build tests/BIM765T.Revit.Architecture.Tests/BIM765T.Revit.Architecture.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Run Contracts Tests
+        run: dotnet test tests/BIM765T.Revit.Contracts.Tests/BIM765T.Revit.Contracts.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=contracts-tests.trx" --collect:"XPlat Code Coverage"
+
+      - name: Run Agent.Core Tests
+        run: dotnet test tests/BIM765T.Revit.Agent.Core.Tests/BIM765T.Revit.Agent.Core.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=agent-core-tests.trx" --collect:"XPlat Code Coverage"
+
+      - name: Run Architecture Tests
+        run: dotnet test tests/BIM765T.Revit.Architecture.Tests/BIM765T.Revit.Architecture.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=architecture-tests.trx"
+
+      - name: Run WorkerHost Tests
+        run: dotnet test tests/BIM765T.Revit.WorkerHost.Tests/BIM765T.Revit.WorkerHost.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=workerhost-tests.trx" --collect:"XPlat Code Coverage"
+
+      - name: Enforce Coverage Thresholds
+        shell: pwsh
+        run: |
+          $contractsCoverage = Get-ChildItem tests/BIM765T.Revit.Contracts.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
+          $agentCoreCoverage = Get-ChildItem tests/BIM765T.Revit.Agent.Core.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
+          ./tools/check_coverage_thresholds.ps1 -ContractsCoveragePath $contractsCoverage -AgentCoreCoveragePath $agentCoreCoverage
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.configuration }}
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/coverage.cobertura.xml
+          retention-days: 30
+
+      # Note: BIM765T.Revit.Agent is excluded from CI because it requires
+      # Revit 2024 API assemblies which are not available in GitHub runners.
+      # It must be built locally with Revit 2024 installed.
+      # WorkerHost targets net8.0 and runs on GitHub runners without issues.

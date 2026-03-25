@@ -1,0 +1,78 @@
+{
+  "PlaybookId": "sheet_review_team_standard.v1",
+  "Version": "1.0",
+  "Description": "Review a sheet against workspace team standards and summarize evidence.",
+  "Lane": "sheet_review",
+  "RequiredContext": "project",
+  "DecisionGate": {
+    "Use_When": [
+      "review sheet",
+      "qc sheet",
+      "sheet standard"
+    ],
+    "Dont_Use_When": [],
+    "Prefer_Over": "manual qc composition"
+  },
+  "Steps": [
+    {
+      "StepName": "Resolve workspace",
+      "StepId": "workspace",
+      "StepKind": "context",
+      "Tool": "workspace.get_manifest",
+      "Purpose": "Lay workspace manifest."
+    },
+    {
+      "StepName": "Resolve standards",
+      "StepId": "standards",
+      "StepKind": "standards",
+      "Tool": "standards.resolve",
+      "Purpose": "Resolve QC rules, title block requirements, and naming standards.",
+      "ParametersJson": "{\"StandardKind\":\"sheet\",\"RequestedKeys\":[\"qc_rules.json#sheet_qc\",\"title_blocks.json#title_blocks.A1\",\"naming.json#sheet.architectural.format\"]}",
+      "OutputKey": "standards"
+    },
+    {
+      "StepName": "Capture intelligence",
+      "StepId": "capture",
+      "StepKind": "tool",
+      "Tool": "sheet.capture_intelligence",
+      "Purpose": "Capture sheet composition and placed items."
+    },
+    {
+      "StepName": "Run QC",
+      "StepId": "qc",
+      "StepKind": "qc",
+      "Tool": "review.sheet_summary",
+      "Purpose": "Check against standards rules."
+    },
+    {
+      "StepName": "Smart QC",
+      "StepId": "smart_qc",
+      "StepKind": "qc",
+      "Tool": "review.smart_qc",
+      "Purpose": "Aggregate warnings and compliance."
+    }
+  ],
+  "QcStep": {
+    "Tool": "review.smart_qc",
+    "ExpectedOutcome": "Return pass/warn/fail summary with evidence."
+  },
+  "PackId": "bim765t.playbooks.core",
+  "TriggerPhrases": [
+    "review sheet",
+    "qc sheet",
+    "sheet standard"
+  ],
+  "StandardsRefs": [
+    "qc_rules.json#sheet_qc",
+    "title_blocks.json#title_blocks.A1",
+    "naming.json#sheet.architectural.format"
+  ],
+  "RequiredInputs": [
+    "sheet_number_or_active_sheet"
+  ],
+  "ReportTemplate": "sheet_qc_report",
+  "RecommendedSpecialists": [
+    "bim765t.agents.specialist.audit",
+    "bim765t.agents.specialist.sheet"
+  ]
+}

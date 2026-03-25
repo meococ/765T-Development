@@ -1,0 +1,790 @@
+﻿{
+    "GeneratedAtUtc":  "2026-03-24T02:11:09.7482077Z",
+    "PathMode":  "repo-relative",
+    "Packs":  [
+                  {
+                      "PackId":  "bim765t.agents.external-broker",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "External AI Broker Pack",
+                      "RootPath":  "packs/agents/external-broker",
+                      "SourcePath":  "packs/agents/external-broker/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "external-broker-readme"
+                                      },
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/delegate-external-ai.md",
+                                          "ExportId":  "external-ai-delegation"
+                                      },
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/onboard.md",
+                                          "ExportId":  "external-broker-onboard"
+                                      },
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/BROKER.adapter.md",
+                                          "ExportId":  "external-broker-adapter"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.internal-assistant",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Internal Assistant Pack",
+                      "RootPath":  "packs/agents/internal-assistant",
+                      "SourcePath":  "packs/agents/internal-assistant/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "internal-assistant-readme"
+                                      },
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/ASSISTANT.adapter.md",
+                                          "ExportId":  "internal-assistant-adapter"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.orchestrator",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Orchestrator Worker Pack",
+                      "RootPath":  "packs/agents/orchestrator",
+                      "SourcePath":  "packs/agents/orchestrator/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "orchestrator-worker"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.shared",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "BIM765T Shared Agent Constitution",
+                      "RootPath":  "packs/agents/shared",
+                      "SourcePath":  "packs/agents/shared/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "shared-agent-readme"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.annotation",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Annotation Specialist",
+                      "RootPath":  "packs/agents/specialists/annotation",
+                      "SourcePath":  "packs/agents/specialists/annotation/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "annotation-specialist",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "agent"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.audit",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Audit Specialist",
+                      "RootPath":  "packs/agents/specialists/audit",
+                      "SourcePath":  "packs/agents/specialists/audit/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "audit-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.command-atlas",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Command Atlas Specialist",
+                      "RootPath":  "packs/agents/specialists/command-atlas",
+                      "SourcePath":  "packs/agents/specialists/command-atlas/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "command-atlas-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.coordination",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Coordination Specialist",
+                      "RootPath":  "packs/agents/specialists/coordination",
+                      "SourcePath":  "packs/agents/specialists/coordination/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "coordination-specialist",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "agent"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.debug",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Debug Specialist",
+                      "RootPath":  "packs/agents/specialists/debug",
+                      "SourcePath":  "packs/agents/specialists/debug/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "debug-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.delivery",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Delivery Specialist",
+                      "RootPath":  "packs/agents/specialists/delivery",
+                      "SourcePath":  "packs/agents/specialists/delivery/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "delivery-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.documentation",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Documentation Specialist",
+                      "RootPath":  "packs/agents/specialists/documentation",
+                      "SourcePath":  "packs/agents/specialists/documentation/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "documentation-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.family",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Family Specialist",
+                      "RootPath":  "packs/agents/specialists/family",
+                      "SourcePath":  "packs/agents/specialists/family/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "family-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.governance",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Governance Specialist",
+                      "RootPath":  "packs/agents/specialists/governance",
+                      "SourcePath":  "packs/agents/specialists/governance/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "governance-specialist",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "agent"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.integration",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Integration Specialist",
+                      "RootPath":  "packs/agents/specialists/integration",
+                      "SourcePath":  "packs/agents/specialists/integration/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "integration-specialist",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "agent"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.memory-librarian",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Memory Librarian Specialist",
+                      "RootPath":  "packs/agents/specialists/memory-librarian",
+                      "SourcePath":  "packs/agents/specialists/memory-librarian/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "memory-librarian-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.script-broker",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Script Broker Specialist",
+                      "RootPath":  "packs/agents/specialists/script-broker",
+                      "SourcePath":  "packs/agents/specialists/script-broker/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "script-broker-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.sheet",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Sheet Specialist",
+                      "RootPath":  "packs/agents/specialists/sheet",
+                      "SourcePath":  "packs/agents/specialists/sheet/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "agent",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "sheet-specialist"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.agents.specialist.systems",
+                      "PackType":  "agent-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Systems Specialist",
+                      "RootPath":  "packs/agents/specialists/systems",
+                      "SourcePath":  "packs/agents/specialists/systems/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "systems-specialist",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "agent"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.commands.revit-core",
+                      "PackType":  "command-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "765T Revit Core Command Atlas",
+                      "RootPath":  "packs/commands/revit-core",
+                      "SourcePath":  "packs/commands/revit-core/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "command",
+                                          "RelativePath":  "assets/core-command-atlas.json",
+                                          "ExportId":  "baseline-core-atlas"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.connectors.local",
+                      "PackType":  "connector-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Local Connector Pack",
+                      "RootPath":  "packs/connectors/local",
+                      "SourcePath":  "packs/connectors/local/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "connector",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "local-connectors"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.annotation",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Annotation Playbooks",
+                      "RootPath":  "packs/playbooks/annotation",
+                      "SourcePath":  "packs/playbooks/annotation/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "annotation_smart_tag_dimension.v1",
+                                          "RelativePath":  "assets/annotation_smart_tag_dimension.v1.json",
+                                          "ExportKind":  "playbook"
+                                      },
+                                      {
+                                          "ExportId":  "room_finish_generate.v1",
+                                          "RelativePath":  "assets/room_finish_generate.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.coordination",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Coordination Playbooks",
+                      "RootPath":  "packs/playbooks/coordination",
+                      "SourcePath":  "packs/playbooks/coordination/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "coordination_clash_resolution.v1",
+                                          "RelativePath":  "assets/coordination_clash_resolution.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.core",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "BIM765T Core Playbooks",
+                      "RootPath":  "packs/playbooks/core",
+                      "SourcePath":  "packs/playbooks/core/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "playbook",
+                                          "RelativePath":  "assets/sheet_create_arch_package.v1.json",
+                                          "ExportId":  "sheet_create_arch_package.v1"
+                                      },
+                                      {
+                                          "ExportKind":  "playbook",
+                                          "RelativePath":  "assets/sheet_create_mep_package.v1.json",
+                                          "ExportId":  "sheet_create_mep_package.v1"
+                                      },
+                                      {
+                                          "ExportKind":  "playbook",
+                                          "RelativePath":  "assets/sheet_review_team_standard.v1.json",
+                                          "ExportId":  "sheet_review_team_standard.v1"
+                                      },
+                                      {
+                                          "ExportKind":  "playbook",
+                                          "RelativePath":  "assets/family_benchmark_servicebox.v1.json",
+                                          "ExportId":  "family_benchmark_servicebox.v1"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.family-qa",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Family QA Playbooks",
+                      "RootPath":  "packs/playbooks/family-qa",
+                      "SourcePath":  "packs/playbooks/family-qa/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "family_intake_qa.v1",
+                                          "RelativePath":  "assets/family_intake_qa.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.governance",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Governance Playbooks",
+                      "RootPath":  "packs/playbooks/governance",
+                      "SourcePath":  "packs/playbooks/governance/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "parameter_import_fill.v1",
+                                          "RelativePath":  "assets/parameter_import_fill.v1.json",
+                                          "ExportKind":  "playbook"
+                                      },
+                                      {
+                                          "ExportId":  "warning_triage_safe.v1",
+                                          "RelativePath":  "assets/warning_triage_safe.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.intent",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Intent Playbooks",
+                      "RootPath":  "packs/playbooks/intent",
+                      "SourcePath":  "packs/playbooks/intent/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "intent_nl_query_compile.v1",
+                                          "RelativePath":  "assets/intent_nl_query_compile.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.playbooks.systems",
+                      "PackType":  "playbook-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Systems Playbooks",
+                      "RootPath":  "packs/playbooks/systems",
+                      "SourcePath":  "packs/playbooks/systems/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "system_disconnected_fix.v1",
+                                          "RelativePath":  "assets/system_disconnected_fix.v1.json",
+                                          "ExportKind":  "playbook"
+                                      },
+                                      {
+                                          "ExportId":  "system_slope_remediation.v1",
+                                          "RelativePath":  "assets/system_slope_remediation.v1.json",
+                                          "ExportKind":  "playbook"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.plugins.local",
+                      "PackType":  "plugin-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Local Plugin Pack",
+                      "RootPath":  "packs/plugins/local",
+                      "SourcePath":  "packs/plugins/local/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "plugin",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "local-plugins"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.scripts.curated-internal",
+                      "PackType":  "script-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "765T Curated Internal Scripts",
+                      "RootPath":  "packs/scripts/curated-internal",
+                      "SourcePath":  "packs/scripts/curated-internal/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "script_source",
+                                          "RelativePath":  "assets/curated-sources.json",
+                                          "ExportId":  "curated-script-sources"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.annotation",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Annotation Skills",
+                      "RootPath":  "packs/skills/annotation",
+                      "SourcePath":  "packs/skills/annotation/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "annotation-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.coordination",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Coordination Skills",
+                      "RootPath":  "packs/skills/coordination",
+                      "SourcePath":  "packs/skills/coordination/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "coordination-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.core",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "BIM765T Skill Guidance Core",
+                      "RootPath":  "packs/skills/core",
+                      "SourcePath":  "packs/skills/core/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportId":  "skill-index"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.family-qa",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Family QA Skills",
+                      "RootPath":  "packs/skills/family-qa",
+                      "SourcePath":  "packs/skills/family-qa/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "family-qa-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.governance",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Governance Skills",
+                      "RootPath":  "packs/skills/governance",
+                      "SourcePath":  "packs/skills/governance/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "governance-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.integration",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Integration Skills",
+                      "RootPath":  "packs/skills/integration",
+                      "SourcePath":  "packs/skills/integration/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "integration-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.intent",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Intent Skills",
+                      "RootPath":  "packs/skills/intent",
+                      "SourcePath":  "packs/skills/intent/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "intent-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.skills.systems",
+                      "PackType":  "skill-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Systems Skills",
+                      "RootPath":  "packs/skills/systems",
+                      "SourcePath":  "packs/skills/systems/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "systems-skill",
+                                          "RelativePath":  "assets/README.md",
+                                          "ExportKind":  "skill"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.bep.core",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "BEP Core Standards",
+                      "RootPath":  "packs/standards/bep-core",
+                      "SourcePath":  "packs/standards/bep-core/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "bep",
+                                          "RelativePath":  "assets/bep.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.core",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "BIM765T Core Standards",
+                      "RootPath":  "packs/standards/core",
+                      "SourcePath":  "packs/standards/core/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/naming.json",
+                                          "ExportId":  "naming"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/templates.json",
+                                          "ExportId":  "templates"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/title_blocks.json",
+                                          "ExportId":  "title_blocks"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/filters.json",
+                                          "ExportId":  "filters"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/scales.json",
+                                          "ExportId":  "scales"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/parameters.json",
+                                          "ExportId":  "parameters"
+                                      },
+                                      {
+                                          "ExportKind":  "standard",
+                                          "RelativePath":  "assets/qc_rules.json",
+                                          "ExportId":  "qc_rules"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.costtime.mapping",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Cost/Time Mapping Standards",
+                      "RootPath":  "packs/standards/costtime-mapping",
+                      "SourcePath":  "packs/standards/costtime-mapping/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "mapping",
+                                          "RelativePath":  "assets/mapping.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.iso19650",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "ISO 19650 Naming Standards",
+                      "RootPath":  "packs/standards/iso19650",
+                      "SourcePath":  "packs/standards/iso19650/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "naming",
+                                          "RelativePath":  "assets/naming.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.mep.clearance",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "MEP Clearance Standards",
+                      "RootPath":  "packs/standards/mep-clearance",
+                      "SourcePath":  "packs/standards/mep-clearance/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "clearance",
+                                          "RelativePath":  "assets/clearance.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.mep.lodloi",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "MEP LOD/LOI Standards",
+                      "RootPath":  "packs/standards/mep-lodloi",
+                      "SourcePath":  "packs/standards/mep-lodloi/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "lodloi",
+                                          "RelativePath":  "assets/lodloi.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  },
+                  {
+                      "PackId":  "bim765t.standards.routing.rules",
+                      "PackType":  "standards-pack",
+                      "Version":  "1.0.0",
+                      "DisplayName":  "Routing Priority Rules",
+                      "RootPath":  "packs/standards/routing-rules",
+                      "SourcePath":  "packs/standards/routing-rules/pack.json",
+                      "EnabledByDefault":  true,
+                      "Exports":  [
+                                      {
+                                          "ExportId":  "routing",
+                                          "RelativePath":  "assets/routing.json",
+                                          "ExportKind":  "standard"
+                                      }
+                                  ]
+                  }
+              ]
+}

@@ -1,0 +1,57 @@
+{
+  "PackType": "standards-pack",
+  "PackId": "bim765t.standards.core",
+  "Version": "1.0.0",
+  "DisplayName": "BIM765T Core Standards",
+  "Description": "Core workspace standards for sheet naming, templates, title blocks, filters, scales, and QC rules.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "revit-agent",
+      "workerhost",
+      "mcp"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/naming.json",
+      "ExportId": "naming"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/templates.json",
+      "ExportId": "templates"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/title_blocks.json",
+      "ExportId": "title_blocks"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/filters.json",
+      "ExportId": "filters"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/scales.json",
+      "ExportId": "scales"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/parameters.json",
+      "ExportId": "parameters"
+    },
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/qc_rules.json",
+      "ExportId": "qc_rules"
+    }
+  ],
+  "EnabledByDefault": true
+}

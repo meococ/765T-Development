@@ -1,0 +1,11 @@
+{
+  "DisabledTools": [],
+  "HighRiskTools": [
+    "element.delete_safe",
+    "file.save_document",
+    "file.save_as_document",
+    "worksharing.synchronize_with_central",
+    "document.close_non_active"
+  ],
+  "DenyBackgroundOpenRead": false
+}

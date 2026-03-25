@@ -1,0 +1,69 @@
+﻿# Build artifacts
+**/bin/
+**/bin/**
+**/obj/
+**/obj/**
+**/.vs/
+**/.vs/**
+**/*.user
+**/*.suo
+build_output/
+artifacts/
+artifacts/**
+
+# Scratch / local outputs
+.artifacts_build/
+.scratch/
+*.tmp
+*.bak
+
+# Revit deployment
+src/BIM765T.Revit.Agent/deploy/generated/
+
+# Assistant runtime state (not source)
+.assistant/context/
+.assistant/runs/
+.assistant/relay/
+.assistant/memory/
+.assistant/settings.local.json
+.assistant/plans/
+.mcp.json
+
+# Workspace-generated smoke state
+workspaces/*/project.context.json
+workspaces/*/scratch/**
+!workspaces/*/scratch/.gitignore
+workspaces/*/reports/**
+!workspaces/*/reports/.gitignore
+workspaces/*/memory/**
+!workspaces/*/memory/.gitignore
+
+# Misplaced local deployment artifacts
+%APPDATA%/
+
+# Local generated docs / test output
+**/docs/handoff/
+**/docs/meeting-notes/
+**/docs/generated/
+**/TestResults/
+**/TestResults/**
+
+# Tool helper scratch outputs
+tools/dev/scratch/_comments_context.json
+tools/dev/scratch/_comments_dryrun.json
+tools/dev/scratch/_comments_payload.json
+tools/dev/scratch/_schedule_context.json
+tools/dev/scratch/_schedule_dryrun.json
+tools/dev/scratch/_explain_tmp.json
+tools/axis_audit_report.csv
+
+# Large local BIM files
+Project MMBS/
+*.rvt
+*.rws
+*.slog
+
+# OS/editor
+.DS_Store
+Thumbs.db
+desktop.ini

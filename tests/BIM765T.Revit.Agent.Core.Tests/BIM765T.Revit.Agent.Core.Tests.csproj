@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.4" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BIM765T.Revit.Agent.Core\BIM765T.Revit.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\BIM765T.Revit.Contracts\BIM765T.Revit.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\BIM765T.Revit.Copilot.Core\BIM765T.Revit.Copilot.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Config\AgentSettings.cs" Link="Source\Config\AgentSettings.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Logging\IAgentLogger.cs" Link="Source\Infrastructure\Logging\IAgentLogger.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Logging\FileLogger.cs" Link="Source\Infrastructure\Logging\FileLogger.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Time\ISystemClock.cs" Link="Source\Infrastructure\Time\ISystemClock.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Time\SystemClock.cs" Link="Source\Infrastructure\Time\SystemClock.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Bridge\RequestRateLimiter.cs" Link="Source\Infrastructure\Bridge\RequestRateLimiter.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Bridge\PipeRequestProcessor.cs" Link="Source\Infrastructure\Bridge\PipeRequestProcessor.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Bridge\ToolQueuePriorityResolver.cs" Link="Source\Infrastructure\Bridge\ToolQueuePriorityResolver.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Bridge\PendingToolInvocation.cs" Link="Source\Infrastructure\Bridge\PendingToolInvocation.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Infrastructure\Bridge\ToolInvocationQueue.cs" Link="Source\Infrastructure\Bridge\ToolInvocationQueue.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestMetadata.cs" Link="Source\Services\Bridge\ToolManifestMetadata.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestPresets.cs" Link="Source\Services\Bridge\ToolManifestPresets.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestFactory.cs" Link="Source\Services\Bridge\ToolManifestFactory.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolExecutionTimeoutPolicy.cs" Link="Source\Services\Bridge\ToolExecutionTimeoutPolicy.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolResponseHelpers.cs" Link="Source\Services\Bridge\ToolResponseHelpers.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.McpHost\McpToolCatalogLoader.cs" Link="Source\McpHost\McpToolCatalogLoader.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.McpHost\ToolCatalog.cs" Link="Source\McpHost\ToolCatalog.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Platform\FixLoopDecisionEngine.cs" Link="Source\Services\Platform\FixLoopDecisionEngine.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Platform\ApprovalTokenStore.cs" Link="Source\Services\Platform\ApprovalTokenStore.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\ChatTimelineModels.cs" Link="Source\UI\Chat\ChatTimelineModels.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\ChatSessionStore.cs" Link="Source\UI\Chat\ChatSessionStore.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\ChatTimelineProjector.cs" Link="Source\UI\Chat\ChatTimelineProjector.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\WorkerHostMissionClient.cs" Link="Source\UI\Chat\WorkerHostMissionClient.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\WorkerHostRuntimeBootstrapper.cs" Link="Source\UI\Chat\WorkerHostRuntimeBootstrapper.cs" />
+  </ItemGroup>
+</Project>

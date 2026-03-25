@@ -1,0 +1,26 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.shared",
+  "Version": "1.0.0",
+  "DisplayName": "BIM765T Shared Agent Constitution",
+  "Description": "Shared constitution and adapter guidance for all AI agents working in the monorepo.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "assistant",
+      "workerhost"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "shared-agent-readme"
+    }
+  ],
+  "EnabledByDefault": true
+}

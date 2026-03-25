@@ -1,0 +1,11 @@
+{
+  "Name": "us-residential",
+  "Description": "Ruleset thực dụng cho residential documentation: chú trọng sheet/titleblock/view naming và warning hygiene.",
+  "Rules": [
+    { "RuleId": "DOC_WARNINGS_LIMIT", "CheckKey": "model.warnings_threshold", "Title": "Model warnings should stay under threshold", "Category": "document", "Severity": "warning", "Threshold": 30, "StandardRef": "US-RESIDENTIAL", "SuggestedAction": "Giảm warnings trước permit/issue set." },
+    { "RuleId": "VIEW_NAMING", "CheckKey": "naming.violations", "Title": "View names should follow naming hygiene", "Category": "naming", "Severity": "warning", "Scope": "views", "MaxItems": 20, "StandardRef": "US-RESIDENTIAL", "SuggestedAction": "Dọn view copy/name rác trước issue set." },
+    { "RuleId": "SHEET_TITLEBLOCK", "CheckKey": "sheets.missing_titleblock", "Title": "Sheets should contain title blocks", "Category": "documentation", "Severity": "warning", "MaxItems": 20, "StandardRef": "US-RESIDENTIAL", "SuggestedAction": "Title block là bắt buộc với issued sheets." },
+    { "RuleId": "SHEET_EMPTY_LAYOUT", "CheckKey": "sheets.empty_layout", "Title": "Sheets should not be empty", "Category": "documentation", "Severity": "warning", "MaxItems": 20, "StandardRef": "US-RESIDENTIAL", "SuggestedAction": "Loại hoặc hoàn thiện empty sheets trước issue." },
+    { "RuleId": "DUPLICATE_ELEMENTS", "CheckKey": "duplicates.groups", "Title": "Model should avoid duplicate elements", "Category": "coordination", "Severity": "warning", "MaxItems": 10, "StandardRef": "US-RESIDENTIAL", "SuggestedAction": "Kiểm tra các duplicate group trước coordination." }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "PipeName": "BIM765T.Revit.Agent",
+  "EnablePipeServer": true,
+  "AllowWriteTools": false,
+  "RequestTimeoutSeconds": 120,
+  "VerboseLogging": true,
+  "ApprovalTokenTtlMinutes": 10,
+  "MaxRecentOperations": 100,
+  "MaxRecentEvents": 200,
+  "EnableOperationJournal": true,
+  "EnableEventIndex": true,
+  "AllowDeleteTools": false,
+  "AllowSaveTools": true,
+  "AllowSyncTools": true,
+  "AllowBackgroundOpenRead": false,
+  "KernelPipeName": "BIM765T.Revit.Agent.Kernel",
+  "EnableKernelPipeServer": true
+}

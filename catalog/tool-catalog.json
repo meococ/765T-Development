@@ -1,0 +1,6 @@
+﻿{
+    "GeneratedAtUtc":  "2026-03-24T02:11:09.7707569Z",
+    "Status":  "run bridge-backed tool catalog export when Revit/bridge is available",
+    "Source":  "live_registry_required",
+    "GeneratorScript":  "tools/generate_tool_catalog.ps1"
+}

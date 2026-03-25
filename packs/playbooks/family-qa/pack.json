@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.family-qa",
+    "Version":  "1.0.0",
+    "DisplayName":  "Family QA Playbooks",
+    "Description":  "Playbooks for family intake, cleanup, and LOD/LOI checks.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  {
+                    "ExportId":  "family_intake_qa.v1",
+                    "RelativePath":  "assets/family_intake_qa.v1.json",
+                    "ExportKind":  "playbook"
+                },
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "family_qa"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "family_qa",
+                       "lod_loi_compliance"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

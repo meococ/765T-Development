@@ -1,0 +1,75 @@
+﻿{
+    "PlaybookId":  "annotation_smart_tag_dimension.v1",
+    "Version":  "1.0",
+    "Description":  "Smart annotation pass with overlap-aware tagging and dimension checks.",
+    "Lane":  "annotation",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "smart tag",
+                                          "dimension plan",
+                                          "tag all"
+                                      ],
+                         "Dont_Use_When":  [
+                                               "family document"
+                                           ],
+                         "Prefer_Over":  "manual tagging"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Resolve annotation rules.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "compile",
+                      "Purpose":  "Compile tag/dim task.",
+                      "Tool":  "intent.compile",
+                      "StepName":  "Compile task",
+                      "StepKind":  "routing"
+                  },
+                  {
+                      "StepId":  "verify",
+                      "Purpose":  "Inspect verify lane before mutate.",
+                      "Tool":  "tool.get_guidance",
+                      "StepName":  "Verify",
+                      "StepKind":  "guidance"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Tag overlap and dimension collision risks are surfaced.",
+                   "Tool":  "review.smart_qc"
+               },
+    "PackId":  "bim765t.playbooks.annotation",
+    "TriggerPhrases":  [
+                           "smart tag",
+                           "dimensioning",
+                           "tag door room"
+                       ],
+    "StandardsRefs":  [
+                          "naming.json#iso19650.view_name"
+                      ],
+    "RequiredInputs":  [
+                           "target_view"
+                       ],
+    "ReportTemplate":  "annotation_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.annotation"
+                               ],
+    "CapabilityDomain":  "annotation",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "architecture",
+                                 "common"
+                             ],
+    "IssueKinds":  [
+                       "tag_overlap",
+                       "dimension_collision"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.iso19650"
+                      ]
+}

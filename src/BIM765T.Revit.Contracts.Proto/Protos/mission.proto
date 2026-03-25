@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option csharp_namespace = "BIM765T.Revit.Contracts.Proto";
+
+package bim765t.worker.v2;
+
+import "common.proto";
+
+message SubmitMissionRequest {
+  EnvelopeMetadata meta = 1;
+  string message = 2;
+  string persona_id = 3;
+  string client_surface = 4;
+  bool continue_mission = 5;
+  string tool_name = 6;
+  string payload_json = 7;
+  bool dry_run = 8;
+  string approval_token = 9;
+  string expected_context_json = 10;
+  string preview_run_id = 11;
+}
+
+message MissionCommandRequest {
+  EnvelopeMetadata meta = 1;
+  string mission_id = 2;
+  string note = 3;
+  string approval_token = 4;
+  string preview_run_id = 5;
+  string expected_context_json = 6;
+  bool allow_mutations = 7;
+  string recovery_branch_id = 8;
+}
+
+message MissionQuery {
+  EnvelopeMetadata meta = 1;
+  string mission_id = 2;
+}
+
+message MissionReply {
+  StatusEnvelope status = 1;
+  string mission_id = 2;
+  string state = 3;
+  string payload_json = 4;
+  string response_text = 5;
+  repeated EventEnvelope events = 6;
+}
+
+service MissionService {
+  rpc SubmitMission(SubmitMissionRequest) returns (MissionReply);
+  rpc GetMission(MissionQuery) returns (MissionReply);
+  rpc ApproveMission(MissionCommandRequest) returns (MissionReply);
+  rpc RejectMission(MissionCommandRequest) returns (MissionReply);
+  rpc CancelMission(MissionCommandRequest) returns (MissionReply);
+  rpc ResumeMission(MissionCommandRequest) returns (MissionReply);
+}
+
+service MissionStreamService {
+  rpc StreamMissionEvents(MissionQuery) returns (stream EventEnvelope);
+}

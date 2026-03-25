@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "playbook-pack",
+    "PackId":  "bim765t.playbooks.coordination",
+    "Version":  "1.0.0",
+    "DisplayName":  "Coordination Playbooks",
+    "Description":  "Playbooks for clash, clearance, penetration, and opening workflows.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+                         {
+                             "PackId":  "bim765t.standards.core",
+                             "VersionRange":  "\u003e=1.0.0"
+                         }
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  {
+                    "ExportId":  "coordination_clash_resolution.v1",
+                    "RelativePath":  "assets/coordination_clash_resolution.v1.json",
+                    "ExportKind":  "playbook"
+                },
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "coordination"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "hard_clash",
+                       "clearance_soft_clash"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

@@ -1,0 +1,48 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.mep.clearance",
+    "Version":  "1.0.0",
+    "DisplayName":  "MEP Clearance Standards",
+    "Description":  "Clearance envelopes and soft-clash policies for equipment and access zones.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "clearance",
+                        "RelativePath":  "assets/clearance.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "coordination"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "clearance_soft_clash",
+                       "hard_clash"
+                   ],
+    "VerificationModes":  [
+                              "geometry_check"
+                          ]
+}

@@ -1,0 +1,8 @@
+{
+  "view_scales": {
+    "architectural_plan": "1:100",
+    "mep_plan": "1:100",
+    "section": "1:50",
+    "detail": "1:20"
+  }
+}

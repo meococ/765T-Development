@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "agent-pack",
+    "PackId":  "bim765t.agents.specialist.annotation",
+    "Version":  "1.0.0",
+    "DisplayName":  "Annotation Specialist",
+    "Description":  "Specialist for tags, dimensions, and room-finish generation.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "annotation-specialist",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "agent"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "annotation"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "tag_overlap",
+                       "dimension_collision",
+                       "room_finish_generation"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

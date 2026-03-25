@@ -1,0 +1,21 @@
+{
+  "PackType": "standards-pack",
+  "PackId": "contoso.standards.firm",
+  "Version": "1.0.0",
+  "DisplayName": "Contoso Firm Standards",
+  "Description": "Firm-specific BIM standards overlay for BIM765T /init workspaces.",
+  "Owner": "Contoso BIM",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": ["2024"],
+    "SupportedHosts": ["workerhost", "agent", "mcp"]
+  },
+  "Exports": [
+    {
+      "ExportKind": "standard",
+      "RelativePath": "assets/templates.json",
+      "ExportId": "templates"
+    }
+  ],
+  "EnabledByDefault": false
+}

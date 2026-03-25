@@ -1,0 +1,107 @@
+{
+  "PlaybookId": "sheet_create_mep_package.v1",
+  "Version": "1.0",
+  "Description": "Create one MEP sheet package per requested level using workspace standards, then run sheet QC and aggregate report.",
+  "Lane": "sheet_authoring",
+  "RequiredContext": "project",
+  "DecisionGate": {
+    "Use_When": [
+      "tao sheet mep",
+      "create mep sheet"
+    ],
+    "Dont_Use_When": [
+      "family doc"
+    ],
+    "Prefer_Over": "manual tool lookup"
+  },
+  "Steps": [
+    {
+      "StepName": "Resolve workspace",
+      "StepId": "workspace",
+      "StepKind": "context",
+      "Tool": "workspace.get_manifest",
+      "Purpose": "Lay workspace, packs, va runtime policy."
+    },
+    {
+      "StepName": "Resolve standards",
+      "StepId": "standards",
+      "StepKind": "standards",
+      "Tool": "standards.resolve",
+      "Purpose": "Resolve MEP naming, title block, template, filters, scale, va QC inputs.",
+      "ParametersJson": "{\"StandardKind\":\"sheet\",\"RequestedKeys\":[\"naming.json#sheet.mep.format\",\"naming.json#view.floor_plan\",\"templates.json#view_templates.mep_plan\",\"title_blocks.json#title_blocks.A1\",\"filters.json#sheet_filters.mep_plan\",\"scales.json#view_scales.mep_plan\",\"parameters.json#required_sheet_parameters\",\"qc_rules.json#sheet_qc\"]}",
+      "OutputKey": "standards"
+    },
+    {
+      "StepName": "Create sheet",
+      "StepId": "create_sheet",
+      "StepKind": "tool",
+      "Tool": "sheet.create_safe",
+      "Purpose": "Create target sheet with title block.",
+      "LoopOver": "${user.levels}"
+    },
+    {
+      "StepName": "Create views",
+      "StepId": "create_views",
+      "StepKind": "tool",
+      "Tool": "view.create_project_view_safe",
+      "Purpose": "Create required MEP views.",
+      "LoopOver": "${user.levels}",
+      "ParametersJson": "{\"view_kind\":\"engineering_plan\",\"discipline\":\"mep\"}",
+      "OutputKey": "views",
+      "RequiredStandardsRefs": [
+        "naming.json#view.floor_plan",
+        "templates.json#view_templates.mep_plan",
+        "filters.json#sheet_filters.mep_plan",
+        "scales.json#view_scales.mep_plan"
+      ]
+    },
+    {
+      "StepName": "Apply template",
+      "StepId": "template",
+      "StepKind": "tool",
+      "Tool": "view.set_template_safe",
+      "Purpose": "Apply MEP template and filters."
+    },
+    {
+      "StepName": "Place views",
+      "StepId": "place_views",
+      "StepKind": "tool",
+      "Tool": "sheet.place_views_safe",
+      "Purpose": "Place views to sheet."
+    },
+    {
+      "StepName": "QC sheet",
+      "StepId": "qc",
+      "StepKind": "qc",
+      "Tool": "review.sheet_summary",
+      "Purpose": "Check result against team sheet QC."
+    }
+  ],
+  "QcStep": {
+    "Tool": "review.smart_qc",
+    "ExpectedOutcome": "MEP sheet package passes team QC or returns bounded warnings."
+  },
+  "PackId": "bim765t.playbooks.core",
+  "TriggerPhrases": [
+    "tao sheet mep",
+    "create mep sheet"
+  ],
+  "StandardsRefs": [
+    "naming.json#sheet.mep.format",
+    "naming.json#view.floor_plan",
+    "templates.json#view_templates.mep_plan",
+    "title_blocks.json#title_blocks.A1",
+    "filters.json#sheet_filters.mep_plan",
+    "scales.json#view_scales.mep_plan",
+    "parameters.json#required_sheet_parameters",
+    "qc_rules.json#sheet_qc"
+  ],
+  "RequiredInputs": [
+    "levels"
+  ],
+  "ReportTemplate": "sheet_creation_report",
+  "RecommendedSpecialists": [
+    "bim765t.agents.specialist.sheet",
+    "bim765t.agents.specialist.audit"
+  ]
+}

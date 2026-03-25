@@ -1,0 +1,50 @@
+﻿{
+    "PackType":  "skill-pack",
+    "PackId":  "bim765t.skills.integration",
+    "Version":  "1.0.0",
+    "DisplayName":  "Integration Skills",
+    "Description":  "Guidance for Excel/PDF/CAD/BOQ/4D5D adapters and preview-sync workflows.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "integration-skill",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "skill"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "integration"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "external_sync",
+                       "scan_to_bim",
+                       "large_model_split"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "report_only"
+                          ]
+}

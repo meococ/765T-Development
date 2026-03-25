@@ -1,0 +1,24 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.documentation",
+  "Version": "1.0.0",
+  "DisplayName": "Documentation Specialist",
+  "Description": "Behavioral specialist for sheet/view/documentation package flows and layout-safe execution.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [ "2024" ],
+    "SupportedHosts": [ "workerhost", "revit-agent" ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "documentation-specialist"
+    }
+  ],
+  "EnabledByDefault": true,
+  "CapabilityDomains": [ "governance" ],
+  "SupportedDisciplines": [ "architecture", "common" ],
+  "IssueKinds": [ "sheet_package", "naming_convention" ]
+}

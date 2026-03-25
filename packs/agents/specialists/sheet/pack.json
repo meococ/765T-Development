@@ -1,0 +1,31 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.sheet",
+  "Version": "1.0.0",
+  "DisplayName": "Sheet Specialist",
+  "Description": "Sheet/documentation specialist pack with allowed tool focus around sheet, view, viewport, and QC.",
+  "Owner": "bim765t",
+  "Dependencies": [
+    {
+      "PackId": "bim765t.playbooks.core",
+      "VersionRange": ">=1.0.0"
+    }
+  ],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "sheet-specialist"
+    }
+  ],
+  "EnabledByDefault": true
+}

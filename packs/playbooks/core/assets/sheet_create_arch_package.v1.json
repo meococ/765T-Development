@@ -1,0 +1,115 @@
+{
+  "PlaybookId": "sheet_create_arch_package.v1",
+  "Version": "1.0",
+  "Description": "Create one architectural sheet package per requested level using workspace standards, then run sheet QC and aggregate report.",
+  "Lane": "sheet_authoring",
+  "RequiredContext": "project",
+  "DecisionGate": {
+    "Use_When": [
+      "tao sheet kien truc",
+      "create arch sheet",
+      "sheet a"
+    ],
+    "Dont_Use_When": [
+      "family doc"
+    ],
+    "Prefer_Over": "flat tool search"
+  },
+  "Steps": [
+    {
+      "StepName": "Resolve workspace",
+      "StepId": "workspace",
+      "StepKind": "context",
+      "Tool": "workspace.get_manifest",
+      "Purpose": "Lay workspace, packs, va runtime policy."
+    },
+    {
+      "StepName": "Resolve standards",
+      "StepId": "standards",
+      "StepKind": "standards",
+      "Tool": "standards.resolve",
+      "Purpose": "Resolve naming, title block, template, filters, scale, va QC inputs.",
+      "ParametersJson": "{\"StandardKind\":\"sheet\",\"RequestedKeys\":[\"naming.json#sheet.architectural.format\",\"naming.json#view.floor_plan\",\"templates.json#view_templates.architectural_plan\",\"title_blocks.json#title_blocks.A1\",\"filters.json#sheet_filters.architectural_plan\",\"scales.json#view_scales.architectural_plan\",\"parameters.json#required_sheet_parameters\",\"qc_rules.json#sheet_qc\"]}",
+      "OutputKey": "standards"
+    },
+    {
+      "StepName": "Create sheet",
+      "StepId": "create_sheet",
+      "StepKind": "tool",
+      "Tool": "sheet.create_safe",
+      "Purpose": "Create target sheet with title block.",
+      "Verify": "response.Succeeded == true",
+      "RequiredStandardsRefs": [
+        "naming.json#sheet.architectural.format",
+        "title_blocks.json#title_blocks.A1"
+      ],
+      "LoopOver": "${user.levels}"
+    },
+    {
+      "StepName": "Create views",
+      "StepId": "create_views",
+      "StepKind": "tool",
+      "Tool": "view.create_project_view_safe",
+      "Purpose": "Create required plan views.",
+      "LoopOver": "${user.levels}",
+      "ParametersJson": "{\"view_kind\":\"floor_plan\",\"discipline\":\"architectural\"}",
+      "OutputKey": "views",
+      "RequiredStandardsRefs": [
+        "naming.json#view.floor_plan",
+        "templates.json#view_templates.architectural_plan",
+        "filters.json#sheet_filters.architectural_plan",
+        "scales.json#view_scales.architectural_plan"
+      ]
+    },
+    {
+      "StepName": "Place views",
+      "StepId": "place_views",
+      "StepKind": "tool",
+      "Tool": "sheet.place_views_safe",
+      "Purpose": "Place views to sheet using auto layout.",
+      "LoopOver": "${create_views.results}",
+      "ParametersJson": "{\"layout\":\"auto_layout\"}",
+      "Verify": "response.Succeeded == true"
+    },
+    {
+      "StepName": "QC sheet",
+      "StepId": "qc",
+      "StepKind": "qc",
+      "Tool": "review.sheet_summary",
+      "Purpose": "Check result against team sheet QC.",
+      "Verify": "response.Succeeded == true",
+      "RequiredStandardsRefs": [
+        "qc_rules.json#sheet_qc"
+      ]
+    }
+  ],
+  "QcStep": {
+    "Tool": "review.smart_qc",
+    "ExpectedOutcome": "Sheet package passes team sheet QC or returns bounded warnings."
+  },
+  "PackId": "bim765t.playbooks.core",
+  "TriggerPhrases": [
+    "tao sheet a",
+    "create sheet a",
+    "tao sheet kien truc",
+    "sheet tang"
+  ],
+  "StandardsRefs": [
+    "naming.json#sheet.architectural.format",
+    "naming.json#view.floor_plan",
+    "templates.json#view_templates.architectural_plan",
+    "title_blocks.json#title_blocks.A1",
+    "filters.json#sheet_filters.architectural_plan",
+    "scales.json#view_scales.architectural_plan",
+    "parameters.json#required_sheet_parameters",
+    "qc_rules.json#sheet_qc"
+  ],
+  "RequiredInputs": [
+    "levels"
+  ],
+  "ReportTemplate": "sheet_creation_report",
+  "RecommendedSpecialists": [
+    "bim765t.agents.specialist.sheet",
+    "bim765t.agents.specialist.audit"
+  ]
+}

@@ -1,0 +1,49 @@
+﻿{
+    "PackType":  "skill-pack",
+    "PackId":  "bim765t.skills.family-qa",
+    "Version":  "1.0.0",
+    "DisplayName":  "Family QA Skills",
+    "Description":  "Guidance for family intake QA, cleanup, and content validation.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "family-qa-skill",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "skill"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "family_qa"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "family_qa",
+                       "lod_loi_compliance"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "report_only"
+                          ]
+}

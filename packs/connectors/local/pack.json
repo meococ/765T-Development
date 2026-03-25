@@ -1,0 +1,27 @@
+{
+  "PackType": "connector-pack",
+  "PackId": "bim765t.connectors.local",
+  "Version": "1.0.0",
+  "DisplayName": "Local Connector Pack",
+  "Description": "Local MCP/CLI/bridge connector metadata pack.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "mcp",
+      "bridge"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "connector",
+      "RelativePath": "assets/README.md",
+      "ExportId": "local-connectors"
+    }
+  ],
+  "EnabledByDefault": true
+}

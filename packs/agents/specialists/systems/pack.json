@@ -1,0 +1,53 @@
+﻿{
+    "PackType":  "agent-pack",
+    "PackId":  "bim765t.agents.specialist.systems",
+    "Version":  "1.0.0",
+    "DisplayName":  "Systems Specialist",
+    "Description":  "Specialist for MEP connectivity, slope, and routing scaffold workflows.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "systems-specialist",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "agent"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "systems"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "disconnected_system",
+                       "slope_continuity",
+                       "basic_routing",
+                       "system_sizing"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "geometry_check",
+                              "system_consistency",
+                              "report_only"
+                          ]
+}

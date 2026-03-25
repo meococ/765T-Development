@@ -1,0 +1,27 @@
+{
+  "openai": {
+    "defaultModel": "gpt-5.4",
+    "models": {
+      "fast": "gpt-5.4",
+      "balanced": "gpt-5.4",
+      "max": "gpt-5.4"
+    }
+  },
+  "externalAiBroker": {
+    "baseUrl": "http://127.0.0.1:50765",
+    "statusRoute": "/api/external-ai/status",
+    "catalogRoute": "/api/external-ai/catalog",
+    "chatRoute": "/api/external-ai/chat"
+  },
+  "roles": {
+    "reviewer": "Review code, plans, risks, and missing context. Do not invent facts.",
+    "planner": "Create implementation plans with risks, dependencies, and validation steps.",
+    "debugger": "Analyze root cause, instrumentation, and reproducible fixes.",
+    "executor": "Execute bounded implementation tasks and report evidence.",
+    "critic": "Challenge assumptions and point out hidden risks.",
+    "architect": "Evaluate architecture, boundaries, and migration strategy."
+  },
+  "memory": {
+    "architectureSpec": ".assistant/config/agent-memory-architecture.json"
+  }
+}

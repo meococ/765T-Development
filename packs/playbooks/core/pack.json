@@ -1,0 +1,47 @@
+{
+  "PackType": "playbook-pack",
+  "PackId": "bim765t.playbooks.core",
+  "Version": "1.0.0",
+  "DisplayName": "BIM765T Core Playbooks",
+  "Description": "Workspace-aware orchestration playbooks for sheet authoring, review, and reusable task recipes.",
+  "Owner": "bim765t",
+  "Dependencies": [
+    {
+      "PackId": "bim765t.standards.core",
+      "VersionRange": ">=1.0.0"
+    }
+  ],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "revit-agent",
+      "workerhost",
+      "mcp"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "playbook",
+      "RelativePath": "assets/sheet_create_arch_package.v1.json",
+      "ExportId": "sheet_create_arch_package.v1"
+    },
+    {
+      "ExportKind": "playbook",
+      "RelativePath": "assets/sheet_create_mep_package.v1.json",
+      "ExportId": "sheet_create_mep_package.v1"
+    },
+    {
+      "ExportKind": "playbook",
+      "RelativePath": "assets/sheet_review_team_standard.v1.json",
+      "ExportId": "sheet_review_team_standard.v1"
+    },
+    {
+      "ExportKind": "playbook",
+      "RelativePath": "assets/family_benchmark_servicebox.v1.json",
+      "ExportId": "family_benchmark_servicebox.v1"
+    }
+  ],
+  "EnabledByDefault": true
+}

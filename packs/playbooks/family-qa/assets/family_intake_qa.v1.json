@@ -1,0 +1,75 @@
+﻿{
+    "PlaybookId":  "family_intake_qa.v1",
+    "Version":  "1.0",
+    "Description":  "Run family intake QA before content is accepted into the project.",
+    "Lane":  "family_qa",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "family qa",
+                                          "family intake",
+                                          "load family"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "ad-hoc family load"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "xray",
+                      "Purpose":  "Inspect family composition and connectors.",
+                      "Tool":  "family.xray",
+                      "StepName":  "Family X-ray",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Load family size and LOD/LOI policies.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "verify",
+                      "Purpose":  "Check required parameter completeness.",
+                      "Tool":  "review.parameter_completeness",
+                      "StepName":  "Verify completeness",
+                      "StepKind":  "qc"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Family is either accepted, quarantined, or sent to cleanup.",
+                   "Tool":  "family.xray"
+               },
+    "PackId":  "bim765t.playbooks.family-qa",
+    "TriggerPhrases":  [
+                           "family qa",
+                           "load family",
+                           "kiem duyet family"
+                       ],
+    "StandardsRefs":  [
+                          "lodloi.json#lodloi.family_limits"
+                      ],
+    "RequiredInputs":  [
+                           "family_name"
+                       ],
+    "ReportTemplate":  "family_qa_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.family"
+                               ],
+    "CapabilityDomain":  "family_qa",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "mep"
+                             ],
+    "IssueKinds":  [
+                       "family_qa",
+                       "lod_loi_compliance"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.mep.lodloi"
+                      ]
+}

@@ -1,0 +1,24 @@
+{
+  "sheet": {
+    "architectural": {
+      "prefix": "A",
+      "format": "A{floor:02d}{seq:02d}",
+      "example": "A0101"
+    },
+    "structural": {
+      "prefix": "S",
+      "format": "S{floor:02d}{seq:02d}",
+      "example": "S0101"
+    },
+    "mep": {
+      "prefix": "M",
+      "format": "M{floor:02d}{seq:02d}",
+      "example": "M0101"
+    }
+  },
+  "view": {
+    "floor_plan": "{discipline} - Level {level} - {purpose}",
+    "section": "Section {seq} - {description}",
+    "3d": "3D - {scope}"
+  }
+}

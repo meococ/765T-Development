@@ -1,0 +1,66 @@
+﻿{
+    "PlaybookId":  "room_finish_generate.v1",
+    "Version":  "1.0",
+    "Description":  "Generate room-based floor/ceiling finishes from room boundaries with preview first.",
+    "Lane":  "annotation",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "room finish",
+                                          "ceiling by room",
+                                          "floor by room"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "manual tracing"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "compile",
+                      "Purpose":  "Compile room-finish request.",
+                      "Tool":  "intent.compile",
+                      "StepName":  "Compile task",
+                      "StepKind":  "routing"
+                  },
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Resolve room finish rules.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Preview plan is ready for safe execution.",
+                   "Tool":  "tool.get_guidance"
+               },
+    "PackId":  "bim765t.playbooks.annotation",
+    "TriggerPhrases":  [
+                           "ceiling by room",
+                           "floor by room",
+                           "room finish"
+                       ],
+    "StandardsRefs":  [
+
+                      ],
+    "RequiredInputs":  [
+                           "level"
+                       ],
+    "ReportTemplate":  "room_finish_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.annotation"
+                               ],
+    "CapabilityDomain":  "annotation",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "architecture"
+                             ],
+    "IssueKinds":  [
+                       "room_finish_generation"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.bep.core"
+                      ]
+}

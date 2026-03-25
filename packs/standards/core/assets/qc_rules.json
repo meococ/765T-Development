@@ -1,0 +1,25 @@
+{
+  "sheet_qc": {
+    "title_block_filled": {
+      "required": [
+        "project_name",
+        "sheet_number",
+        "drawn_by",
+        "date"
+      ],
+      "severity": "error"
+    },
+    "views_placed": {
+      "min": 1,
+      "severity": "error"
+    },
+    "scale_shown": {
+      "required": true,
+      "severity": "warning"
+    },
+    "north_arrow": {
+      "for_plans": true,
+      "severity": "warning"
+    }
+  }
+}

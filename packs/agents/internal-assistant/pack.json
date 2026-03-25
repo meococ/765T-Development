@@ -1,0 +1,32 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.internal-assistant",
+  "Version": "1.0.0",
+  "DisplayName": "Internal Assistant Pack",
+  "Description": "Neutral repo-native assistant pack for local execution hygiene and guidance assets.",
+  "Owner": "bim765t",
+  "Dependencies": [
+    {
+      "PackId": "bim765t.agents.shared",
+      "VersionRange": ">=1.0.0"
+    }
+  ],
+  "Compatibility": {
+    "SupportedRevitYears": ["2024"],
+    "SupportedHosts": ["assistant", "workerhost"]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "internal-assistant-readme"
+    },
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/ASSISTANT.adapter.md",
+      "ExportId": "internal-assistant-adapter"
+    }
+  ],
+  "LegacyPackIds": ["bim765t.agents.codex"],
+  "EnabledByDefault": true
+}

@@ -1,0 +1,74 @@
+﻿{
+    "PlaybookId":  "warning_triage_safe.v1",
+    "Version":  "1.0",
+    "Description":  "Triage Revit warnings into safe-fix and manual-review buckets.",
+    "Lane":  "governance",
+    "RequiredContext":  "project",
+    "DecisionGate":  {
+                         "Use_When":  [
+                                          "warning triage",
+                                          "model warnings",
+                                          "qc warning"
+                                      ],
+                         "Dont_Use_When":  [
+
+                                           ],
+                         "Prefer_Over":  "manual warning review"
+                     },
+    "Steps":  [
+                  {
+                      "StepId":  "policy",
+                      "Purpose":  "Load BEP warning policy.",
+                      "Tool":  "policy.resolve",
+                      "StepName":  "Resolve policy",
+                      "StepKind":  "policy"
+                  },
+                  {
+                      "StepId":  "scan",
+                      "Purpose":  "Capture findings and severity.",
+                      "Tool":  "review.smart_qc",
+                      "StepName":  "Run smart QC",
+                      "StepKind":  "qc"
+                  },
+                  {
+                      "StepId":  "specialist",
+                      "Purpose":  "Route to governance specialist if needed.",
+                      "Tool":  "specialist.resolve",
+                      "StepName":  "Resolve specialists",
+                      "StepKind":  "routing"
+                  }
+              ],
+    "QcStep":  {
+                   "ExpectedOutcome":  "Warnings are classified into safe-fix and manual-review sets.",
+                   "Tool":  "review.smart_qc"
+               },
+    "PackId":  "bim765t.playbooks.governance",
+    "TriggerPhrases":  [
+                           "warning triage",
+                           "kiem tra warning",
+                           "model health"
+                       ],
+    "StandardsRefs":  [
+                          "bep.json#bep.warning_triage"
+                      ],
+    "RequiredInputs":  [
+
+                       ],
+    "ReportTemplate":  "warning_triage_report",
+    "RecommendedSpecialists":  [
+                                   "bim765t.agents.specialist.governance",
+                                   "bim765t.agents.specialist.audit"
+                               ],
+    "CapabilityDomain":  "governance",
+    "DeterminismLevel":  "policy_backed",
+    "VerificationMode":  "policy_check",
+    "SupportedDisciplines":  [
+                                 "common"
+                             ],
+    "IssueKinds":  [
+                       "warning_triage"
+                   ],
+    "PolicyPackIds":  [
+                          "bim765t.standards.bep.core"
+                      ]
+}

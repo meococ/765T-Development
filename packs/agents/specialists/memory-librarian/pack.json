@@ -1,0 +1,24 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.specialist.memory-librarian",
+  "Version": "1.0.0",
+  "DisplayName": "Memory Librarian Specialist",
+  "Description": "Behavioral specialist for scoped retrieval, lesson promotion, and context-budget discipline.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [ "2024" ],
+    "SupportedHosts": [ "workerhost", "revit-agent" ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "memory-librarian-specialist"
+    }
+  ],
+  "EnabledByDefault": true,
+  "CapabilityDomains": [ "intent", "governance" ],
+  "SupportedDisciplines": [ "common" ],
+  "IssueKinds": [ "intent_compile" ]
+}

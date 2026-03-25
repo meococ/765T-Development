@@ -1,0 +1,38 @@
+{
+  "PackType": "script-pack",
+  "PackId": "bim765t.scripts.curated-internal",
+  "Version": "1.0.0",
+  "DisplayName": "765T Curated Internal Scripts",
+  "Description": "Curated internal script manifest registry for built-in and approved wrapper scripts.",
+  "Owner": "bim765t",
+  "Dependencies": [],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "workerhost",
+      "revit-agent",
+      "mcp"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "script_source",
+      "RelativePath": "assets/curated-sources.json",
+      "ExportId": "curated-script-sources"
+    }
+  ],
+  "EnabledByDefault": true,
+  "CapabilityDomains": [
+    "family_qa",
+    "general"
+  ],
+  "SupportedDisciplines": [
+    "common"
+  ],
+  "VerificationModes": [
+    "report_only",
+    "policy_check"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "Name": "base-rules",
+  "Description": "Ruleset QC nền cho document health, naming, standards, duplicates, và sheet hygiene cơ bản.",
+  "Rules": [
+    { "RuleId": "DOC_NO_PATH", "CheckKey": "model.missing_path", "Title": "Document should have a saved path", "Category": "document", "Severity": "warning", "SuggestedAction": "Save the model to establish a stable document path." },
+    { "RuleId": "DOC_WARNINGS_LIMIT", "CheckKey": "model.warnings_threshold", "Title": "Model warnings should stay under threshold", "Category": "document", "Severity": "warning", "Threshold": 50, "SuggestedAction": "Review warnings and resolve high-frequency warning types first." },
+    { "RuleId": "LINKS_UNLOADED", "CheckKey": "model.unloaded_links", "Title": "Linked models should be loaded", "Category": "coordination", "Severity": "warning", "SuggestedAction": "Load missing links or confirm they are intentionally unloaded." },
+    { "RuleId": "WORKSET_SELECTION_NOT_EDITABLE", "CheckKey": "workset.selection_non_editable", "Title": "Selection should not sit on non-editable worksets", "Category": "worksharing", "Severity": "warning", "SuggestedAction": "Borrow/open the relevant worksets before mutation workflows." },
+    { "RuleId": "VIEW_NAMING", "CheckKey": "naming.violations", "Title": "View names should follow naming hygiene", "Category": "naming", "Severity": "warning", "Scope": "views", "MaxItems": 10, "SuggestedAction": "Rename copied or malformed views before issuing sheets." },
+    { "RuleId": "DUPLICATE_ELEMENTS", "CheckKey": "duplicates.groups", "Title": "Model should avoid duplicate elements", "Category": "coordination", "Severity": "warning", "MaxItems": 10, "SuggestedAction": "Inspect duplicate groups and remove redundant instances." },
+    { "RuleId": "STANDARDS_FAILED", "CheckKey": "standards.failed_rules", "Title": "Model standards checks should pass", "Category": "standards", "Severity": "warning", "MaxItems": 10, "SuggestedAction": "Review the failing standards checks and address the most impactful ones first." },
+    { "RuleId": "SHEET_TITLEBLOCK", "CheckKey": "sheets.missing_titleblock", "Title": "Sheets should contain title blocks", "Category": "documentation", "Severity": "warning", "MaxItems": 10, "SuggestedAction": "Place a valid title block on every issued sheet." },
+    { "RuleId": "SHEET_EMPTY_LAYOUT", "CheckKey": "sheets.empty_layout", "Title": "Sheets should not be empty", "Category": "documentation", "Severity": "warning", "MaxItems": 10, "SuggestedAction": "Place views or schedules before sheet issue review." },
+    { "RuleId": "SHEET_REQUIRED_PARAMETERS", "CheckKey": "sheets.parameter_completeness", "Title": "Required sheet parameters should be filled", "Category": "documentation", "Severity": "warning", "MaxItems": 10, "SuggestedAction": "Fill missing sheet metadata before issue/export." }
+  ]
+}

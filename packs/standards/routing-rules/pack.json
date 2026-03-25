@@ -1,0 +1,52 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.routing.rules",
+    "Version":  "1.0.0",
+    "DisplayName":  "Routing Priority Rules",
+    "Description":  "Deterministic routing and priority rules for clashes, disconnected systems, and slope remediation.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "routing",
+                        "RelativePath":  "assets/routing.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "coordination",
+                              "systems"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "hard_clash",
+                       "disconnected_system",
+                       "slope_continuity",
+                       "basic_routing"
+                   ],
+    "VerificationModes":  [
+                              "geometry_check",
+                              "system_consistency"
+                          ]
+}

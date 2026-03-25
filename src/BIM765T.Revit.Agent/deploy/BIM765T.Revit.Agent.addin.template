@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>765T Revit Bridge</Name>
+    <Assembly>{ASSEMBLY_PATH}</Assembly>
+    <AddInId>27C2495E-AF86-4830-B8E3-1DE4B1DB9E30</AddInId>
+    <FullClassName>BIM765T.Revit.Agent.Addin.AgentApplication</FullClassName>
+    <VendorId>BIM765T</VendorId>
+    <VendorDescription>765T AI Revit Bridge Platform</VendorDescription>
+  </AddIn>
+  <AddIn Type="Command">
+    <Text>765T Agent</Text>
+    <Description>Show 765T AI Revit Bridge pane</Description>
+    <Assembly>{ASSEMBLY_PATH}</Assembly>
+    <AddInId>E452C8AA-39FB-4F9F-9549-A60A94B92CB6</AddInId>
+    <FullClassName>BIM765T.Revit.Agent.Addin.Commands.CmdShowAgentPane</FullClassName>
+    <VendorId>BIM765T</VendorId>
+    <VendorDescription>765T AI Revit Bridge Platform</VendorDescription>
+  </AddIn>
+  <AddIn Type="Command">
+    <Text>765T Current Context</Text>
+    <Description>Show current 765T AI bridge context</Description>
+    <Assembly>{ASSEMBLY_PATH}</Assembly>
+    <AddInId>E56AC9DD-ACF0-4370-80F8-CD4444C23A86</AddInId>
+    <FullClassName>BIM765T.Revit.Agent.Addin.Commands.CmdCurrentContext</FullClassName>
+    <VendorId>BIM765T</VendorId>
+    <VendorDescription>765T AI Revit Bridge Platform</VendorDescription>
+  </AddIn>
+</RevitAddIns>

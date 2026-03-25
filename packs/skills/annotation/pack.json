@@ -1,0 +1,50 @@
+﻿{
+    "PackType":  "skill-pack",
+    "PackId":  "bim765t.skills.annotation",
+    "Version":  "1.0.0",
+    "DisplayName":  "Annotation Skills",
+    "Description":  "Guidance for smart tagging, dimensioning, and room-based finish automation.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "annotation-skill",
+                        "RelativePath":  "assets/README.md",
+                        "ExportKind":  "skill"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "annotation"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "tag_overlap",
+                       "dimension_collision",
+                       "room_finish_generation"
+                   ],
+    "VerificationModes":  [
+                              "policy_check",
+                              "report_only"
+                          ]
+}

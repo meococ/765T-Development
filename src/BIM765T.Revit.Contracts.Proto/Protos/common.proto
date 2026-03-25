@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option csharp_namespace = "BIM765T.Revit.Contracts.Proto";
+
+package bim765t.worker.v2;
+
+message Empty {
+}
+
+message EnvelopeMetadata {
+  string correlation_id = 1;
+  string causation_id = 2;
+  string mission_id = 3;
+  string actor_id = 4;
+  string document_key = 5;
+  string requested_at_utc = 6;
+  int32 timeout_ms = 7;
+  string cancellation_token_id = 8;
+  string session_id = 9;
+  string target_document = 10;
+  string target_view = 11;
+}
+
+message StatusEnvelope {
+  bool succeeded = 1;
+  string status_code = 2;
+  string message = 3;
+  repeated string diagnostics = 4;
+}
+
+message EventEnvelope {
+  string stream_id = 1;
+  int64 version = 2;
+  string event_type = 3;
+  string payload_json = 4;
+  string occurred_utc = 5;
+  string correlation_id = 6;
+  string causation_id = 7;
+  string actor_id = 8;
+  string document_key = 9;
+  bool terminal = 10;
+}

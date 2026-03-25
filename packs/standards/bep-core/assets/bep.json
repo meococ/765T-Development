@@ -1,0 +1,21 @@
+﻿{
+    "bep":  {
+                "workset_assignment":  {
+                                           "by_category":  {
+                                                               "Pipes":  "MEP_Pipe",
+                                                               "Ducts":  "MEP_Duct",
+                                                               "ElectricalEquipment":  "MEP_Elec"
+                                                           },
+                                           "default":  "Shared Levels and Grids"
+                                       },
+                "warning_triage":  {
+                                       "safe_fix":  [
+                                                        "duplicate_marks",
+                                                        "line_slightly_off_axis"
+                                                    ],
+                                       "manual_review":  [
+                                                             "room_not_enclosed"
+                                                         ]
+                                   }
+            }
+}

@@ -1,0 +1,32 @@
+{
+  "PackType": "agent-pack",
+  "PackId": "bim765t.agents.orchestrator",
+  "Version": "1.0.0",
+  "DisplayName": "Orchestrator Worker Pack",
+  "Description": "One front door worker pack that resolves workspace, standards, playbooks, specialists, and reporting.",
+  "Owner": "bim765t",
+  "Dependencies": [
+    {
+      "PackId": "bim765t.playbooks.core",
+      "VersionRange": ">=1.0.0"
+    }
+  ],
+  "Compatibility": {
+    "SupportedRevitYears": [
+      "2024"
+    ],
+    "SupportedHosts": [
+      "revit-agent",
+      "workerhost",
+      "mcp"
+    ]
+  },
+  "Exports": [
+    {
+      "ExportKind": "agent",
+      "RelativePath": "assets/README.md",
+      "ExportId": "orchestrator-worker"
+    }
+  ],
+  "EnabledByDefault": true
+}

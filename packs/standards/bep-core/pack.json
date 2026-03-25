@@ -1,0 +1,48 @@
+﻿{
+    "PackType":  "standards-pack",
+    "PackId":  "bim765t.standards.bep.core",
+    "Version":  "1.0.0",
+    "DisplayName":  "BEP Core Standards",
+    "Description":  "Core BEP compliance policies for worksets, warnings, and workspace governance.",
+    "Owner":  "bim765t",
+    "Dependencies":  [
+
+                     ],
+    "Compatibility":  {
+                          "SupportedRevitYears":  [
+                                                      "2024"
+                                                  ],
+                          "SupportedHosts":  [
+                                                 "revit-agent",
+                                                 "workerhost",
+                                                 "mcp"
+                                             ]
+                      },
+    "Exports":  [
+                    {
+                        "ExportId":  "bep",
+                        "RelativePath":  "assets/bep.json",
+                        "ExportKind":  "standard"
+                    }
+                ],
+    "EnabledByDefault":  true,
+    "CapabilityDomains":  [
+                              "governance"
+                          ],
+    "SupportedDisciplines":  [
+                                 "common",
+                                 "architecture",
+                                 "structure",
+                                 "mep",
+                                 "mechanical",
+                                 "plumbing",
+                                 "electrical"
+                             ],
+    "IssueKinds":  [
+                       "warning_triage",
+                       "naming_convention"
+                   ],
+    "VerificationModes":  [
+                              "policy_check"
+                          ]
+}

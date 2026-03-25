@@ -1,0 +1,12 @@
+{
+  "required_sheet_parameters": [
+    "project_name",
+    "sheet_number",
+    "drawn_by",
+    "date"
+  ],
+  "required_view_parameters": [
+    "view_template",
+    "discipline"
+  ]
+}

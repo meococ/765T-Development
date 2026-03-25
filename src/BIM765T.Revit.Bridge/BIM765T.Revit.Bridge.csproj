@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>BIM765T.Revit.Bridge</AssemblyName>
+    <RootNamespace>BIM765T.Revit.Bridge</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.66.0" />
+    <ProjectReference Include="..\BIM765T.Revit.Contracts\BIM765T.Revit.Contracts.csproj" />
+    <ProjectReference Include="..\BIM765T.Revit.Contracts.Proto\BIM765T.Revit.Contracts.Proto.csproj" />
+  </ItemGroup>
+</Project>
