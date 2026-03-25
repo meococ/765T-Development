@@ -181,6 +181,35 @@ Revit Process (net48)                    Standalone Process (net8.0)
 - **Mutation flow, security, performance, threading:** `.claude/rules/safety-rules.md`
 - **Validation:** Diagnostic codes = English UPPER_SNAKE_CASE, messages = Vietnamese (user-facing), English (dev-facing)
 
+## MCP Servers — Tools tôi (Linh) dùng khi làm việc
+
+> Cấu hình tại `.claude/settings.json`. Đây là MCP servers cho **Claude Code**, KHÔNG phải `BIM765T.Revit.McpHost` (project MCP adapter trong codebase).
+
+| Server | Mục đích | Khi nào dùng |
+| ------ | -------- | ------------ |
+| **context7** | Live library docs — inject docs mới nhất, đúng version cho bất kỳ library nào (Revit API, WPF, ASP.NET, Qdrant, etc.) | Khi cần tra cứu API/library mà không muốn hallucinate docs cũ |
+| **mem0** | Persistent AI memory — lưu user prefs, project decisions, lessons learned qua các session | Khi cần nhớ quyết định đã thống nhất, patterns đã học, context dài hạn |
+| **sequential-thinking** | Dynamic reasoning chains — suy luận multi-step cho complex BIM analysis và planning | Khi cần phân tích phức tạp: architecture decisions, debugging chains, tradeoff analysis |
+| **qdrant** | Vector search BIM semantic memory — tìm kiếm across project knowledge | Khi cần tìm context liên quan trong project memory, lessons, evidence |
+
+### Chi tiết kỹ thuật
+
+```text
+context7            npx -y @upstash/context7-mcp@latest
+mem0                python .claude/mcp/mem0-server.py
+                    env: MEM0_LLM_PROVIDER=openai, MEM0_LLM_MODEL=gpt-4.1-nano
+sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
+qdrant              uvx mcp-server-qdrant
+                    env: QDRANT_URL=http://127.0.0.1:6333, COLLECTION_NAME=bim765t
+```
+
+### Lưu ý sử dụng
+
+- **mem0** cần `pip install mem0ai` và OpenAI API key (dùng gpt-4.1-nano cho memory extraction, rẻ)
+- **qdrant** cần Qdrant chạy local tại port 6333 (`docker run -p 6333:6333 qdrant/qdrant`)
+- **context7** và **sequential-thinking** chỉ cần `npx`, không cần setup thêm
+- Permissions đã cho phép: `mcp__context7__*`, `mcp__mem0__*`, `mcp__memory__*`, `mcp__sequential-thinking__*`, `mcp__qdrant__*`
+
 ## Config & Runtime
 
 | What | Where |
