@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.UI;
+using BIM765T.Revit.Agent.Infrastructure.Bridge.Workflows;
 using BIM765T.Revit.Agent.Services.Platform;
 using BIM765T.Revit.Contracts.Bridge;
 using BIM765T.Revit.Contracts.Common;
@@ -13,6 +14,7 @@ namespace BIM765T.Revit.Agent.Services.Bridge;
 internal sealed class ToolRegistry
 {
     private readonly Dictionary<string, ToolRegistration> _registrations = new Dictionary<string, ToolRegistration>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, WorkflowRegistration> _workflows = new Dictionary<string, WorkflowRegistration>(StringComparer.OrdinalIgnoreCase);
     private readonly PlatformServices _platform;
     private readonly MutationToolPipeline _mutationPipeline;
 
@@ -72,6 +74,55 @@ internal sealed class ToolRegistry
         }
 
         return _registrations.TryGetValue(toolName, out registration!);
+    }
+
+    internal bool TryGetWorkflow(string toolName, out WorkflowRegistration workflow)
+    {
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            workflow = null!;
+            return false;
+        }
+
+        return _workflows.TryGetValue(toolName, out workflow!);
+    }
+
+    /// <summary>
+    /// Registers a workflow-based tool that runs as a multi-step state machine
+    /// instead of a single synchronous handler. Async steps execute on the thread pool,
+    /// sync steps execute on the Revit UI thread — eliminating UI freezing for long-running tools.
+    /// </summary>
+    internal void RegisterWorkflow(
+        string toolName,
+        string description,
+        PermissionLevel permissionLevel,
+        ApprovalRequirement approvalRequirement,
+        bool supportsDryRun,
+        string inputSchemaHint,
+        ToolManifestMetadata metadata,
+        Func<ToolRequestEnvelope, WorkflowSetup> factory)
+    {
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            return;
+        }
+
+        _workflows[toolName] = new WorkflowRegistration
+        {
+            Manifest = CreateManifest(toolName, description, permissionLevel, approvalRequirement, supportsDryRun, inputSchemaHint, metadata),
+            Factory = factory
+        };
+
+        // Also register a normal handler as catalog entry so TryGet succeeds for manifest/catalog queries.
+        // The ToolExternalEventHandler will prefer workflows when both exist.
+        if (!_registrations.ContainsKey(toolName))
+        {
+            _registrations[toolName] = new ToolRegistration
+            {
+                Manifest = _workflows[toolName].Manifest,
+                Handler = (_, request) => throw new InvalidOperationException($"Tool '{toolName}' is workflow-based. Use workflow execution path.")
+            };
+        }
     }
 
     internal List<ToolManifest> GetToolCatalog()

@@ -29,6 +29,7 @@ internal sealed class MessageBubble : Border
     private static readonly Regex HeadingRegex = new Regex(@"^#{1,3}\s+(.+)", RegexOptions.Compiled);
     private static readonly Regex BulletRegex = new Regex(@"^[-*]\s+(.+)", RegexOptions.Compiled);
     private static readonly Regex NumberedRegex = new Regex(@"^(\d+)\.\s+(.+)", RegexOptions.Compiled);
+    private static readonly Regex InlineFormattingRegex = new Regex(@"(\*\*(.+?)\*\*)|(`([^`]+)`)", RegexOptions.Compiled);
 
     /// <summary>Event raised when user clicks "Copy Code" — parent can wire clipboard.</summary>
 #pragma warning disable CS0067 // Event is declared but never used — wired by parent tab at runtime
@@ -363,8 +364,7 @@ internal sealed class MessageBubble : Border
 
         // Parse inline formatting: **bold** and `code`
         int pos = 0;
-        var combined = new Regex(@"(\*\*(.+?)\*\*)|(`([^`]+)`)");
-        var matches = combined.Matches(text);
+        var matches = InlineFormattingRegex.Matches(text);
 
         if (matches.Count == 0)
         {

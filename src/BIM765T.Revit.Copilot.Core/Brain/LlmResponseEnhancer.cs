@@ -467,13 +467,24 @@ public sealed class LlmResponseEnhancer
 
     private LlmNarrationResult CallLlmWithResult(string systemPrompt, string userPrompt, string fallbackText)
     {
+        // Offload to thread-pool to avoid deadlock when called from Revit UI thread.
+        // CallLlmWithResultAsync contains HTTP calls that must NOT block the UI message pump.
+        return Task.Run(() => CallLlmWithResultAsync(systemPrompt, userPrompt, fallbackText, CancellationToken.None))
+            .GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Async LLM narration — call from background thread to avoid blocking Revit UI thread.
+    /// Sync <see cref="CallLlmWithResult"/> delegates here; prefer this overload for new code paths.
+    /// </summary>
+    internal async Task<LlmNarrationResult> CallLlmWithResultAsync(
+        string systemPrompt, string userPrompt, string fallbackText, CancellationToken cancellationToken)
+    {
         try
         {
-            var result = Task.Run(async () =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(ResponseTimeoutSeconds));
-                return await _llmClient.CompleteAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
-            }).GetAwaiter().GetResult();
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(ResponseTimeoutSeconds));
+            var result = await _llmClient.CompleteAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result) || result.Contains("[LLM not configured]"))
             {
@@ -483,16 +494,46 @@ public sealed class LlmResponseEnhancer
             Trace.TraceInformation($"BIM765T LlmResponseEnhancer: LLM enhanced text ({result.Length} chars).");
             return LlmNarrationResult.Enhanced(result, "LLM narration generated the final response text.");
         }
-        catch (AggregateException aex) when (aex.InnerException is OperationCanceledException)
+        catch (OperationCanceledException)
         {
             Trace.TraceWarning("BIM765T LlmResponseEnhancer: LLM call timed out. Using rule-based text.");
-            return LlmNarrationResult.Fallback(fallbackText, "LLM narration timed out after 10 seconds. Using rule fallback.");
+            return LlmNarrationResult.Fallback(fallbackText, $"LLM narration timed out after {ResponseTimeoutSeconds} seconds. Using rule fallback.");
         }
         catch (Exception ex)
         {
             Trace.TraceWarning($"BIM765T LlmResponseEnhancer: LLM call failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.");
             return LlmNarrationResult.Fallback(fallbackText, $"LLM narration failed: {ex.GetType().Name}.");
         }
+    }
+
+    /// <summary>
+    /// Async overload of <see cref="EnhanceResponse(string,string,string,IEnumerable{string},WorkerContextSummary,WorkerPersonaSummary,IEnumerable{WorkerChatMessage},string,string)"/>.
+    /// Runs LLM HTTP call without blocking the calling thread.
+    /// </summary>
+    public async Task<LlmNarrationResult> EnhanceResponseAsync(
+        string userMessage,
+        string intent,
+        string ruleBasedText,
+        IEnumerable<string> toolSummaries,
+        WorkerContextSummary? contextSummary,
+        WorkerPersonaSummary? persona,
+        IEnumerable<WorkerChatMessage>? recentMessages,
+        string? reasoningSummary,
+        string? planSummary,
+        CancellationToken cancellationToken)
+    {
+        if (!_isLlmReal)
+        {
+            return LlmNarrationResult.RuleOnly(ruleBasedText, "LLM narration client is not configured.");
+        }
+
+        var toolResults = string.Join("\n", toolSummaries ?? Enumerable.Empty<string>());
+        var userPrompt = BuildResponsePrompt(
+            userMessage, intent, ruleBasedText, toolResults,
+            contextSummary, recentMessages, reasoningSummary, planSummary);
+        var systemPrompt = BuildSystemPromptWithPersona(persona);
+
+        return await CallLlmWithResultAsync(systemPrompt, userPrompt, ruleBasedText, cancellationToken).ConfigureAwait(false);
     }
 }
 

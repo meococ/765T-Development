@@ -12,14 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="RevitAPI">
-      <HintPath>$(Revit2024InstallDir)\RevitAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>$(Revit2024InstallDir)\RevitAPIUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
@@ -44,5 +36,16 @@
       <Link>rulesets\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- Revit API via NuGet — ExcludeAssets=runtime because Revit provides DLLs at load time.
+       Version is driven by $(RevitYear) from Directory.Build.props; default = 2024. -->
+  <ItemGroup>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitYear).*">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitYear).*">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

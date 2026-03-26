@@ -88,6 +88,7 @@ public static class ToolNames
     public const string ReviewSheetSummary = "review.sheet_summary";
     public const string ReviewCaptureSnapshot = "review.capture_snapshot";
     public const string ReviewFixCandidates = "review.fix_candidates";
+    public const string ReviewCadGenericModelOverlap = "review.cad_generic_model_overlap";
     public const string ReviewFamilyAxisAlignment = "review.family_axis_alignment";
     public const string ReviewFamilyAxisAlignmentGlobal = "review.family_axis_alignment_global";
     public const string ReviewRunRuleSet = "review.run_rule_set";

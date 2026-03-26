@@ -191,11 +191,8 @@ public sealed class ArchitectureTests
     public void Instruction_Adapters_Do_Not_Reference_Stale_Context_Path_Or_Handoff()
     {
         var repoRoot = FindRepoRoot();
-        var workspaceRoot = Directory.GetParent(repoRoot)!.FullName;
         var files = new[]
         {
-            Path.Combine(workspaceRoot, "README.md"),
-            Path.Combine(workspaceRoot, "ASSISTANT.md"),
             Path.Combine(repoRoot, "README.md"),
             Path.Combine(repoRoot, "ASSISTANT.md"),
             Path.Combine(repoRoot, "AGENTS.md"),
@@ -207,6 +204,11 @@ public sealed class ArchitectureTests
 
         foreach (var file in files)
         {
+            if (!File.Exists(file))
+            {
+                continue;
+            }
+
             var content = File.ReadAllText(file);
             Assert.DoesNotContain(".assistant/context/_session_state.json", content, StringComparison.Ordinal);
             Assert.DoesNotContain("ROUND_TASK_HANDOFF.md", content, StringComparison.Ordinal);

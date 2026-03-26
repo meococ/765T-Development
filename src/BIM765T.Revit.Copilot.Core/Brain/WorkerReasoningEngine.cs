@@ -4,6 +4,8 @@ using BIM765T.Revit.Contracts.Platform;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BIM765T.Revit.Copilot.Core.Brain;
 
@@ -32,6 +34,27 @@ public sealed class WorkerReasoningEngine
         _planner = planner ?? new NullLlmPlanner();
     }
 
+    /// <summary>
+    /// Exposes rule-based intent classification without full planning.
+    /// Used by ConversationalStep fast-path to classify intent then route directly.
+    /// </summary>
+    public WorkerIntentClassification ClassifyIntent(string message, bool hasPendingApproval)
+    {
+        return _classifier.Classify(message, hasPendingApproval);
+    }
+
+    /// <summary>
+    /// Returns true if the given intent is conversational (greeting, identity, help, context_query).
+    /// These intents do NOT need LLM planning, tool chains, or capability compilation.
+    /// </summary>
+    public static bool IsConversationalIntent(string intent)
+    {
+        return string.Equals(intent, "greeting", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(intent, "identity_query", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(intent, "help", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(intent, "context_query", StringComparison.OrdinalIgnoreCase);
+    }
+
     public WorkerDecision ProcessMessage(WorkerConversationSessionState session, string message, bool continueMission)
     {
         return ProcessMessage(session, message, continueMission, new WorkerContextSummary(), string.Empty);
@@ -50,6 +73,183 @@ public sealed class WorkerReasoningEngine
             ResponseLead = BuildResponseLead(classification.Intent)
         };
 
+        PopulatePlanByIntent(classification, decision);
+
+        ApplyPlannerProposal(session ?? new WorkerConversationSessionState(), message, continueMission, contextSummary, workspaceId, persona, classification, decision);
+
+        return decision;
+    }
+
+    /// <summary>
+    /// Async version — runs LLM planning off the calling thread.
+    /// Rule-based classification is still synchronous (instant), only the LLM planner call is async.
+    /// </summary>
+    public async Task<WorkerDecision> ProcessMessageAsync(
+        WorkerConversationSessionState session, string message, bool continueMission,
+        WorkerContextSummary? contextSummary, string workspaceId, CancellationToken cancellationToken)
+    {
+        var persona = _personas.Resolve(session?.PersonaId);
+        var classification = _classifier.Classify(message, session?.PendingApprovalState?.HasPendingApproval ?? false);
+        var decision = new WorkerDecision
+        {
+            Intent = classification.Intent,
+            Goal = BuildGoal(classification.Intent, classification.TargetHint),
+            DecisionRationale = "Rule-first routing dua tren intent ro rang, history gan day, va lane Revit hien tai.",
+            ReasoningSummary = $"Intent={classification.Intent}; persona={persona.PersonaId}; continueMission={continueMission}.",
+            ResponseLead = BuildResponseLead(classification.Intent)
+        };
+
+        PopulatePlanByIntent(classification, decision);
+
+        await ApplyPlannerProposalAsync(
+            session ?? new WorkerConversationSessionState(), message, continueMission,
+            contextSummary, workspaceId, persona, classification, decision, cancellationToken).ConfigureAwait(false);
+
+        return decision;
+    }
+
+    private void ApplyPlannerProposal(
+        WorkerConversationSessionState session,
+        string message,
+        bool continueMission,
+        WorkerContextSummary? contextSummary,
+        string workspaceId,
+        WorkerPersonaSummary persona,
+        WorkerIntentClassification classification,
+        WorkerDecision decision)
+    {
+        var profile = _planner.RuntimeProfile ?? new LlmProviderConfiguration();
+        decision.ConfiguredProvider = profile.ConfiguredProvider;
+        decision.PlannerModel = profile.PlannerPrimaryModel;
+        decision.ResponseModel = profile.ResponseModel;
+        decision.ReasoningMode = WorkerReasoningModes.RuleFirst;
+
+        if (!_planner.IsConfigured)
+        {
+            return;
+        }
+
+        var validation = _planner.Plan(new LlmPlanningRequest
+        {
+            Session = session ?? new WorkerConversationSessionState(),
+            RuleDecision = CloneDecision(decision),
+            Classification = classification ?? new WorkerIntentClassification(),
+            Persona = persona ?? new WorkerPersonaSummary(),
+            ContextSummary = contextSummary ?? new WorkerContextSummary(),
+            WorkspaceId = workspaceId ?? string.Empty,
+            UserMessage = message ?? string.Empty,
+            ContinueMission = continueMission
+        });
+
+        MergePlannerValidation(decision, validation);
+    }
+
+    /// <summary>
+    /// Async planner proposal — runs LLM HTTP calls on background thread.
+    /// Applies the same validation/merge logic as the sync version.
+    /// </summary>
+    private async Task ApplyPlannerProposalAsync(
+        WorkerConversationSessionState session,
+        string message,
+        bool continueMission,
+        WorkerContextSummary? contextSummary,
+        string workspaceId,
+        WorkerPersonaSummary persona,
+        WorkerIntentClassification classification,
+        WorkerDecision decision,
+        CancellationToken cancellationToken)
+    {
+        var profile = _planner.RuntimeProfile ?? new LlmProviderConfiguration();
+        decision.ConfiguredProvider = profile.ConfiguredProvider;
+        decision.PlannerModel = profile.PlannerPrimaryModel;
+        decision.ResponseModel = profile.ResponseModel;
+        decision.ReasoningMode = WorkerReasoningModes.RuleFirst;
+
+        if (!_planner.IsConfigured)
+        {
+            return;
+        }
+
+        var validation = await _planner.PlanAsync(new LlmPlanningRequest
+        {
+            Session = session ?? new WorkerConversationSessionState(),
+            RuleDecision = CloneDecision(decision),
+            Classification = classification ?? new WorkerIntentClassification(),
+            Persona = persona ?? new WorkerPersonaSummary(),
+            ContextSummary = contextSummary ?? new WorkerContextSummary(),
+            WorkspaceId = workspaceId ?? string.Empty,
+            UserMessage = message ?? string.Empty,
+            ContinueMission = continueMission
+        }, cancellationToken).ConfigureAwait(false);
+
+        MergePlannerValidation(decision, validation);
+    }
+
+    /// <summary>Shared merge logic used by both sync and async planner paths.</summary>
+    private static void MergePlannerValidation(WorkerDecision decision, LlmPlanValidationResult validation)
+    {
+        decision.ConfiguredProvider = validation.ConfiguredProvider;
+        decision.PlannerModel = validation.PlannerModel;
+        decision.ResponseModel = validation.ResponseModel;
+        decision.ReasoningMode = validation.ReasoningMode;
+
+        if (!validation.Accepted)
+        {
+            return;
+        }
+
+        var proposal = validation.Proposal ?? new LlmPlanProposal();
+        if (CanPromoteIntent(decision.Intent, proposal.Intent))
+        {
+            decision.Intent = proposal.Intent;
+        }
+
+        if (!string.IsNullOrWhiteSpace(proposal.Goal))
+        {
+            decision.Goal = proposal.Goal;
+        }
+
+        if (!string.IsNullOrWhiteSpace(proposal.ReasoningSummary))
+        {
+            decision.ReasoningSummary = proposal.ReasoningSummary;
+        }
+
+        if (!string.IsNullOrWhiteSpace(proposal.PlanSummary))
+        {
+            decision.PlanSummary = proposal.PlanSummary;
+        }
+
+        if (validation.PlannedTools.Count > 0)
+        {
+            decision.PlannedTools = validation.PlannedTools.ToList();
+        }
+
+        decision.PreferredCommandId = validation.PreferredCommandId;
+        decision.RequiresClarification = decision.RequiresClarification || proposal.RequiresClarification;
+
+        if (proposal.RequiresClarification && !string.IsNullOrWhiteSpace(proposal.ClarificationQuestion))
+        {
+            if (!decision.SuggestedActions.Exists(x =>
+                    string.Equals(x.ActionKind, WorkerActionKinds.Clarify, StringComparison.OrdinalIgnoreCase)))
+            {
+                decision.SuggestedActions.Insert(0, CreateSuggest(
+                    "Lam ro them",
+                    proposal.ClarificationQuestion,
+                    string.Empty));
+                decision.SuggestedActions[0].ActionKind = WorkerActionKinds.Clarify;
+                decision.SuggestedActions[0].Title = "Lam ro them";
+                decision.SuggestedActions[0].ToolName = string.Empty;
+                decision.SuggestedActions[0].AutoExecutionEligible = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Populates the decision's planned tools and suggested actions based on rule-classified intent.
+    /// Extracted from ProcessMessage for reuse in async path.
+    /// </summary>
+    private static void PopulatePlanByIntent(WorkerIntentClassification classification, WorkerDecision decision)
+    {
         switch (classification.Intent)
         {
             case "greeting":
@@ -237,99 +437,6 @@ public sealed class WorkerReasoningEngine
                 decision.SuggestedActions.Add(CreateSuggest("Kiem tra model health", "Chay QC read-only cho model hien tai.", ToolNames.ReviewSmartQc));
                 decision.SuggestedActions.Add(CreateSuggest("Lay context", "Doc active doc/view/selection va delta.", ToolNames.ContextGetDeltaSummary));
                 break;
-        }
-
-        ApplyPlannerProposal(session ?? new WorkerConversationSessionState(), message, continueMission, contextSummary, workspaceId, persona, classification, decision);
-
-        return decision;
-    }
-
-    private void ApplyPlannerProposal(
-        WorkerConversationSessionState session,
-        string message,
-        bool continueMission,
-        WorkerContextSummary? contextSummary,
-        string workspaceId,
-        WorkerPersonaSummary persona,
-        WorkerIntentClassification classification,
-        WorkerDecision decision)
-    {
-        var profile = _planner.RuntimeProfile ?? new LlmProviderConfiguration();
-        decision.ConfiguredProvider = profile.ConfiguredProvider;
-        decision.PlannerModel = profile.PlannerPrimaryModel;
-        decision.ResponseModel = profile.ResponseModel;
-        decision.ReasoningMode = WorkerReasoningModes.RuleFirst;
-
-        if (!_planner.IsConfigured)
-        {
-            return;
-        }
-
-        var validation = _planner.Plan(new LlmPlanningRequest
-        {
-            Session = session ?? new WorkerConversationSessionState(),
-            RuleDecision = CloneDecision(decision),
-            Classification = classification ?? new WorkerIntentClassification(),
-            Persona = persona ?? new WorkerPersonaSummary(),
-            ContextSummary = contextSummary ?? new WorkerContextSummary(),
-            WorkspaceId = workspaceId ?? string.Empty,
-            UserMessage = message ?? string.Empty,
-            ContinueMission = continueMission
-        });
-
-        decision.ConfiguredProvider = validation.ConfiguredProvider;
-        decision.PlannerModel = validation.PlannerModel;
-        decision.ResponseModel = validation.ResponseModel;
-        decision.ReasoningMode = validation.ReasoningMode;
-
-        if (!validation.Accepted)
-        {
-            return;
-        }
-
-        var proposal = validation.Proposal ?? new LlmPlanProposal();
-        if (CanPromoteIntent(decision.Intent, proposal.Intent))
-        {
-            decision.Intent = proposal.Intent;
-        }
-
-        if (!string.IsNullOrWhiteSpace(proposal.Goal))
-        {
-            decision.Goal = proposal.Goal;
-        }
-
-        if (!string.IsNullOrWhiteSpace(proposal.ReasoningSummary))
-        {
-            decision.ReasoningSummary = proposal.ReasoningSummary;
-        }
-
-        if (!string.IsNullOrWhiteSpace(proposal.PlanSummary))
-        {
-            decision.PlanSummary = proposal.PlanSummary;
-        }
-
-        if (validation.PlannedTools.Count > 0)
-        {
-            decision.PlannedTools = validation.PlannedTools.ToList();
-        }
-
-        decision.PreferredCommandId = validation.PreferredCommandId;
-        decision.RequiresClarification = decision.RequiresClarification || proposal.RequiresClarification;
-
-        if (proposal.RequiresClarification && !string.IsNullOrWhiteSpace(proposal.ClarificationQuestion))
-        {
-            if (!decision.SuggestedActions.Exists(x =>
-                    string.Equals(x.ActionKind, WorkerActionKinds.Clarify, StringComparison.OrdinalIgnoreCase)))
-            {
-                decision.SuggestedActions.Insert(0, CreateSuggest(
-                    "Lam ro them",
-                    proposal.ClarificationQuestion,
-                    string.Empty));
-                decision.SuggestedActions[0].ActionKind = WorkerActionKinds.Clarify;
-                decision.SuggestedActions[0].Title = "Lam ro them";
-                decision.SuggestedActions[0].ToolName = string.Empty;
-                decision.SuggestedActions[0].AutoExecutionEligible = false;
-            }
         }
     }
 

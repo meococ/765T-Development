@@ -1,3 +1,5 @@
+using BIM765T.Revit.Agent.Infrastructure.Bridge.Workflows;
+using BIM765T.Revit.Agent.Infrastructure.Bridge.Workflows.Steps;
 using BIM765T.Revit.Contracts.Bridge;
 using BIM765T.Revit.Contracts.Common;
 using BIM765T.Revit.Contracts.Platform;
@@ -26,15 +28,33 @@ internal sealed class WorkerToolModule : IToolModule
             .WithSkillGroup(WorkerSkillGroups.Orchestration);
         var workerContext = workerRead.WithRequiredContext("document", "view").WithTouchesActiveView();
 
-        registry.Register(
+        // worker.message uses the async workflow pipeline:
+        // GatherContext (UI ~100ms) → Plan (thread pool, LLM) → ExecuteIntent (UI) → Enhance (thread pool, LLM) → BuildResponse (UI)
+        // Only GatherContext + ExecuteIntent + BuildResponse touch the UI thread in short bursts.
+        // Plan + Enhance run on the thread pool — UI stays responsive during LLM HTTP calls.
+        registry.RegisterWorkflow(
             ToolNames.WorkerMessage,
             "Send a natural-language message into the 765T Worker orchestration lane and receive messages, action cards, approvals, and tool result cards.",
             PermissionLevel.Review,
             ApprovalRequirement.None,
             false,
+            "{\"SessionId\":\"\",\"Message\":\"kiểm tra model health\",\"PersonaId\":\"revit_worker\",\"ClientSurface\":\"ui\",\"ContinueMission\":true}",
             workerReview,
-            (uiapp, request) => ToolResponses.Success(request, worker.HandleMessage(uiapp, request, ToolPayloads.Read<WorkerMessageRequest>(request))),
-            "{\"SessionId\":\"\",\"Message\":\"kiểm tra model health\",\"PersonaId\":\"revit_worker\",\"ClientSurface\":\"ui\",\"ContinueMission\":true}");
+            envelope =>
+            {
+                var msgRequest = ToolPayloads.Read<WorkerMessageRequest>(envelope);
+                var ctx = new MessageWorkflowContext
+                {
+                    Envelope = envelope,
+                    Request = msgRequest
+                };
+
+                return new WorkflowSetup
+                {
+                    Context = ctx,
+                    FirstStep = new GatherContextStep(worker)
+                };
+            });
 
         registry.Register(
             ToolNames.WorkerGetSession,

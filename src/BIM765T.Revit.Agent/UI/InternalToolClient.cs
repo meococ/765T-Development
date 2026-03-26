@@ -101,7 +101,7 @@ internal sealed class InternalToolClient
                 ? CreateErrorResponse(toolName, task.Exception?.InnerException?.Message ?? "Unknown error")
                 : task.Result;
 
-            _dispatcher.Invoke(() => onComplete(response));
+            _dispatcher.InvokeAsync(() => onComplete(response));
         });
     }
 

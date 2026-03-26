@@ -77,6 +77,15 @@ internal sealed class ElementAndReviewToolModule : IToolModule
                 return ToolResponses.Success(request, result, reviewSummary: result.Review, artifacts: result.ArtifactPaths);
             },
             "{\"Scope\":\"active_view\",\"ViewId\":null,\"SheetId\":null,\"SheetNumber\":\"\",\"SheetName\":\"\",\"ElementIds\":[],\"IncludeParameters\":false,\"ParameterNames\":[],\"MaxElements\":100,\"ExportImage\":false,\"ImageOutputPath\":\"\",\"ImagePixelSize\":2048}");
+        registry.Register(ToolNames.ReviewCadGenericModelOverlap, "Compare visible CAD imports versus Generic Models in the active/target view using a projected point-cloud fingerprint. Returns whether the two visible versions overlap 100% and previews where they differ.", PermissionLevel.Review, ApprovalRequirement.None, false, qcReviewDocumentView,
+            (uiapp, request) =>
+            {
+                var payload = ToolPayloads.Read<CadGenericModelOverlapRequest>(request);
+                var doc = platform.ResolveDocument(uiapp, string.IsNullOrWhiteSpace(payload.DocumentKey) ? request.TargetDocument : payload.DocumentKey);
+                var result = platform.ReviewCadGenericModelOverlap(uiapp, doc, payload, request.TargetView);
+                return ToolResponses.Success(request, result, reviewSummary: result.Review);
+            },
+            "{\"DocumentKey\":\"\",\"ViewId\":null,\"ViewName\":\"\",\"ImportNameContains\":\"\",\"GenericModelNameContains\":\"\",\"GenericModelFamilyNameContains\":\"\",\"ToleranceFeet\":0.00328084,\"SamplingStepFeet\":0.0328084,\"MaxElementsPerSide\":500,\"MaxPreviewPoints\":20,\"MaxSamplePointsPerSide\":150000}");
         registry.Register(ToolNames.ReviewFamilyAxisAlignment, "Check all visible family instances in the active/target view, compare their local axes to project axes, audit nested/shared transform risks, and optionally highlight mismatches via UI selection.", PermissionLevel.Review, ApprovalRequirement.None, false, qcReviewDocumentView,
             (uiapp, request) =>
             {

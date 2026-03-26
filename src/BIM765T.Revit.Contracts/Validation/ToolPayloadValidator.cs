@@ -54,6 +54,7 @@ public static partial class ToolPayloadValidator
         Register<UpdateTextNoteStyleRequest>(validators, ValidateUpdateTextNoteStyle);
         Register<UpdateTextNoteContentRequest>(validators, ValidateUpdateTextNoteContent);
         Register<ElementQueryRequest>(validators, ValidateElementQuery);
+        Register<CadGenericModelOverlapRequest>(validators, ValidateCadGenericModelOverlap);
         Register<ReviewParameterCompletenessRequest>(validators, ValidateReviewParameterCompleteness);
         Register<ReviewRuleSetRunRequest>(validators, ValidateReviewRuleSetRun);
         Register<FixLoopPlanRequest>(validators, ValidateFixLoopPlan);

@@ -2846,7 +2846,8 @@ internal sealed partial class PenetrationShadowService
 
             if (attempt < attempts && retryBackoffMs > 0)
             {
-                Thread.Sleep(retryBackoffMs);
+                // Cap backoff to prevent excessive UI freeze during Revit geometry retry.
+                Thread.Sleep(Math.Min(retryBackoffMs, 250));
             }
         }
 

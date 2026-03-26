@@ -154,8 +154,9 @@ internal static class AgentHost
         var registry = new ToolRegistry(platformBundle, inspectionBundle, hullBundle, workflowBundle, copilotBundle);
         var queue = new ToolInvocationQueue();
         var toolExecutor = new ToolExecutor(logger, platform, registry, dialogGuard, clock);
-        var externalEventHandler = new ToolExternalEventHandler(queue, toolExecutor, logger, clock);
+        var externalEventHandler = new ToolExternalEventHandler(queue, toolExecutor, registry, logger, clock);
         var externalEvent = ExternalEvent.Create(externalEventHandler);
+        externalEventHandler.SetSelfEvent(externalEvent);
         var pipeScheduler = new ExternalEventPipeRequestScheduler(queue, externalEvent, logger);
         var callerAuthorizer = new WindowsPipeCallerAuthorizer();
         var kernelPipeServer = new KernelPipeHostedService(settings, logger, pipeScheduler, callerAuthorizer);
@@ -228,9 +229,17 @@ internal static class AgentHost
     private static string ResolveDocumentKey(Autodesk.Revit.DB.Document doc)
     {
         var path = doc.PathName ?? string.Empty;
-        return !string.IsNullOrWhiteSpace(path)
-            ? "path:" + path.Trim().ToLowerInvariant()
-            : "title:" + doc.Title.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(path))
+            return "path:" + path.Trim().ToLowerInvariant();
+        try
+        {
+            var title = doc.Title;
+            return "title:" + (title ?? string.Empty).Trim().ToLowerInvariant();
+        }
+        catch
+        {
+            return "title:unknown";
+        }
     }
 
     private static ILlmClient CreateNarrationClient(LlmProviderConfiguration profile)

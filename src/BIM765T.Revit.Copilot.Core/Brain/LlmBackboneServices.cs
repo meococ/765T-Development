@@ -350,6 +350,11 @@ public interface ILlmPlanner
     LlmProviderConfiguration RuntimeProfile { get; }
 
     LlmPlanValidationResult Plan(LlmPlanningRequest request);
+
+    /// <summary>
+    /// Async planning — avoids blocking the Revit UI thread during HTTP calls to LLM providers.
+    /// </summary>
+    Task<LlmPlanValidationResult> PlanAsync(LlmPlanningRequest request, CancellationToken cancellationToken);
 }
 
 public sealed class NullLlmPlanner : ILlmPlanner
@@ -367,6 +372,11 @@ public sealed class NullLlmPlanner : ILlmPlanner
             ConfiguredProvider = LlmProviderKinds.RuleFirst,
             ReasoningMode = WorkerReasoningModes.RuleFirst
         };
+    }
+
+    public Task<LlmPlanValidationResult> PlanAsync(LlmPlanningRequest request, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Plan(request));
     }
 }
 
@@ -475,6 +485,17 @@ public sealed class LlmPlanningService : ILlmPlanner
 
     public LlmPlanValidationResult Plan(LlmPlanningRequest request)
     {
+        // Offload to thread-pool to avoid deadlock when called from Revit UI thread.
+        // PlanAsync contains HTTP calls that must NOT block the UI message pump.
+        return Task.Run(() => PlanAsync(request, CancellationToken.None)).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Async planning — runs LLM HTTP calls without blocking the calling thread.
+    /// Primary + optional fallback model, validated against allowed intent/tool sets.
+    /// </summary>
+    public async Task<LlmPlanValidationResult> PlanAsync(LlmPlanningRequest request, CancellationToken cancellationToken)
+    {
         if (!IsConfigured || request == null)
         {
             return new LlmPlanValidationResult
@@ -488,33 +509,32 @@ public sealed class LlmPlanningService : ILlmPlanner
             };
         }
 
-        var proposal = TryPlanWithClient(_primaryClient!, _profile.PlannerPrimaryModel, request);
+        var proposal = await TryPlanWithClientAsync(_primaryClient!, _profile.PlannerPrimaryModel, request, cancellationToken).ConfigureAwait(false);
         if ((!proposal.Parsed || proposal.Confidence < ResolveConfidenceThreshold(request)) && _fallbackClient != null)
         {
-            proposal = TryPlanWithClient(_fallbackClient, _profile.PlannerFallbackModel, request);
+            proposal = await TryPlanWithClientAsync(_fallbackClient, _profile.PlannerFallbackModel, request, cancellationToken).ConfigureAwait(false);
         }
 
         return Validate(request, proposal);
     }
 
-    private LlmPlanProposal TryPlanWithClient(OpenAiCompatibleLlmClient client, string modelName, LlmPlanningRequest request)
+    private async Task<LlmPlanProposal> TryPlanWithClientAsync(
+        OpenAiCompatibleLlmClient client, string modelName, LlmPlanningRequest request, CancellationToken cancellationToken)
     {
         var systemPrompt = BuildSystemPrompt(request);
         var userPrompt = BuildUserPrompt(request);
         try
         {
-            var json = Task.Run(async () =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(PlannerTimeoutSeconds));
-                return await client.CompleteJsonAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
-            }).GetAwaiter().GetResult();
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(PlannerTimeoutSeconds));
+            var json = await client.CompleteJsonAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
 
             var proposal = ParseProposal(json);
             proposal.ModelUsed = modelName ?? string.Empty;
             proposal.RawJson = json ?? string.Empty;
             return proposal;
         }
-        catch
+        catch (Exception)
         {
             return new LlmPlanProposal
             {

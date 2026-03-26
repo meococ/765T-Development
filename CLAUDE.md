@@ -71,7 +71,35 @@ Tôi là **đồng dev xuất sắc, toàn diện** với 4 vai trò song song:
 
 ## Critical Notes — Read First
 
-> Updated after each working session. Last updated: 2026-03-25
+> Updated after each working session. Last updated: 2026-03-26
+
+### Architecture Lesson — Worker Conversation Flow (2026-03-26)
+
+**Bài học xương máu:** Hệ thống worker.message ĐÃ over-engineer conversation flow. Mỗi user message đi qua 5 rounds (GatherContext → PlanStep LLM → ExecuteIntent → EnhanceStep LLM → BuildResponse) — **kể cả "chào em"**. Đây là sai lầm kiến trúc, không phải bug.
+
+**Research từ Claude Code, Cline, Cursor** cho thấy pattern đúng:
+
+1. **Runtime loop phải "dumb"** — chỉ là vòng lặp TAOR (Think → Act → Observe → Repeat). Mọi intelligence nằm trong model + prompt, KHÔNG phải routing code.
+2. **LLM quyết định dùng tool hay chat** — không cần code-level router, planner, enhancer riêng. System prompt mô tả tools, model tự chọn.
+3. **Streaming là king** — partial text updates, chunk-by-chunk rendering. User thấy response ngay khi token đầu tiên xuất hiện.
+4. **Context engineering > prompt engineering** — quản lý context window là bài toán khó nhất. Compaction, dedup file reads, sub-agent isolation.
+
+**Ưu tiên sản phẩm (Owner directive):**
+- **P0: Trả lời mượt mà** — nhanh, tự nhiên, như đang chat với Claude Code
+- **P1: Cầu nối AI ↔ Revit** — gọi tool khi thật sự cần, không phải mọi message
+- **P2: Workflow xịn** — automation thay BIM modeller (MVP stage, chưa ưu tiên)
+
+**Hướng đi đúng cho worker.message:**
+- Conversational path: 1 LLM call thẳng, có Revit context nhẹ, response 1-2s
+- Action path: Full pipeline chỉ khi user CẦN Revit làm gì đó
+- LLM tự quyết định path nào, không cần code routing
+
+**Tham khảo kiến trúc:**
+- Cline: Single recursive loop `recursivelyMakeClineRequests()`, no planner/enhancer
+- Claude Code: TAOR loop `nO`, ~50 lines, ~15 primitive tools, model decides everything
+- Cursor: Apply model tách "what to change" vs "write correct syntax"
+
+**Nguyên tắc:** KHÔNG build orchestration phức tạp khi simple loop + good prompt đủ. Over-engineering orchestration = tạo latency không cần thiết + code khó maintain + trải nghiệm tệ.
 
 ### Mindset — Owner Directive
 
@@ -82,6 +110,9 @@ Mindset **"tấn công, tận dụng AI"** — KHÔNG phải "phòng thủ, sợ
 - **Own the outcome** — làm đến khi kết quả THỰC SỰ hoạt động
 - **Gặp blocker thì giải quyết** — không dừng lại báo lỗi rồi chờ
 - **Sau mỗi task, update critical notes vào file này** nếu có thay đổi quan trọng
+- **Code clean, sạch** — không thừa, không rác, đọc là hiểu
+- **KHÔNG tự tiện tạo file .md mới** để báo cáo — output trả thẳng trong conversation, không rải file
+- **Suy luận có chiều sâu** — hiểu root cause, không patch bề mặt. Build thông minh, không build bừa
 
 ### Repo Structure (2026-03-25)
 
