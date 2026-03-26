@@ -488,6 +488,7 @@ For any agent (human or AI) entering this repo:
 
 | Order | File | What |
 |-------|------|------|
+| 0 | `CLAUDE.md` | Project guidance (start here for AI agents) |
 | 1 | `README.md` | Repo overview, architecture diagram |
 | 2 | `AGENTS.md` | Operating constitution, mindset |
 | 3 | `docs/765T_PRODUCT_VISION.md` | **THIS FILE — vision, research, implementation** |
@@ -498,4 +499,4 @@ For any agent (human or AI) entering this repo:
 
 ---
 
-*This document is the single source of truth for product direction. If it conflicts with other docs, this file wins. Updated after every significant research or decision.*
+*This document is the canonical source for product vision and direction only. For runtime truth, see `docs/assistant/BASELINE.md`. For architecture, see `docs/ARCHITECTURE.md`. No single doc is the authority on everything.*

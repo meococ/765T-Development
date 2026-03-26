@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -208,7 +209,6 @@ public sealed class ArchitectureTests
             {
                 continue;
             }
-
             var content = File.ReadAllText(file);
             Assert.DoesNotContain(".assistant/context/_session_state.json", content, StringComparison.Ordinal);
             Assert.DoesNotContain("ROUND_TASK_HANDOFF.md", content, StringComparison.Ordinal);
@@ -356,6 +356,131 @@ public sealed class ArchitectureTests
         var content = File.ReadAllText(file);
 
         Assert.DoesNotContain("contentStack.Children.Add(BuildActionBar", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Doc_Index_References_Exist_Filesystem()
+    {
+        var repoRoot = FindRepoRoot();
+        var indexPath = Path.Combine(repoRoot, "docs", "INDEX.md");
+        var indexContent = File.ReadAllText(indexPath);
+
+        // Extract file paths from markdown table cells: `path` or "path"
+        var matches = Regex.Matches(indexContent, @"(?:[`""'])([^\s`""']+(?:\.md|\.json)[^\s`""']*)(?:[`""'])");
+        var missingFiles = new List<string>();
+
+        foreach (Match match in matches)
+        {
+            var relativePath = match.Groups[1].Value;
+
+            // Skip external URLs, absolute paths, and glob patterns
+            if (relativePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) ||
+                relativePath.StartsWith("/", StringComparison.OrdinalIgnoreCase) ||
+                relativePath.Contains('*'))
+            {
+                continue;
+            }
+
+            // Convert relative doc paths to filesystem paths
+            string fullPath;
+            if (relativePath.StartsWith("docs/", StringComparison.OrdinalIgnoreCase))
+            {
+                fullPath = Path.Combine(repoRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (relativePath.StartsWith("archive/", StringComparison.OrdinalIgnoreCase))
+            {
+                // archive/ paths in docs/INDEX.md refer to docs/archive/
+                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, relativePath)))
+            {
+                // File at repo root (e.g. README.md, CLAUDE.md)
+                fullPath = Path.Combine(repoRoot, relativePath);
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                // File in docs/ subdirectory (bare name)
+                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-0", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                // BA phase-0 files
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-0", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-1", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                // BA phase-1 files
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-1", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-2", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-2", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-3", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-3", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-4", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-4", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-5", relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-5", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+            else
+            {
+                // Last resort: try docs/ bare lookup
+                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                missingFiles.Add(relativePath + " (tried: " + fullPath + ")");
+            }
+        }
+
+        Assert.Empty(missingFiles);
+    }
+
+    [Fact]
+    public void Read_Order_Consistent_Between_Key_Docs()
+    {
+        var repoRoot = FindRepoRoot();
+
+        // Read-order should be: README → AGENTS → ASSISTANT → docs/ARCHITECTURE → docs/PATTERNS
+        var readOrderFiles = new[]
+        {
+            "README.md",
+            "AGENTS.md",
+            "ASSISTANT.md",
+            "docs/ARCHITECTURE.md",
+            "docs/PATTERNS.md",
+            "docs/assistant/BASELINE.md"
+        };
+
+        foreach (var file in readOrderFiles)
+        {
+            var path = Path.Combine(repoRoot, file);
+            Assert.True(File.Exists(path), $"Read-order file missing: {file}");
+        }
+
+        // AGENTS.md and ASSISTANT.md should both reference docs/ARCHITECTURE.md and docs/PATTERNS.md
+        var agentsPath = Path.Combine(repoRoot, "AGENTS.md");
+        var assistantPath = Path.Combine(repoRoot, "ASSISTANT.md");
+
+        if (File.Exists(agentsPath))
+        {
+            var agentsContent = File.ReadAllText(agentsPath);
+            Assert.Contains("docs/ARCHITECTURE.md", agentsContent);
+            Assert.Contains("docs/PATTERNS.md", agentsContent);
+        }
+
+        if (File.Exists(assistantPath))
+        {
+            var assistantContent = File.ReadAllText(assistantPath);
+            Assert.Contains("docs/ARCHITECTURE.md", assistantContent);
+        }
     }
 
     private static Assembly LoadAssembly(string fileName)
