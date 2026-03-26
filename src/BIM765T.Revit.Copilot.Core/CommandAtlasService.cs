@@ -300,26 +300,28 @@ public sealed class CommandAtlasService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var selectedPacks = enabledIds.Count > 0
-            ? _packs.GetByIds(enabledIds)
-            : _packs.GetAll()
-                .Where(x => string.Equals(x.Manifest.PackType, "command-pack", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-        foreach (var pack in selectedPacks)
+        // Always include command packs as baseline — they are the MVP command surface.
+        // Command packs are not workspace-gated since they represent the baseline safe tool lane.
+        foreach (var pack in _packs.GetAll()
+            .Where(x => string.Equals(x.Manifest.PackType, "command-pack", StringComparison.OrdinalIgnoreCase)))
         {
-            if (string.Equals(pack.Manifest.PackType, "command-pack", StringComparison.OrdinalIgnoreCase))
+            foreach (var entry in LoadCommandEntries(pack))
             {
-                foreach (var entry in LoadCommandEntries(pack))
-                {
-                    yield return entry;
-                }
+                yield return entry;
             }
-            else if (string.Equals(pack.Manifest.PackType, "script-pack", StringComparison.OrdinalIgnoreCase))
+        }
+
+        // Additionally include workspace-enabled packs for extended capabilities.
+        if (enabledIds.Count > 0)
+        {
+            foreach (var pack in _packs.GetByIds(enabledIds))
             {
-                foreach (var entry in LoadScriptEntries(pack))
+                if (string.Equals(pack.Manifest.PackType, "script-pack", StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return entry;
+                    foreach (var entry in LoadScriptEntries(pack))
+                    {
+                        yield return entry;
+                    }
                 }
             }
         }
