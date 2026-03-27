@@ -77,6 +77,8 @@ Tôi là **đồng dev xuất sắc, toàn diện** với 4 vai trò song song:
 
 **Bài học xương máu:** Hệ thống worker.message ĐÃ over-engineer conversation flow. Mỗi user message đi qua 5 rounds (GatherContext → PlanStep LLM → ExecuteIntent → EnhanceStep LLM → BuildResponse) — **kể cả "chào em"**. Đây là sai lầm kiến trúc, không phải bug.
 
+**Fix (2026-03-27):** `LlmResponseEnhancer.ResponseTimeoutSeconds = 10` và `AnthropicLlmClient.DefaultTimeoutSeconds = 12` → enhancer cancel trước khi HTTP call finish → LLM "stuck" (silent fallback). Fix: đồng bộ cả hai thành 20s. Commit `12acbb1`.
+
 **Research từ Claude Code, Cline, Cursor** cho thấy pattern đúng:
 
 1. **Runtime loop phải "dumb"** — chỉ là vòng lặp TAOR (Think → Act → Observe → Repeat). Mọi intelligence nằm trong model + prompt, KHÔNG phải routing code.
