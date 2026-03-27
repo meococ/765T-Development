@@ -164,7 +164,7 @@ Historical or operational knowledge for agents and maintenance work.
 | `agent/prompts/README.md` | Entry point for historical prompt pack templates |
 | `agent/templates/README.md` | Entry point for task-card / handoff templates |
 | `agent/INTELLIGENCE_LAYER.md`, `agent/FIX_LOOP_AND_DELIVERY_OPS.md` | Pre-architecture design notes (superseded but still in place) |
-| `archive/agent/IMPROVEMENT_ROADMAP_2026Q1.md`, `archive/agent/REVT_WORKER_V1.md` | Archived design notes (historical reference only) |
+| `archive/agent/` | Archived design notes (directory removed — files stale, superseded) |
 
 ---
 
