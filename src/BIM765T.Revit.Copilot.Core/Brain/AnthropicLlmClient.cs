@@ -29,7 +29,7 @@ public sealed class AnthropicLlmClient : ILlmClient
     private const string DefaultAnthropicModel = "claude-sonnet-4-20250514";
     private const string DefaultOpenAiModel = "claude-sonnet-4.6";
     private const int DefaultMaxTokens = 1024;
-    private const int DefaultTimeoutSeconds = 12;
+    private const int DefaultTimeoutSeconds = 20;
     private const string AnthropicVersion = "2023-06-01";
 
     private readonly HttpClient _httpClient;

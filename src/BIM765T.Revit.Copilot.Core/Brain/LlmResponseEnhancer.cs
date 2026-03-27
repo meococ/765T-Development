@@ -19,7 +19,7 @@ namespace BIM765T.Revit.Copilot.Core.Brain;
 /// </summary>
 public sealed class LlmResponseEnhancer
 {
-    private const int ResponseTimeoutSeconds = 10;
+    private const int ResponseTimeoutSeconds = 20;
     private const int MaxHistoryMessages = 4;
 
     private const string PreferredSystemPrompt =

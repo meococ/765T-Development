@@ -107,8 +107,8 @@ public sealed class LlmIntegrationTests : IDisposable
     [Fact]
     public async Task CompleteAsync_ReturnsEmpty_OnTimeout()
     {
-        // Handler delays 15s but client CancelAfter is 12s → times out first.
-        var handler = new SlowHttpMessageHandler(TimeSpan.FromSeconds(15));
+        // Handler delays 25s but client CancelAfter is 20s → times out first.
+        var handler = new SlowHttpMessageHandler(TimeSpan.FromSeconds(25));
         var httpClient = new HttpClient(handler);
         var client = new AnthropicLlmClient(
             httpClient,
