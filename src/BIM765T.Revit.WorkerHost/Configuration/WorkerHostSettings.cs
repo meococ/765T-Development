@@ -47,6 +47,10 @@ internal sealed class WorkerHostSettings
 
     public string QdrantCollectionName { get; set; } = "bim765t";
 
+    public string OllamaUrl { get; set; } = "http://127.0.0.1:11434";
+
+    public string OllamaEmbeddingModel { get; set; } = "nomic-embed-text";
+
     public List<string> MemoryNamespaces { get; set; } = new()
     {
         BIM765T.Revit.Contracts.Platform.MemoryNamespaces.AtlasNativeCommands,

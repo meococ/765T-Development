@@ -31,13 +31,6 @@ namespace BIM765T.Revit.WorkerHost;
 
 internal static class Program
 {
-    private static readonly Action<ILogger, Exception?> HashEmbeddingWarningLog =
-        LoggerMessage.Define(
-            LogLevel.Warning,
-            new EventId(5001, "HashEmbeddingClientRegistered"),
-            "WARNING: Using HashEmbeddingClient (non-semantic). Qdrant search results are lexical-hash-based, "
-            + "not semantic. Configure a real embedding client for production.");
-
     private static async Task<int> Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -165,14 +158,16 @@ internal static class Program
         builder.Services.AddSingleton(new SqliteMissionEventStore(settings.EventStorePath));
         builder.Services.AddSingleton<IMissionEventBus, InMemoryMissionEventBus>();
         builder.Services.AddSingleton<IKernelClient>(_ => new KernelPipeClient(settings.KernelPipeName));
-        builder.Services.AddSingleton<HashEmbeddingClient>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<HashEmbeddingClient>>();
-            HashEmbeddingWarningLog(logger, null);
-            return new HashEmbeddingClient(settings.EmbeddingDimensions);
+            var logger = sp.GetRequiredService<ILogger<EmbeddingProviderFactory>>();
+            var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
+            return EmbeddingProviderFactory.Create(settings, httpFactory, logger);
         });
-        builder.Services.AddSingleton<IEmbeddingClient>(sp => sp.GetRequiredService<HashEmbeddingClient>());
-        builder.Services.AddSingleton<IEmbeddingProvider>(sp => sp.GetRequiredService<HashEmbeddingClient>());
+        builder.Services.AddSingleton<IEmbeddingClient>(sp =>
+            sp.GetRequiredService<EmbeddingProviderResult>().Client);
+        builder.Services.AddSingleton<IEmbeddingProvider>(sp =>
+            sp.GetRequiredService<EmbeddingProviderResult>().Provider);
         builder.Services.AddHttpClient<ISemanticMemoryClient, QdrantSemanticMemoryClient>(client =>
         {
             client.BaseAddress = new Uri(settings.QdrantUrl.EndsWith('/') ? settings.QdrantUrl : settings.QdrantUrl + "/");
