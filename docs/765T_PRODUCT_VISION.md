@@ -1,6 +1,10 @@
 # 765T Product Vision — The Cursor for BIM
 
-> Updated: 2026-03-25 | Status: Active | Owner: MII Team
+> Updated: 2026-03-29 | Status: Active | Owner: MII Team
+>
+> **Đọc file này như: Vision + Research + Roadmap — KHÔNG phải runtime truth.**
+> Current runtime truth: `docs/assistant/BASELINE.md`
+> Current architecture: `docs/ARCHITECTURE.md`
 
 ---
 
@@ -333,17 +337,21 @@ MINUTE 5: User hooked
 
 ---
 
-## 6. Implementation Architecture
+## 6. Implementation Architecture — Roadmap (TARGET STATE)
+
+> **⚠️ Section này mô tả KIẾN TRÚC MỤC TIÊU.** "What Must Be Built" bên dưới
+> là engineering work CHƯA HOÀN THÀNH (~14 tuần). "What Already Exists" là shipped.
+> Cho current runtime truth, xem `docs/assistant/BASELINE.md`.
 
 ### What Already Exists (DO NOT rebuild)
 
 | Asset | Count | Status |
 |-------|-------|--------|
-| Tool modules | 20 modules, 192 tools | Production-ready |
+| Tool modules | 20 modules, 237 tools | Production-ready |
 | Specialist packs | 14 | Configured |
 | Command atlas | ~20+ mapped commands | Working |
 | Playbooks | 8 playbook definitions | Working |
-| WPF dockable pane | Chat + Activity + Evidence + Quick Tools | Working |
+| WPF dockable pane | Single worker shell | Working |
 | WorkerHost | gRPC + HTTP + SSE streaming | Working |
 | Named pipe IPC | Agent ↔ WorkerHost | Working |
 | Rule engine | Naming, parameters, worksets, compliance | Working |

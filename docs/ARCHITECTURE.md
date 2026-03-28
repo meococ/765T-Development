@@ -1,4 +1,8 @@
-# 765T Assistant Platform - Architecture
+# 765T Assistant Platform — Architecture (Current State)
+
+> **Canonical runtime truth:** `docs/assistant/BASELINE.md`
+> **Target-state redesign:** `docs/architecture/ARCHITECTURE_REDLINE_2026Q2.md`
+> This file describes the CURRENT system boundary, control-plane model, and capability stack.
 
 ## 1. System Boundary
 
@@ -10,7 +14,7 @@
 ### Private Lane
 
 - `BIM765T.Revit.Agent` runs inside Revit and is the **only** place allowed to mutate the model via Revit API
-- In the current migration slice, Agent still hosts the embedded `worker.*` session/reasoning lane
+- In the current production architecture, Agent still hosts the embedded `worker.*` session/reasoning lane
 
 ## 2. Control-Plane Model
 
@@ -131,9 +135,13 @@ All mutation-capable flows must still go through preview/approval/verify.
 
 ## 8. Target-State Pack
 
-Current runtime truth is in this file.
+**Authority Split:**
 
-Target-state modernization/redline pack is at:
+- **Current runtime truth:** `docs/assistant/BASELINE.md`
+- **Current architecture:** This file
+- **Target-state 2026Q2:** `docs/architecture/ARCHITECTURE_REDLINE_2026Q2.md`
+
+Target-state modernization/redline pack:
 
 - `docs/architecture/README.md`
 - `docs/architecture/ARCHITECTURE_REDLINE_2026Q2.md`

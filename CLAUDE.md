@@ -21,57 +21,30 @@ Tôi là **đồng dev xuất sắc, toàn diện** với 4 vai trò song song:
 - **Codex là thợ code, tôi là người nghĩ.** Tôi plan + research + review, Codex triển khai.
 - **Suy nghĩ lâu nhất, chất lượng nhất, thông minh nhất** — đó là giá trị tôi mang lại.
 
-## Bối cảnh hiện tại — 2026-03-25
+## Bối cảnh hiện tại — 2026-03-29
 
-### Anh Mèo Cọc và em Linh đã thống nhất
+### Trạng thái thực tế
 
-1. **Mindset mới:** Tấn công, tận dụng AI — không phòng thủ. Ship quality, ship fast.
-2. **Repo audit hoàn tất (6 passes):** Authority Map, Full Inventory, Drift Audit 7 trục, Stale Audit, Code Cross-check, Cleanup Backlog.
-3. **Phát hiện critical:**
-   - `AGENTS.md` + `ASSISTANT.md` **không tồn tại** nhưng 12+ files reference → cần recreate
-   - README.md overclaim: "4 tabs" (truth = single worker shell), "vector search" (truth = hash-embedding), "GPT-5.2 default" (truth = first-found-wins)
-   - 4 read orders xung đột → cần unify thành 1
-   - Docs mô tả feature như đã ship nhưng code chưa confirm (Qdrant semantic, Ollama embeddings)
-4. **Cleanup backlog đã xuất:** `output/REPO_AUDIT_CLEANUP_BACKLOG.md` — 18 tasks (P0→P1→P2) sẵn sàng cho Codex triển khai.
+1. **Build:** Pass sạch (0 errors, 0 warnings). **Tests:** 435/435 pass.
+2. **Wave 1 cleanup HOÀN TẤT:** AGENTS.md, ASSISTANT.md restored. README accurate. Read order unified.
+3. **Pipeline Phase 1 SHIPPED (commit `6bd1e47`):** Conversational fast-path mở rộng từ 4 → 7 intents. `EnhanceConversationalAsync` timeout 8s (vs 20s). "tổng quan project", "kiểm tra model", "phân tích family" → 1-3s thay vì 5-18s.
+4. **Docs Phase 2 SHIPPED:** 765T_PRODUCT_VISION.md có TARGET STATE warning. ARCHITECTURE.md có authority clarification. Tool count fixed 192 → 237.
+5. **Audit backlog:** 18 tasks ban đầu → phần lớn P0 hoàn tất, P1-P2 còn lại là maintenance.
 
-### Mục tiêu hướng tới
+### Sự thật chưa fix
 
-- **Single source of truth** cho mỗi category — không còn file nào xung đột
-- **README = honest marketing** — chỉ claim những gì đã ship thật
-- **Docs phản ánh code** — không docs chạy trước code, không code bỏ quên docs
-- **Repo sạch** — archive files cũ, dedup content, unify read order
-- **Foundation vững** để scale: khi Codex implement feature mới → có 1 chỗ duy nhất để update truth
+- **Qdrant:** Hash embeddings (FNV-1a, non-semantic). Chưa có OllamaEmbeddingClient → Phase 3.
+- **Role-based filtering:** Chưa implement. 237 tools broadcast cho tất cả roles.
+- **Worker pipeline:** 5-round full pipeline vẫn chạy cho action intents (đúng thiết kế). Conversational intents đã fast-path.
 
-### Repo Audit Status — Codex reviewed & approved
+### Mục tiêu tiếp theo
 
-- **Audit hoàn tất 6 passes**, output refined bởi Codex, Linh đã review và đồng ý.
-- **Output files:** `output/REPO_AUDIT_*.md` — 4 files là source of truth cho cleanup.
-- **18 tasks:** P0 (7 critical) → P1 (8 high) → P2 (5 maintenance), chia 3 waves.
-- **Wave 1 ready:** P0-1 → P0-5 (restore AGENTS.md, ASSISTANT.md, unify read order, rewrite README*, README.en*).
-- **Key blocker:** `ArchitectureTests.cs:148-149` asserts AGENTS.md + ASSISTANT.md exist → **build sẽ fail cho đến khi Wave 1 xong**.
-
-### Content Spec cho Wave 1
-
-**AGENTS.md** (operating constitution) cần có:
-
-- Triết lý vận hành (tấn công, tận dụng AI, ship quality)
-- Read Order thống nhất (CLAUDE → README → AGENTS → docs chain)
-- Engineering Discipline (architecture boundaries, mutation flow, contracts — lý do tại sao, không phải sợ)
-- Current Product Posture (single worker shell, WorkerHost = control plane, Agent = execution kernel)
-- Done Definition (build pass + test pass + docs updated + user dùng được ngay)
-- Source: `.claude/rules/*` + `docs/assistant/BASELINE.md`
-
-**ASSISTANT.md** (repo operating baseline) cần có:
-
-- Source of Truth table (topic → canonical file)
-- Runtime Truths (AgentSettings, WorkerHostSettings, workspace.json paths)
-- Operational Posture (chủ động, leverage AI, tiered mutation flow)
-- Do Not Treat as Startup Truth (.assistant/runs, relay, old handoffs)
-- Source: `docs/assistant/BASELINE.md` + `docs/assistant/CONFIG_MATRIX.md`
+- **Phase 3:** Ship semantic memory — OllamaEmbeddingClient + EmbeddingProviderFactory + config.
+- **Phase 4 (future):** Role-based tool filtering. Streaming UX improvements.
 
 ## Critical Notes — Read First
 
-> Updated after each working session. Last updated: 2026-03-26
+> Updated after each working session. Last updated: 2026-03-29
 
 ### Architecture Lesson — Worker Conversation Flow (2026-03-26)
 
@@ -142,7 +115,7 @@ tools/dev/scratch/           — temp investigation scripts
 
 (Details: docs/765T_PRODUCT_VISION.md Section 6)
 
-- 20 tool modules, 192 tools — production-ready
+- 20 tool modules, 237 tools — production-ready
 - 14 specialist packs — configured
 - WPF dockable pane — single worker shell (NOT "4 tabs", see BASELINE.md)
 - WorkerHost (gRPC + HTTP + SSE streaming)
