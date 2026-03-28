@@ -7,14 +7,15 @@ using BIM765T.Revit.Copilot.Core.Brain;
 namespace BIM765T.Revit.Agent.Infrastructure.Bridge.Workflows.Steps;
 
 /// <summary>
-/// Fast-path for conversational intents (greeting, identity_query, help, context_query).
+/// Fast-path for conversational and read-only intents.
+/// Covers: greeting, identity_query, help, context_query, project_research_request, qc_request, family_analysis_request.
 /// Merges Plan + ExecuteIntent + Enhance into a SINGLE async step:
 ///   1. Rule-based classification (instant, already done in GatherContextStep)
-///   2. ONE LLM call with compact prompt + Revit context (1-2s)
+///   2. ONE LLM call with compact prompt + Revit context (1-3s)
 ///   3. Skips: playbook match, capability compile, tool chain, separate enhance
 ///
-/// Result: 3-step workflow (Gather → Conversational → BuildResponse) instead of 5.
-/// User perceives ~1-2s response instead of 5-18s.
+/// Result: 3-step workflow (Gather -> Conversational -> BuildResponse) instead of 5.
+/// User perceives ~1-3s response instead of 5-18s.
 /// </summary>
 internal sealed class ConversationalStep : IAsyncYieldStep<MessageWorkflowContext>
 {
@@ -52,21 +53,19 @@ internal sealed class ConversationalStep : IAsyncYieldStep<MessageWorkflowContex
         _worker.Missions.EnsureMission(session, decision.Intent, decision.Goal, request.ContinueMission);
         _worker.Missions.SetPlan(session, decision);
 
-        // 3. Single LLM call with compact prompt — replaces both Plan LLM + Enhance LLM.
+        // 3. Single LLM call with compact prompt and tight timeout (8s).
+        //    Replaces both Plan LLM + Enhance LLM from the full pipeline.
         var enhancer = _worker.Enhancer;
         if (enhancer != null && enhancer.IsLlmConfigured)
         {
             var persona = _worker.Personas.Resolve(session.PersonaId);
-            var narration = await enhancer.EnhanceResponseAsync(
+            var narration = await enhancer.EnhanceConversationalAsync(
                 request.Message,
                 classification.Intent,
                 BuildFallbackText(classification.Intent, contextSummary),
-                System.Linq.Enumerable.Empty<string>(),
                 contextSummary,
                 persona,
                 session.Messages,
-                string.Empty,
-                string.Empty,
                 cancellationToken).ConfigureAwait(false);
 
             context.ResponseText = narration.Text;
@@ -88,6 +87,9 @@ internal sealed class ConversationalStep : IAsyncYieldStep<MessageWorkflowContex
             "identity_query" => "Worker da gioi thieu vai tro va lane ho tro hien tai.",
             "help" => "Worker da goi y cac diem vao an toan.",
             "context_query" => "Da tong hop context hien tai.",
+            "project_research_request" => "Da tong hop thong tin project.",
+            "qc_request" => "Da kiem tra model health.",
+            "family_analysis_request" => "Da phan tich family.",
             _ => "Conversational response completed."
         };
         _worker.Missions.Complete(session, completionNote);
@@ -119,6 +121,14 @@ internal sealed class ConversationalStep : IAsyncYieldStep<MessageWorkflowContex
             "context_query" =>
                 $"Document: {docTitle}. Active view: {viewName}. " +
                 $"Selection: {contextSummary?.SelectionCount ?? 0} phan tu.",
+            "project_research_request" =>
+                $"Em dang tong hop thong tin project {docTitle}. " +
+                "Bao gom context hien tai, workspace bundle, va evidence tu memory.",
+            "qc_request" =>
+                $"Em se kiem tra model health cho file {docTitle}. " +
+                "Day la QC read-only, khong thay doi gi trong model.",
+            "family_analysis_request" =>
+                $"Em se phan tich family hien tai trong {docTitle}.",
             _ => "Em chua xac dinh ro y dinh. Anh thu noi cu the hon."
         };
     }
@@ -131,6 +141,9 @@ internal sealed class ConversationalStep : IAsyncYieldStep<MessageWorkflowContex
             "identity_query" => "Gioi thieu ban than va kha nang hien tai.",
             "help" => "Goi y cac diem vao an toan.",
             "context_query" => "Tong hop context Revit hien tai.",
+            "project_research_request" => "Tong hop hien trang du an.",
+            "qc_request" => "Kiem tra model health read-only.",
+            "family_analysis_request" => "Phan tich family hien tai.",
             _ => "Tra loi conversational."
         };
     }

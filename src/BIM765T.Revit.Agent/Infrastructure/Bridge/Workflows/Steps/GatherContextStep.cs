@@ -9,10 +9,11 @@ namespace BIM765T.Revit.Agent.Infrastructure.Bridge.Workflows.Steps;
 /// Populates <see cref="MessageWorkflowContext"/> with Doc, Session, WorkspaceId, ContextSummary.
 ///
 /// After gathering context, performs instant intent classification to decide the route:
-///   - Conversational intents (greeting, identity, help, context_query)
-///     → ConversationalStep (1 async LLM call → BuildResponse). Total: 3 steps.
-///   - Action intents (qc, mutation, sheet, family, ...)
-///     → PlanStep → ExecuteIntent → Enhance → BuildResponse. Total: 5 steps.
+///   - Conversational/read-only intents (greeting, identity, help, context_query,
+///     project_research_request, qc_request, family_analysis_request)
+///     -> ConversationalStep (1 async LLM call -> BuildResponse). Total: 3 steps, 1-3s.
+///   - Action intents (mutation, sheet/view authoring, ...)
+///     -> PlanStep -> ExecuteIntent -> Enhance -> BuildResponse. Total: 5 steps, 5-18s.
 ///
 /// ~100ms typical.
 /// </summary>

@@ -302,10 +302,7 @@ public sealed class LlmResponseEnhancer
 
     private static bool ShouldUseCompactConversationPrompt(string intent)
     {
-        return string.Equals(intent, "greeting", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "identity_query", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "help", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "context_query", StringComparison.OrdinalIgnoreCase);
+        return WorkerReasoningEngine.IsConversationalIntent(intent);
     }
 
     private static bool ShouldIncludeProjectSummary(string intent, string userMessage, WorkerContextSummary? contextSummary)
@@ -411,6 +408,21 @@ public sealed class LlmResponseEnhancer
             return "- Context intent: summarize the current document, view, and selection first. Mention uncertainty only if a requested detail is unavailable.";
         }
 
+        if (string.Equals(intent, "project_research_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "- Project research intent: summarize current project state using document context and available evidence. Focus on facts, not speculation.";
+        }
+
+        if (string.Equals(intent, "qc_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "- QC intent: describe what model health checks you will run. This is read-only — reassure the user nothing will be modified.";
+        }
+
+        if (string.Equals(intent, "family_analysis_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "- Family analysis intent: describe the family analysis scope. Mention what metrics or properties will be inspected.";
+        }
+
         return string.Empty;
     }
 
@@ -429,6 +441,21 @@ public sealed class LlmResponseEnhancer
         if (string.Equals(intent, "context_query", StringComparison.OrdinalIgnoreCase))
         {
             return "User: kiem tra context hien tai\nAssistant: Hiện em đang ở file ABC.rvt, view {3D}, chưa chọn phần tử nào. Nếu anh cần, em có thể đọc sâu hơn vào warnings, family, hoặc sheet.";
+        }
+
+        if (string.Equals(intent, "project_research_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "User: tong quan project\nAssistant: File ABC.rvt hiện có 1,240 phần tử, 12 sheet, 8 family loaded. Workspace bundle cho thấy project đang ở giai đoạn DD. Em có thể đi sâu vào sheet summary hoặc model health nếu anh cần.";
+        }
+
+        if (string.Equals(intent, "qc_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "User: kiem tra model health\nAssistant: Em sẽ chạy QC read-only cho file ABC.rvt. Kiểm tra warnings, unused families, và room boundaries. Không thay đổi gì trong model.";
+        }
+
+        if (string.Equals(intent, "family_analysis_request", StringComparison.OrdinalIgnoreCase))
+        {
+            return "User: phan tich family\nAssistant: Em sẽ phân tích family đang được load trong ABC.rvt — số lượng, dung lượng, và nested depth. Anh muốn em tập trung vào family nào cụ thể không?";
         }
 
         return string.Empty;
@@ -534,6 +561,58 @@ public sealed class LlmResponseEnhancer
         var systemPrompt = BuildSystemPromptWithPersona(persona);
 
         return await CallLlmWithResultAsync(systemPrompt, userPrompt, ruleBasedText, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Conversational fast-path LLM narration with tighter timeout (8s instead of 20s).
+    /// Uses compact prompt (no tool evidence, no reasoning/plan summaries).
+    /// Called by ConversationalStep for read-only and informational intents.
+    /// Falls back to rule-based text if LLM is unavailable or slow.
+    /// </summary>
+    public const int ConversationalTimeoutSeconds = 8;
+
+    public async Task<LlmNarrationResult> EnhanceConversationalAsync(
+        string userMessage,
+        string intent,
+        string fallbackText,
+        WorkerContextSummary? contextSummary,
+        WorkerPersonaSummary? persona,
+        IEnumerable<WorkerChatMessage>? recentMessages,
+        CancellationToken cancellationToken)
+    {
+        if (!_isLlmReal)
+        {
+            return LlmNarrationResult.RuleOnly(fallbackText, "LLM narration client is not configured.");
+        }
+
+        var userPrompt = BuildCompactConversationPrompt(
+            userMessage, intent, contextSummary, recentMessages, string.Empty);
+        var systemPrompt = BuildSystemPromptWithPersona(persona);
+
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(ConversationalTimeoutSeconds));
+            var result = await _llmClient.CompleteAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(result) || result.Contains("[LLM not configured]"))
+            {
+                return LlmNarrationResult.Fallback(fallbackText, "Conversational LLM returned empty. Using rule fallback.");
+            }
+
+            Trace.TraceInformation($"BIM765T LlmResponseEnhancer: Conversational LLM text ({result.Length} chars, {ConversationalTimeoutSeconds}s budget).");
+            return LlmNarrationResult.Enhanced(result, $"Conversational fast-path LLM narration ({ConversationalTimeoutSeconds}s timeout).");
+        }
+        catch (OperationCanceledException)
+        {
+            Trace.TraceWarning($"BIM765T LlmResponseEnhancer: Conversational LLM timed out after {ConversationalTimeoutSeconds}s. Using rule-based text.");
+            return LlmNarrationResult.Fallback(fallbackText, $"Conversational LLM timed out after {ConversationalTimeoutSeconds}s. Using rule fallback.");
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning($"BIM765T LlmResponseEnhancer: Conversational LLM failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.");
+            return LlmNarrationResult.Fallback(fallbackText, $"Conversational LLM failed: {ex.GetType().Name}.");
+        }
     }
 }
 

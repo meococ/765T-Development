@@ -44,15 +44,29 @@ public sealed class WorkerReasoningEngine
     }
 
     /// <summary>
-    /// Returns true if the given intent is conversational (greeting, identity, help, context_query).
+    /// Intents that can skip the full 5-step pipeline (Plan → ExecuteIntent → Enhance)
+    /// and use the 3-step fast-path (Gather → Conversational → BuildResponse) instead.
+    /// All of these are read-only or informational — no mutations, no approval gates.
+    /// </summary>
+    private static readonly HashSet<string> ConversationalIntents = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "greeting",
+        "identity_query",
+        "help",
+        "context_query",
+        "project_research_request",
+        "qc_request",
+        "family_analysis_request"
+    };
+
+    /// <summary>
+    /// Returns true if the given intent is conversational or read-only analysis.
     /// These intents do NOT need LLM planning, tool chains, or capability compilation.
+    /// They use the ConversationalStep fast-path for 1-3s response instead of 5-18s.
     /// </summary>
     public static bool IsConversationalIntent(string intent)
     {
-        return string.Equals(intent, "greeting", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "identity_query", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "help", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(intent, "context_query", StringComparison.OrdinalIgnoreCase);
+        return ConversationalIntents.Contains(intent);
     }
 
     public WorkerDecision ProcessMessage(WorkerConversationSessionState session, string message, bool continueMission)
