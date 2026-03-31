@@ -164,4 +164,4 @@ dotnet test BIM765T.Revit.Agent.sln -c Release
 
 ## License
 
-Proprietary. Built by the MII development team.
+MIT License. Copyright (c) 2026 Meo Coc (meococ). See [LICENSE](LICENSE) for details.
