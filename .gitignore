@@ -67,6 +67,11 @@ Project MMBS/
 .claude/settings.local.json
 .claude/plans/
 
+# Internal dev guidance (not for public repo)
+CLAUDE.md
+AGENTS.md
+ASSISTANT.md
+
 # OS/editor
 .DS_Store
 Thumbs.db
