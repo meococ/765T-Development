@@ -174,14 +174,13 @@ dotnet test BIM765T.Revit.Agent.sln -c Release
 
 | Tai lieu | Noi dung |
 | --- | --- |
-| `CLAUDE.md` | Huong dan cho AI agent lam viec voi repo |
-| `AGENTS.md` | Hien phap van hanh |
-| `docs/ARCHITECTURE.md` | Kien truc he thong va ranh gioi |
-| `docs/PATTERNS.md` | Patterns va mutation safety flow |
-| `docs/assistant/BASELINE.md` | Runtime truth hien tai |
-| `docs/assistant/CONFIG_MATRIX.md` | Config ownership matrix |
-| `docs/QUICKSTART_AI_TESTING.md` | Huong dan test AI end-to-end |
-| `docs/INDEX.md` | Navigator toan bo tai lieu |
+| [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md) | Ket noi Claude Code / Cursor vao Revit |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Kien truc he thong va ranh gioi |
+| [`docs/PATTERNS.md`](docs/PATTERNS.md) | Patterns va mutation safety flow |
+| [`docs/QUICKSTART_AI_TESTING.md`](docs/QUICKSTART_AI_TESTING.md) | Test AI qua HTTP API |
+| [`docs/assistant/BASELINE.md`](docs/assistant/BASELINE.md) | Runtime truth hien tai |
+| [`docs/assistant/CONFIG_MATRIX.md`](docs/assistant/CONFIG_MATRIX.md) | Config ownership matrix |
+| [`docs/INDEX.md`](docs/INDEX.md) | Navigator toan bo tai lieu |
 
 ## License
 

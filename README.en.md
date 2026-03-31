@@ -174,14 +174,13 @@ dotnet test BIM765T.Revit.Agent.sln -c Release
 
 | Document | Content |
 | --- | --- |
-| `CLAUDE.md` | Guidance for AI agents working with this repo |
-| `AGENTS.md` | Operating constitution |
-| `docs/ARCHITECTURE.md` | System architecture and boundaries |
-| `docs/PATTERNS.md` | Implementation patterns and mutation safety flow |
-| `docs/assistant/BASELINE.md` | Current runtime truth |
-| `docs/assistant/CONFIG_MATRIX.md` | Configuration ownership matrix |
-| `docs/QUICKSTART_AI_TESTING.md` | End-to-end AI testing guide |
-| `docs/INDEX.md` | Full documentation navigator |
+| [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md) | Connect Claude Code / Cursor to Revit |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture and boundaries |
+| [`docs/PATTERNS.md`](docs/PATTERNS.md) | Implementation patterns and mutation safety flow |
+| [`docs/QUICKSTART_AI_TESTING.md`](docs/QUICKSTART_AI_TESTING.md) | AI testing via HTTP API |
+| [`docs/assistant/BASELINE.md`](docs/assistant/BASELINE.md) | Current runtime truth |
+| [`docs/assistant/CONFIG_MATRIX.md`](docs/assistant/CONFIG_MATRIX.md) | Configuration ownership matrix |
+| [`docs/INDEX.md`](docs/INDEX.md) | Full documentation navigator |
 
 ## License
 
