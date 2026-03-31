@@ -51,8 +51,8 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdShowAgentPane).FullName)
             {
-                ToolTip = "Mo chat truc tiep voi 765T Assistant",
-                LongDescription = "Mo pane chat-first de chat, preview, approve va review evidence ngay trong Revit."
+                ToolTip = "Open chat with 765T Assistant",
+                LongDescription = "Open the chat-first pane to chat, preview, approve, and review evidence directly in Revit."
             };
             chatBtn.Image = RibbonIconFactory.CreateAgentSmall();
             chatBtn.LargeImage = RibbonIconFactory.CreateAgentLarge();
@@ -64,7 +64,7 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdCurrentContext).FullName)
             {
-                ToolTip = "Xem context document, view va selection hien tai",
+                ToolTip = "View current document, view, and selection context",
                 Image = RibbonIconFactory.CreateContextSmall(),
                 LargeImage = RibbonIconFactory.CreateContextLarge()
             };
@@ -75,7 +75,7 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdSettings).FullName)
             {
-                ToolTip = "Cai dat 765T AI Bridge va external AI gateways",
+                ToolTip = "Configure 765T AI Bridge and external AI gateways",
                 Image = RibbonIconFactory.CreateSettingsSmall(),
                 LargeImage = RibbonIconFactory.CreateSettingsLarge()
             };
@@ -94,8 +94,8 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdHealthCheck).FullName)
             {
-                ToolTip = "Chay health check nhanh",
-                LongDescription = "Chay document_health_v1 rule set. Ket qua hien trong Activity surface.",
+                ToolTip = "Run a quick health check",
+                LongDescription = "Run the document_health_v1 rule set. Results shown in the Activity surface.",
                 Image = RibbonIconFactory.CreateHealthSmall(),
                 LargeImage = RibbonIconFactory.CreateHealthLarge()
             };
@@ -106,7 +106,7 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdWarnings).FullName)
             {
-                ToolTip = "Thu thap va phan loai tat ca Revit warnings",
+                ToolTip = "Collect and categorize all Revit warnings",
                 Image = RibbonIconFactory.CreateWarningsSmall(),
                 LargeImage = RibbonIconFactory.CreateWarningsLarge()
             };
@@ -117,7 +117,7 @@ public sealed class AgentApplication : IExternalApplication
                 assembly,
                 typeof(CmdSnapshot).FullName)
             {
-                ToolTip = "Chup snapshot view hien tai (JSON + PNG)",
+                ToolTip = "Capture snapshot of the current view (JSON + PNG)",
                 Image = RibbonIconFactory.CreateSnapshotSmall(),
                 LargeImage = RibbonIconFactory.CreateSnapshotLarge()
             };
@@ -132,6 +132,11 @@ public sealed class AgentApplication : IExternalApplication
         if (!AgentHost.TryGetCurrent(out var runtime) || runtime == null)
         {
             throw new InvalidOperationException("Agent settings are not initialized.");
+        }
+
+        if (!runtime.Settings.EnableUiPane)
+        {
+            return;
         }
 
         var provider = new AgentPaneProvider(runtime.Settings);

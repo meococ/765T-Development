@@ -63,7 +63,7 @@ internal sealed class PendingToolInvocation
             ExecutionTier = ExecutionTier,
             Diagnostics = new List<DiagnosticRecord>
             {
-                DiagnosticRecord.Create("CANCELLED", DiagnosticSeverity.Warning, "Invocation da bi huy truoc khi Revit execute.")
+                DiagnosticRecord.Create("CANCELLED", DiagnosticSeverity.Warning, "Invocation was cancelled before Revit execution.")
             }
         });
 

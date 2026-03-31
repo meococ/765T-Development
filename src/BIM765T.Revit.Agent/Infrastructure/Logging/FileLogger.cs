@@ -64,11 +64,15 @@ internal sealed class FileLogger : IAgentLogger
         }
         catch (IOException ioEx)
         {
-            System.Diagnostics.Trace.WriteLine("FileLogger I/O failure: " + ioEx.Message);
+            var fallback = $"FileLogger I/O failure: {ioEx.Message}";
+            System.Diagnostics.Trace.WriteLine(fallback);
+            try { Console.Error.WriteLine(fallback); } catch { /* absolute last resort */ }
         }
         catch (UnauthorizedAccessException authEx)
         {
-            System.Diagnostics.Trace.WriteLine("FileLogger access failure: " + authEx.Message);
+            var fallback = $"FileLogger access failure: {authEx.Message}";
+            System.Diagnostics.Trace.WriteLine(fallback);
+            try { Console.Error.WriteLine(fallback); } catch { /* absolute last resort */ }
         }
     }
 

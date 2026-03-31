@@ -49,7 +49,7 @@ internal sealed class MarkdownMemoryBootstrapper : IHostedService
             {
                 await _store.UpsertMemoryAsync(new PromotedMemoryRecord
                 {
-                    MemoryId = $"{file.Kind}:{Math.Abs((file.Path + chunk.Title).GetHashCode())}",
+                    MemoryId = $"{file.Kind}:{ComputeDeterministicHash(file.Path + chunk.Title)}",
                     Kind = file.Kind,
                     NamespaceId = string.Equals(file.Kind, "lesson", StringComparison.OrdinalIgnoreCase)
                         ? MemoryNamespaces.EvidenceLessons
@@ -87,6 +87,13 @@ internal sealed class MarkdownMemoryBootstrapper : IHostedService
 
             current = current.Parent;
         }
+    }
+
+    private static string ComputeDeterministicHash(string input)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(input ?? string.Empty);
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        return BitConverter.ToString(hash, 0, 8).Replace("-", string.Empty).ToLowerInvariant();
     }
 
     private static IEnumerable<(string Title, string Snippet, string PayloadJson)> Chunk(string markdown)

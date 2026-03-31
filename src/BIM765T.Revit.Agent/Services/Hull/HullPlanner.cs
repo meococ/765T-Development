@@ -33,7 +33,7 @@ internal sealed class HullPlanner
             if (element == null)
             {
                 response.SkipCount += 1;
-                response.Diagnostics.Add(DiagnosticRecord.Create("SOURCE_MISSING", DiagnosticSeverity.Warning, "Không reacquire được source element.", source.SourceId));
+                response.Diagnostics.Add(DiagnosticRecord.Create("SOURCE_MISSING", DiagnosticSeverity.Warning, "Cannot reacquire source element.", source.SourceId));
                 continue;
             }
 
@@ -89,7 +89,7 @@ internal sealed class HullPlanner
         {
             action.Action = "SKIP_LOW_CONF";
             action.Confidence = Math.Min(action.Confidence, 0.45);
-            action.Diagnostics.Add(DiagnosticRecord.Create("DIMENSION_LOW_CONF", DiagnosticSeverity.Warning, "Không xác định được dim ổn định để dry-run.", source.SourceId));
+            action.Diagnostics.Add(DiagnosticRecord.Create("DIMENSION_LOW_CONF", DiagnosticSeverity.Warning, "Cannot determine stable dimension for dry-run.", source.SourceId));
         }
 
         return action;
@@ -139,7 +139,7 @@ internal sealed class HullPlanner
         action.DimHeightOrWidthInch = UnitUtils.ConvertFromInternalUnits(minor, UnitTypeId.Inches);
         if (Math.Abs(dx - dy) < UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Inches))
         {
-            action.Diagnostics.Add(DiagnosticRecord.Create("NEAR_SQUARE_AXIS_LOCK", DiagnosticSeverity.Info, "Near-square detected, planner sẽ khóa trục major/minor deterministic.", action.SourceId));
+            action.Diagnostics.Add(DiagnosticRecord.Create("NEAR_SQUARE_AXIS_LOCK", DiagnosticSeverity.Info, "Near-square detected; planner will lock major/minor axis deterministically.", action.SourceId));
         }
     }
 

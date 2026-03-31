@@ -42,7 +42,11 @@ internal sealed class QdrantSemanticMemoryClient : ISemanticMemoryClient
                 Content = new StringContent(payload, Encoding.UTF8, "application/json")
             };
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            _ = response.IsSuccessStatusCode;
+            // Qdrant PUT collection returns 200 even if collection already exists; only throw on real errors.
+            if (!response.IsSuccessStatusCode && (int)response.StatusCode != 409)
+            {
+                throw new HttpRequestException($"Qdrant EnsureReady failed for collection '{_settings.ResolveQdrantCollectionName(namespaceId)}': HTTP {(int)response.StatusCode}");
+            }
         }
     }
 
@@ -79,7 +83,10 @@ internal sealed class QdrantSemanticMemoryClient : ISemanticMemoryClient
             Content = new StringContent(payload, Encoding.UTF8, "application/json")
         };
         using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        _ = response.IsSuccessStatusCode;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Qdrant upsert failed for memory '{record.MemoryId}': HTTP {(int)response.StatusCode}");
+        }
     }
 
     public async Task<IReadOnlyList<SemanticMemoryHit>> SearchAsync(string query, string documentKey, int topK, CancellationToken cancellationToken)

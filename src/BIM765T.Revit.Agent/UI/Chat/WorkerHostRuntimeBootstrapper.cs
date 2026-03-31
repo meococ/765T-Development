@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BIM765T.Revit.Contracts.Serialization;
@@ -58,14 +59,88 @@ internal static class WorkerHostRuntimeBootstrapper
 
             if (!await WaitUntilAvailableAsync(baseAddress!, cancellationToken).ConfigureAwait(false))
             {
-                throw new InvalidOperationException(
-                    "AI runtime dang tat hoac chua san sang. Em da thu tu khoi dong WorkerHost nhung van chua ket noi duoc.");
+                var status = await TryGetGatewayStatusAsync(baseAddress!, cancellationToken).ConfigureAwait(false);
+                throw BuildUnavailableException(baseAddress!, status, null);
             }
         }
         finally
         {
             StartupGate.Release();
         }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2016:Forward the CancellationToken parameter to methods that take one", Justification = "ReadAsStringAsync on the add-in/test target does not expose a CancellationToken overload.")]
+    internal static async Task<WorkerHostGatewayStatus?> TryGetGatewayStatusAsync(Uri? baseAddress, CancellationToken cancellationToken)
+    {
+        if (baseAddress == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseAddress, "/api/external-ai/status"));
+            using var response = await StatusProbeClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            return TryParseGatewayStatus(json);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static WorkerHostGatewayStatus TryParseGatewayStatus(string json)
+    {
+        try
+        {
+            return JsonUtil.DeserializeRequired<WorkerHostGatewayStatus>(json);
+        }
+        catch
+        {
+            return new WorkerHostGatewayStatus
+            {
+                SupportsTaskRuntime = ExtractJsonBool(json, "supportsTaskRuntime"),
+                ConfiguredProvider = ExtractJsonString(json, "configuredProvider"),
+                PlannerModel = ExtractJsonString(json, "plannerModel"),
+                ResponseModel = ExtractJsonString(json, "responseModel"),
+                ReasoningMode = ExtractJsonString(json, "reasoningMode"),
+                SecretSourceKind = ExtractJsonString(json, "secretSourceKind"),
+                Health = new WorkerHostRuntimeReadiness
+                {
+                    Ready = ExtractJsonBool(json, "ready"),
+                    StandaloneChatReady = ExtractJsonBool(json, "standaloneChatReady"),
+                    LiveRevitReady = ExtractJsonBool(json, "liveRevitReady"),
+                    Degraded = ExtractJsonBool(json, "degraded"),
+                    ReadinessSummary = ExtractJsonString(json, "readinessSummary"),
+                    RuntimeTopology = ExtractJsonString(json, "runtimeTopology")
+                }
+            };
+        }
+    }
+
+    private static string ExtractJsonString(string json, string propertyName)
+    {
+        var pattern = "\"" + Regex.Escape(propertyName) + "\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"";
+        var match = Regex.Match(json, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return match.Success ? Regex.Unescape(match.Groups["value"].Value) : string.Empty;
+    }
+
+    private static bool ExtractJsonBool(string json, string propertyName)
+    {
+        var pattern = "\"" + Regex.Escape(propertyName) + "\"\\s*:\\s*(?<value>true|false)";
+        var match = Regex.Match(json, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return match.Success && bool.TryParse(match.Groups["value"].Value, out var value) && value;
     }
 
     private static bool SupportsAutoStart(Uri? baseAddress)
@@ -98,12 +173,13 @@ internal static class WorkerHostRuntimeBootstrapper
 
     private static async Task<bool> IsAvailableAsync(Uri baseAddress, CancellationToken cancellationToken)
     {
-        if (await IsRootAvailableAsync(baseAddress, cancellationToken).ConfigureAwait(false))
+        var status = await TryGetGatewayStatusAsync(baseAddress, cancellationToken).ConfigureAwait(false);
+        if (status?.Health.StandaloneChatReady == true)
         {
             return true;
         }
 
-        return await IsGatewayStatusAvailableAsync(baseAddress, cancellationToken).ConfigureAwait(false);
+        return await IsRootAvailableAsync(baseAddress, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<bool> IsRootAvailableAsync(Uri baseAddress, CancellationToken cancellationToken)
@@ -112,24 +188,6 @@ internal static class WorkerHostRuntimeBootstrapper
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseAddress, "/"));
             using var response = await ProbeClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            return response.IsSuccessStatusCode;
-        }
-        catch (HttpRequestException)
-        {
-            return false;
-        }
-        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return false;
-        }
-    }
-
-    private static async Task<bool> IsGatewayStatusAvailableAsync(Uri baseAddress, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseAddress, "/api/external-ai/status"));
-            using var response = await StatusProbeClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch (HttpRequestException)
@@ -253,6 +311,35 @@ internal static class WorkerHostRuntimeBootstrapper
         }
 
         return null;
+    }
+
+    private static InvalidOperationException BuildUnavailableException(Uri baseAddress, WorkerHostGatewayStatus? status, Exception? probeException)
+    {
+        var detail = status?.Health.ReadinessSummary;
+        if (string.IsNullOrWhiteSpace(detail) && probeException != null)
+        {
+            detail = probeException.Message;
+        }
+
+        if (status?.Health.StandaloneChatReady == true && status.Health.LiveRevitReady == false)
+        {
+            return new InvalidOperationException(
+                "WorkerHost da san sang cho standalone chat nhung kernel Revit chua available. Em van co the tra loi conversational, con thao tac live Revit thi can mo Revit va project."
+                + (string.IsNullOrWhiteSpace(detail) ? string.Empty : " Chi tiet: " + detail));
+        }
+
+        var builder = new StringBuilder();
+        builder.Append("AI runtime dang tat hoac chua san sang. Em da thu tu khoi dong WorkerHost nhung van chua ket noi duoc.");
+        if (!string.IsNullOrWhiteSpace(detail))
+        {
+            builder.Append(" Chi tiet: ");
+            builder.Append(detail);
+        }
+
+        builder.Append(" WorkerHost expected at ");
+        builder.Append(baseAddress);
+        builder.Append('.');
+        return new InvalidOperationException(builder.ToString());
     }
 
     private static string FirstNonEmpty(params string?[] values)

@@ -25,6 +25,7 @@ internal static class AgentHost
     internal static readonly System.Guid DockPaneGuid = new System.Guid("6E4E4419-1BD4-4F13-9915-C11FF587F6FA");
     private const int NarrationMaxTokens = 256;
     private const int PlannerMaxTokens = 640;
+    private static readonly LlmTimeoutProfile AgentTimeoutProfile = LlmTimeoutProfile.Default;
 
     private static UIControlledApplication? _uiControlledApp;
     private static IAgentHostServices? _current;
@@ -121,7 +122,8 @@ internal static class AgentHost
         var toolGraphOverlay = ToolGraphOverlayService.LoadDefault();
         var toolGuidance = new ToolGuidanceService(toolSearch, toolGraphOverlay, playbookLoader);
         var contextDelta = new ContextDeltaSummaryService();
-        var smartQcAggregation = new SmartQcAggregationService();
+        var copilotLogger = new AgentLoggerCopilotAdapter(logger);
+        var smartQcAggregation = new SmartQcAggregationService(copilotLogger);
         var taskRecovery = new TaskRecoveryPlanner();
         var workflowRuntime = new WorkflowRuntimeService(platform, reviewRuleEngine, familyAxisAudit, penetrationShadow, mutation, dataExport, sheetView);
         var copilotTasks = new CopilotTaskService(platform, workflowRuntime, fixLoop, modelStateGraph, copilotStore, taskMetrics, contextAnchors, artifactSummary, toolSearch, toolGuidance, contextDelta, taskRecovery, packCatalog: packCatalog, workspaceCatalog: workspaceCatalog, standardsCatalog: standardsCatalog, playbookOrchestration: playbookOrchestration, projectInit: projectInit, projectContextComposer: projectContextComposer, projectDeepScan: projectDeepScan);
@@ -136,9 +138,10 @@ internal static class AgentHost
         var secretProvider = new EnvSecretProvider();
         var llmConfigResolver = new OpenRouterFirstLlmProviderConfigResolver(secretProvider);
         var llmProfile = llmConfigResolver.Resolve();
-        var llmClient = CreateNarrationClient(llmProfile);
-        var planner = CreatePlanner(llmProfile);
-        var responseEnhancer = new LlmResponseEnhancer(llmClient);
+        var sharedHttpClient = new HttpClient();
+        var llmClient = CreateNarrationClient(llmProfile, sharedHttpClient, copilotLogger);
+        var planner = CreatePlanner(llmProfile, sharedHttpClient, copilotLogger);
+        var responseEnhancer = new LlmResponseEnhancer(llmClient, copilotLogger, AgentTimeoutProfile);
         var reasoning = new WorkerReasoningEngine(intentClassifier, personas, responseEnhancer, planner);
         var sessionMemory = new SessionMemoryStore();
         var episodicMemory = new EpisodicMemoryStore(copilotStatePaths);
@@ -242,24 +245,26 @@ internal static class AgentHost
         }
     }
 
-    private static ILlmClient CreateNarrationClient(LlmProviderConfiguration profile)
+    private static ILlmClient CreateNarrationClient(LlmProviderConfiguration profile, HttpClient httpClient, ICopilotLogger? logger = null)
     {
         if (profile == null || !profile.IsConfigured)
         {
-            return new NullLlmClient();
+            return new NullLlmClient(logger);
         }
 
         if (string.Equals(profile.ProviderKind, "anthropic", StringComparison.OrdinalIgnoreCase))
         {
             return new AnthropicLlmClient(
-                new HttpClient(),
+                httpClient,
                 profile.ApiKey,
                 model: profile.ResponseModel,
-                apiUrl: profile.ApiUrl);
+                apiUrl: profile.ApiUrl,
+                logger: logger,
+                timeoutProfile: AgentTimeoutProfile);
         }
 
         return new OpenAiCompatibleLlmClient(
-            new HttpClient(),
+            httpClient,
             profile.ApiKey,
             model: profile.ResponseModel,
             maxTokens: NarrationMaxTokens,
@@ -268,10 +273,12 @@ internal static class AgentHost
             organization: profile.Organization,
             project: profile.Project,
             httpReferer: profile.HttpReferer,
-            xTitle: profile.XTitle);
+            xTitle: profile.XTitle,
+            logger: logger,
+            timeoutProfile: AgentTimeoutProfile);
     }
 
-    private static ILlmPlanner CreatePlanner(LlmProviderConfiguration profile)
+    private static ILlmPlanner CreatePlanner(LlmProviderConfiguration profile, HttpClient httpClient, ICopilotLogger? logger = null)
     {
         if (profile == null
             || !profile.IsConfigured
@@ -281,7 +288,7 @@ internal static class AgentHost
         }
 
         var primary = new OpenAiCompatibleLlmClient(
-            new HttpClient(),
+            httpClient,
             profile.ApiKey,
             model: profile.PlannerPrimaryModel,
             maxTokens: PlannerMaxTokens,
@@ -290,13 +297,15 @@ internal static class AgentHost
             organization: profile.Organization,
             project: profile.Project,
             httpReferer: profile.HttpReferer,
-            xTitle: profile.XTitle);
+            xTitle: profile.XTitle,
+            logger: logger,
+            timeoutProfile: AgentTimeoutProfile);
         OpenAiCompatibleLlmClient? fallback = null;
         if (!string.IsNullOrWhiteSpace(profile.PlannerFallbackModel)
             && !string.Equals(profile.PlannerFallbackModel, profile.PlannerPrimaryModel, StringComparison.OrdinalIgnoreCase))
         {
             fallback = new OpenAiCompatibleLlmClient(
-                new HttpClient(),
+                httpClient,
                 profile.ApiKey,
                 model: profile.PlannerFallbackModel,
                 maxTokens: PlannerMaxTokens,
@@ -305,9 +314,11 @@ internal static class AgentHost
                 organization: profile.Organization,
                 project: profile.Project,
                 httpReferer: profile.HttpReferer,
-                xTitle: profile.XTitle);
+                xTitle: profile.XTitle,
+                logger: logger,
+                timeoutProfile: AgentTimeoutProfile);
         }
 
-        return new LlmPlanningService(profile, primary, fallback);
+        return new LlmPlanningService(profile, primary, fallback, AgentTimeoutProfile);
     }
 }

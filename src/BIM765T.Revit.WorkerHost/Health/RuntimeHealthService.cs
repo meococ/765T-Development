@@ -78,7 +78,50 @@ internal sealed class RuntimeHealthService
             || !report.Qdrant.Reachable
             || report.Store.DeadLetterOutboxCount > 0
             || report.RuntimeLooksStale;
+        report.StandaloneChatReady = storeReady;
+        report.LiveRevitReady = storeReady && report.Kernel.Reachable;
         report.Ready = storeReady && (!probePublicControlPlane || report.PublicControlPlane.Reachable);
+        report.RuntimeTopology = "workerhost_public_control_plane + revit_private_kernel";
+        report.ReadinessSummary = report.LiveRevitReady
+            ? "WorkerHost ready for standalone chat and live Revit execution."
+            : report.StandaloneChatReady
+                ? "WorkerHost ready for standalone chat only; live Revit execution unavailable."
+                : "WorkerHost is not ready.";
+        if (probePublicControlPlane && !report.PublicControlPlane.Reachable)
+        {
+            report.Ready = false;
+            report.StandaloneChatReady = false;
+            report.LiveRevitReady = false;
+            report.ReadinessSummary = "WorkerHost public control plane is not reachable.";
+        }
+        else if (!storeReady)
+        {
+            report.ReadinessSummary = "WorkerHost event store is unavailable.";
+        }
+        else if (!report.Kernel.Reachable)
+        {
+            report.ReadinessSummary = "WorkerHost public control plane is up and standalone chat works, but Revit kernel is unavailable for live work.";
+        }
+        else
+        {
+            report.ReadinessSummary = "WorkerHost public control plane and Revit kernel are both reachable.";
+        }
+        report.Diagnostics.Add("runtime_topology: " + report.RuntimeTopology);
+        report.Diagnostics.Add("runtime_readiness: " + report.ReadinessSummary);
+        report.Diagnostics.Add("standalone_chat_ready: " + report.StandaloneChatReady.ToString().ToLowerInvariant());
+        report.Diagnostics.Add("live_revit_ready: " + report.LiveRevitReady.ToString().ToLowerInvariant());
+        report.Diagnostics.Add("canonical_public_ingress: workerhost_http_and_grpc");
+        report.Diagnostics.Add("private_kernel_lane: revit_named_pipe_kernel");
+        report.Diagnostics.Add("bridge_fallbacks_present: legacy_cli_adapters_still_enabled");
+        report.Diagnostics.Add("workerhost_public_probe: " + (probePublicControlPlane ? "enabled" : "skipped"));
+        if (!probePublicControlPlane)
+        {
+            report.Diagnostics.Add("public_control_plane_probe_skipped: readiness reflects local WorkerHost process capabilities, not external gRPC reachability.");
+        }
+        if (report.PublicControlPlane.Reachable)
+        {
+            report.Diagnostics.Add("public_control_plane_status: reachable");
+        }
         if (report.Qdrant.Reachable)
         {
             report.Diagnostics.Add("Qdrant reachable, but the current embedding lane is hash-based / non-semantic.");

@@ -1,10 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using BIM765T.Revit.Copilot.Core.Brain;
 
 namespace BIM765T.Revit.WorkerHost.Memory;
 
@@ -17,14 +17,17 @@ namespace BIM765T.Revit.WorkerHost.Memory;
 /// </summary>
 internal sealed class OllamaEmbeddingClient : IEmbeddingClient, IEmbeddingProvider
 {
-    private const int DefaultTimeoutSeconds = 15;
     private readonly HttpClient _httpClient;
     private readonly string _model;
+    private readonly ICopilotLogger _logger;
+    private readonly int _embeddingTimeoutSeconds;
 
-    public OllamaEmbeddingClient(HttpClient httpClient, string model)
+    public OllamaEmbeddingClient(HttpClient httpClient, string model, ICopilotLogger? logger = null, LlmTimeoutProfile? timeoutProfile = null)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _model = string.IsNullOrWhiteSpace(model) ? "nomic-embed-text" : model.Trim();
+        _logger = logger ?? TraceCopilotLogger.Instance;
+        _embeddingTimeoutSeconds = (timeoutProfile ?? LlmTimeoutProfile.Default).EmbeddingTimeoutSeconds;
     }
 
     public string ProviderId => "ollama";
@@ -40,7 +43,7 @@ internal sealed class OllamaEmbeddingClient : IEmbeddingClient, IEmbeddingProvid
         });
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(DefaultTimeoutSeconds));
+        cts.CancelAfter(TimeSpan.FromSeconds(_embeddingTimeoutSeconds));
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/embed")
         {
@@ -58,14 +61,14 @@ internal sealed class OllamaEmbeddingClient : IEmbeddingClient, IEmbeddingProvid
             || embeddings.ValueKind != JsonValueKind.Array
             || embeddings.GetArrayLength() == 0)
         {
-            Trace.TraceWarning("BIM765T OllamaEmbeddingClient: Response missing 'embeddings' array.");
+            _logger.Warn("OllamaEmbeddingClient: Response missing 'embeddings' array.");
             return new EmbeddingVector();
         }
 
         var firstEmbedding = embeddings[0];
         if (firstEmbedding.ValueKind != JsonValueKind.Array)
         {
-            Trace.TraceWarning("BIM765T OllamaEmbeddingClient: First embedding is not an array.");
+            _logger.Warn("OllamaEmbeddingClient: First embedding is not an array.");
             return new EmbeddingVector();
         }
 
@@ -76,7 +79,7 @@ internal sealed class OllamaEmbeddingClient : IEmbeddingClient, IEmbeddingProvid
             values[index++] = element.TryGetSingle(out var f) ? f : 0f;
         }
 
-        Trace.TraceInformation($"BIM765T OllamaEmbeddingClient: Embedded {(text ?? "").Length} chars -> {values.Length} dims via {_model}.");
+        _logger.Info(string.Format(System.Globalization.CultureInfo.InvariantCulture, "OllamaEmbeddingClient: Embedded {0} chars -> {1} dims via {2}.", (text ?? "").Length, values.Length, _model));
         return new EmbeddingVector { Values = values };
     }
 }

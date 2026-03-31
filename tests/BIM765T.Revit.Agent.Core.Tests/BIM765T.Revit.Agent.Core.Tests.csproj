@@ -35,6 +35,7 @@
     <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestMetadata.cs" Link="Source\Services\Bridge\ToolManifestMetadata.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestPresets.cs" Link="Source\Services\Bridge\ToolManifestPresets.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolManifestFactory.cs" Link="Source\Services\Bridge\ToolManifestFactory.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolCatalogFilter.cs" Link="Source\Services\Bridge\ToolCatalogFilter.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolExecutionTimeoutPolicy.cs" Link="Source\Services\Bridge\ToolExecutionTimeoutPolicy.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\Services\Bridge\ToolResponseHelpers.cs" Link="Source\Services\Bridge\ToolResponseHelpers.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.McpHost\McpToolCatalogLoader.cs" Link="Source\McpHost\McpToolCatalogLoader.cs" />
@@ -46,5 +47,6 @@
     <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\ChatTimelineProjector.cs" Link="Source\UI\Chat\ChatTimelineProjector.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\WorkerHostMissionClient.cs" Link="Source\UI\Chat\WorkerHostMissionClient.cs" />
     <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\Chat\WorkerHostRuntimeBootstrapper.cs" Link="Source\UI\Chat\WorkerHostRuntimeBootstrapper.cs" />
+    <Compile Include="..\..\src\BIM765T.Revit.Agent\UI\UiShellState.cs" Link="Source\UI\UiShellState.cs" />
   </ItemGroup>
 </Project>

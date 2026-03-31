@@ -12,12 +12,12 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.FamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("PENETRATION_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("PENETRATION_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName must not be empty."));
         }
 
         if (request.MaxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
     }
 
@@ -25,12 +25,12 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.FamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("PENETRATION_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("PENETRATION_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.ScheduleName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName must not be empty."));
         }
     }
 
@@ -38,12 +38,12 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.FamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "FamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.ScheduleName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName must not be empty."));
         }
     }
 
@@ -51,17 +51,17 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.SourceFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.RoundFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName must not be empty."));
         }
 
         if (request.MaxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
     }
 
@@ -69,41 +69,41 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ParentFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("PARENT_FAMILY_REQUIRED", DiagnosticSeverity.Error, "ParentFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("PARENT_FAMILY_REQUIRED", DiagnosticSeverity.Error, "ParentFamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.RoundFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName must not be empty."));
         }
 
         if (request.MaxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
 
         if (request.AngleToleranceDegrees < 0 || request.AngleToleranceDegrees > 180)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ANGLE_TOLERANCE_INVALID", DiagnosticSeverity.Error, "AngleToleranceDegrees phải nằm trong [0, 180]."));
+            diagnostics.Add(DiagnosticRecord.Create("ANGLE_TOLERANCE_INVALID", DiagnosticSeverity.Error, "AngleToleranceDegrees must be in range [0, 180]."));
         }
 
         if (string.IsNullOrWhiteSpace(request.TraceCommentPrefix))
         {
-            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.PlanWrapperFamilyName) ||
             string.IsNullOrWhiteSpace(request.ElevXWrapperFamilyName) ||
             string.IsNullOrWhiteSpace(request.ElevYWrapperFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_REQUIRED", DiagnosticSeverity.Error, "Tên wrapper family cho clean Round AXIS_X/AXIS_Z/AXIS_Y không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_REQUIRED", DiagnosticSeverity.Error, "Wrapper family name for clean Round AXIS_X/AXIS_Z/AXIS_Y must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.PlanWrapperTypeName) ||
             string.IsNullOrWhiteSpace(request.ElevXWrapperTypeName) ||
             string.IsNullOrWhiteSpace(request.ElevYWrapperTypeName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_REQUIRED", DiagnosticSeverity.Error, "Tên wrapper type cho clean Round AXIS_X/AXIS_Z/AXIS_Y không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_REQUIRED", DiagnosticSeverity.Error, "Wrapper type name for clean Round AXIS_X/AXIS_Z/AXIS_Y must not be empty."));
         }
     }
 
@@ -111,21 +111,21 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.SourceFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.PlanWrapperFamilyName) ||
             string.IsNullOrWhiteSpace(request.ElevXWrapperFamilyName) ||
             string.IsNullOrWhiteSpace(request.ElevYWrapperFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_REQUIRED", DiagnosticSeverity.Error, "Tên wrapper family cho clean Round AXIS_X/AXIS_Z/AXIS_Y không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_REQUIRED", DiagnosticSeverity.Error, "Wrapper family name for clean Round AXIS_X/AXIS_Z/AXIS_Y must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.PlanWrapperTypeName) ||
             string.IsNullOrWhiteSpace(request.ElevXWrapperTypeName) ||
             string.IsNullOrWhiteSpace(request.ElevYWrapperTypeName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_REQUIRED", DiagnosticSeverity.Error, "Tên wrapper type cho clean Round AXIS_X/AXIS_Z/AXIS_Y không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_REQUIRED", DiagnosticSeverity.Error, "Wrapper type name for clean Round AXIS_X/AXIS_Z/AXIS_Y must not be empty."));
         }
 
         var familyNames = new[]
@@ -139,7 +139,7 @@ public static partial class ToolPayloadValidator
             !(string.Equals(request.PlanWrapperFamilyName?.Trim(), request.ElevXWrapperFamilyName?.Trim(), StringComparison.OrdinalIgnoreCase) &&
               string.Equals(request.PlanWrapperFamilyName?.Trim(), request.ElevYWrapperFamilyName?.Trim(), StringComparison.OrdinalIgnoreCase)))
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_NAMES_DUPLICATE", DiagnosticSeverity.Error, "Wrapper family names chỉ được duplicate khi cả 3 mode cùng dùng 1 family duy nhất."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_FAMILY_NAMES_DUPLICATE", DiagnosticSeverity.Error, "Wrapper family names may only be duplicated when all 3 modes use the same single family."));
         }
 
         var typeNames = new[]
@@ -150,7 +150,7 @@ public static partial class ToolPayloadValidator
         }.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
         if (typeNames.Count != typeNames.Distinct(StringComparer.OrdinalIgnoreCase).Count())
         {
-            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_NAMES_DUPLICATE", DiagnosticSeverity.Error, "3 wrapper type names phải khác nhau."));
+            diagnostics.Add(DiagnosticRecord.Create("WRAPPER_TYPE_NAMES_DUPLICATE", DiagnosticSeverity.Error, "All 3 wrapper type names must be distinct."));
         }
     }
 
@@ -158,42 +158,42 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.SourceFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SOURCE_FAMILY_REQUIRED", DiagnosticSeverity.Error, "SourceFamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.RoundFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_FAMILY_REQUIRED", DiagnosticSeverity.Error, "RoundFamilyName must not be empty."));
         }
 
         if (request.MaxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
 
         if (request.SourceElementIds != null && request.SourceElementIds.Any(x => x <= 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SOURCE_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "SourceElementIds chỉ được chứa ElementId > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("SOURCE_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "SourceElementIds must only contain values greater than 0."));
         }
 
         if (request.ReferenceRoundElementId.HasValue && request.ReferenceRoundElementId.Value <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("REFERENCE_ROUND_ID_INVALID", DiagnosticSeverity.Error, "ReferenceRoundElementId phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("REFERENCE_ROUND_ID_INVALID", DiagnosticSeverity.Error, "ReferenceRoundElementId must be greater than 0."));
         }
 
         if (request.RoundSymbolId.HasValue && request.RoundSymbolId.Value <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_SYMBOL_ID_INVALID", DiagnosticSeverity.Error, "RoundSymbolId phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_SYMBOL_ID_INVALID", DiagnosticSeverity.Error, "RoundSymbolId must be greater than 0."));
         }
 
         if (request.SetCommentsTrace && string.IsNullOrWhiteSpace(request.TraceCommentPrefix))
         {
-            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix không được rỗng khi SetCommentsTrace = true."));
+            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix must not be empty when SetCommentsTrace is true."));
         }
 
         if (!IsAllowedValue(request.PlacementMode, "host_face_project_aligned", "host_face_vertical_project_aligned"))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_SHADOW_PLACEMENT_MODE_INVALID", DiagnosticSeverity.Error, "PlacementMode chỉ hỗ trợ: host_face_project_aligned."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_SHADOW_PLACEMENT_MODE_INVALID", DiagnosticSeverity.Error, "PlacementMode only supports: host_face_project_aligned."));
         }
     }
 
@@ -201,12 +201,12 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ParentFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("PARENT_FAMILY_REQUIRED", DiagnosticSeverity.Error, "ParentFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("PARENT_FAMILY_REQUIRED", DiagnosticSeverity.Error, "ParentFamilyName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.NestedFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("NESTED_FAMILY_REQUIRED", DiagnosticSeverity.Error, "NestedFamilyName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("NESTED_FAMILY_REQUIRED", DiagnosticSeverity.Error, "NestedFamilyName must not be empty."));
         }
     }
 
@@ -214,22 +214,22 @@ public static partial class ToolPayloadValidator
     {
         if (request.MaxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
 
         if (request.ElementIds != null && request.ElementIds.Any(x => x <= 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("CLEANUP_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "ElementIds chỉ được chứa ElementId > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("CLEANUP_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "ElementIds must only contain values greater than 0."));
         }
 
         if (!request.UseLatestSuccessfulBatchWhenEmpty && string.IsNullOrWhiteSpace(request.JournalId) && (request.ElementIds == null || request.ElementIds.Count == 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("CLEANUP_SCOPE_REQUIRED", DiagnosticSeverity.Error, "Cần JournalId hoặc ElementIds khi không dùng UseLatestSuccessfulBatchWhenEmpty."));
+            diagnostics.Add(DiagnosticRecord.Create("CLEANUP_SCOPE_REQUIRED", DiagnosticSeverity.Error, "JournalId or ElementIds required when UseLatestSuccessfulBatchWhenEmpty is false."));
         }
 
         if (request.RequireTraceCommentMatch && string.IsNullOrWhiteSpace(request.TraceCommentPrefix))
         {
-            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix không được rỗng khi RequireTraceCommentMatch = true."));
+            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix must not be empty when RequireTraceCommentMatch is true."));
         }
     }
 
@@ -266,12 +266,12 @@ public static partial class ToolPayloadValidator
 
         if (request.MaxCutRetries < 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_CUT_RETRY_INVALID", DiagnosticSeverity.Error, "MaxCutRetries phai >= 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_CUT_RETRY_INVALID", DiagnosticSeverity.Error, "MaxCutRetries must be >= 0."));
         }
 
         if (request.RetryBackoffMs < 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_CUT_BACKOFF_INVALID", DiagnosticSeverity.Error, "RetryBackoffMs phai >= 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_CUT_BACKOFF_INVALID", DiagnosticSeverity.Error, "RetryBackoffMs must be >= 0."));
         }
     }
 
@@ -308,32 +308,32 @@ public static partial class ToolPayloadValidator
 
         if (request.PenetrationElementIds != null && request.PenetrationElementIds.Any(x => x <= 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_OPENING_ID_INVALID", DiagnosticSeverity.Error, "PenetrationElementIds chi duoc chua ElementId > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_OPENING_ID_INVALID", DiagnosticSeverity.Error, "PenetrationElementIds must only contain values greater than 0."));
         }
 
         if (request.MaxItems <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_MAX_ITEMS_INVALID", DiagnosticSeverity.Error, "MaxItems phai > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_MAX_ITEMS_INVALID", DiagnosticSeverity.Error, "MaxItems must be greater than 0."));
         }
 
         if (string.IsNullOrWhiteSpace(request.ViewNamePrefix))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_VIEW_PREFIX_REQUIRED", DiagnosticSeverity.Error, "ViewNamePrefix khong duoc rong."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_VIEW_PREFIX_REQUIRED", DiagnosticSeverity.Error, "ViewNamePrefix must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.SheetNumber))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_SHEET_NUMBER_REQUIRED", DiagnosticSeverity.Error, "SheetNumber khong duoc rong."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_SHEET_NUMBER_REQUIRED", DiagnosticSeverity.Error, "SheetNumber must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.SheetName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_SHEET_NAME_REQUIRED", DiagnosticSeverity.Error, "SheetName khong duoc rong."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_SHEET_NAME_REQUIRED", DiagnosticSeverity.Error, "SheetName must not be empty."));
         }
 
         if (request.SectionBoxPaddingFeet < 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_PADDING_INVALID", DiagnosticSeverity.Error, "SectionBoxPaddingFeet phai >= 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_REVIEW_PADDING_INVALID", DiagnosticSeverity.Error, "SectionBoxPaddingFeet must be >= 0."));
         }
     }
 
@@ -352,41 +352,41 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(targetFamilyName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_TARGET_FAMILY_REQUIRED", DiagnosticSeverity.Error, "TargetFamilyName khong duoc rong."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_TARGET_FAMILY_REQUIRED", DiagnosticSeverity.Error, "TargetFamilyName must not be empty."));
         }
 
-        RequireNonEmpty(sourceElementClasses, "ROUND_PEN_SOURCE_CLASSES_EMPTY", "SourceElementClasses phai co it nhat 1 gia tri.", diagnostics);
-        RequireNonEmpty(hostElementClasses, "ROUND_PEN_HOST_CLASSES_EMPTY", "HostElementClasses phai co it nhat 1 gia tri.", diagnostics);
-        RequireNonEmpty(sourceFamilyNameContains, "ROUND_PEN_SOURCE_FAMILY_TOKENS_EMPTY", "SourceFamilyNameContains phai co it nhat 1 gia tri.", diagnostics);
+        RequireNonEmpty(sourceElementClasses, "ROUND_PEN_SOURCE_CLASSES_EMPTY", "SourceElementClasses must have at least 1 value.", diagnostics);
+        RequireNonEmpty(hostElementClasses, "ROUND_PEN_HOST_CLASSES_EMPTY", "HostElementClasses must have at least 1 value.", diagnostics);
+        RequireNonEmpty(sourceFamilyNameContains, "ROUND_PEN_SOURCE_FAMILY_TOKENS_EMPTY", "SourceFamilyNameContains must have at least 1 value.", diagnostics);
 
         if (sourceElementIds != null && sourceElementIds.Any(x => x <= 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_SOURCE_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "SourceElementIds chi duoc chua ElementId > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_SOURCE_ELEMENT_ID_INVALID", DiagnosticSeverity.Error, "SourceElementIds must only contain values greater than 0."));
         }
 
         if (gybClearancePerSideInches < 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_GYB_CLEARANCE_INVALID", DiagnosticSeverity.Error, "GybClearancePerSideInches phai >= 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_GYB_CLEARANCE_INVALID", DiagnosticSeverity.Error, "GybClearancePerSideInches must be >= 0."));
         }
 
         if (wfrClearancePerSideInches < 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_WFR_CLEARANCE_INVALID", DiagnosticSeverity.Error, "WfrClearancePerSideInches phai >= 0."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_WFR_CLEARANCE_INVALID", DiagnosticSeverity.Error, "WfrClearancePerSideInches must be >= 0."));
         }
 
         if (axisToleranceDegrees < 0 || axisToleranceDegrees > 180)
         {
-            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_AXIS_TOLERANCE_INVALID", DiagnosticSeverity.Error, "AxisToleranceDegrees phai nam trong [0, 180]."));
+            diagnostics.Add(DiagnosticRecord.Create("ROUND_PEN_AXIS_TOLERANCE_INVALID", DiagnosticSeverity.Error, "AxisToleranceDegrees must be in range [0, 180]."));
         }
 
         if (string.IsNullOrWhiteSpace(traceCommentPrefix))
         {
-            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix khong duoc rong."));
+            diagnostics.Add(DiagnosticRecord.Create("TRACE_PREFIX_REQUIRED", DiagnosticSeverity.Error, "TraceCommentPrefix must not be empty."));
         }
 
         if (maxResults <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults phai > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("MAX_RESULTS_INVALID", DiagnosticSeverity.Error, "MaxResults must be greater than 0."));
         }
     }
 }

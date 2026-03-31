@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.DB.Plumbing;
@@ -1084,7 +1085,7 @@ internal sealed class FamilyAuthoringService
             if (request.IsLocked)
             {
                 try { dim.IsLocked = true; }
-                catch (Exception) { }
+                catch (Exception ex) { Trace.TraceWarning($"FamilyAuthoring: Failed to lock dimension: {ex.Message}"); }
             }
 
             txDiagnostics.Add(DiagnosticRecord.Create("FAMILY_DIMENSION_CREATED", DiagnosticSeverity.Info,
@@ -1549,7 +1550,7 @@ internal sealed class FamilyAuthoringService
             if (request.LineWeight > 0 && request.LineWeight <= 16)
             {
                 try { subcat.SetLineWeight(request.LineWeight, GraphicsStyleType.Projection); }
-                catch (Exception) { }
+                catch (Exception ex) { Trace.TraceWarning($"FamilyAuthoring: Failed to set line weight on subcategory: {ex.Message}"); }
             }
 
             if (request.LineColorR >= 0 && request.LineColorG >= 0 && request.LineColorB >= 0)
@@ -1561,7 +1562,7 @@ internal sealed class FamilyAuthoringService
                         (byte)Math.Min(255, request.LineColorG),
                         (byte)Math.Min(255, request.LineColorB));
                 }
-                catch (Exception) { }
+                catch (Exception ex) { Trace.TraceWarning($"FamilyAuthoring: Failed to set line color on subcategory: {ex.Message}"); }
             }
 
             if (!string.IsNullOrWhiteSpace(request.MaterialName))
@@ -1570,7 +1571,7 @@ internal sealed class FamilyAuthoringService
                 if (material != null)
                 {
                     try { subcat.Material = material; }
-                    catch (Exception) { }
+                    catch (Exception ex) { Trace.TraceWarning($"FamilyAuthoring: Failed to set material '{request.MaterialName}' on subcategory: {ex.Message}"); }
                 }
                 else
                 {
@@ -1759,7 +1760,7 @@ internal sealed class FamilyAuthoringService
                     var group = ResolveParameterGroup("geometry");
                     param = fm.AddParameter(request.VisibilityParameterName, group, SpecTypeId.Boolean.YesNo, true);
                     try { fm.Set(param, request.DefaultVisible ? 1 : 0); }
-                    catch (Exception) { }
+                    catch (Exception ex) { Trace.TraceWarning($"FamilyAuthoring: Failed to set visibility parameter default: {ex.Message}"); }
                     txDiagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_VIS_PARAM_CREATED", DiagnosticSeverity.Info,
                         string.Format("?? t?o Yes/No parameter '{0}'.", request.VisibilityParameterName)));
                 }

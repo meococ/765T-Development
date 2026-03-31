@@ -59,6 +59,41 @@ public sealed class McpToolCatalogTests
                     ToolName = ToolNames.DocumentGetActive,
                     Description = "Get active document summary.",
                     PermissionLevel = PermissionLevel.Read,
+                    Audience = WorkerAudience.Commercial,
+                    Visibility = WorkerVisibility.Visible,
+                    PrimaryPersona = ToolPrimaryPersonas.ProductionBimer,
+                    Enabled = true
+                }
+            }
+        };
+        var response = new ToolResponseEnvelope
+        {
+            Succeeded = true,
+            StatusCode = StatusCodes.ReadSucceeded,
+            PayloadJson = JsonUtil.Serialize(catalog)
+        };
+
+        var parsed = McpToolCatalogLoader.ParseOrThrow(response);
+
+        Assert.Single(parsed.Tools);
+        Assert.Equal(ToolNames.DocumentGetActive, parsed.Tools[0].ToolName);
+    }
+
+    [Fact]
+    public void McpToolCatalogLoader_WhenOnlyInternalToolsRemain_FailsClosed()
+    {
+        var catalog = new ToolCatalogResponse
+        {
+            Tools = new List<ToolManifest>
+            {
+                new ToolManifest
+                {
+                    ToolName = "internal.only",
+                    Description = "Internal only tool.",
+                    PermissionLevel = PermissionLevel.Read,
+                    Audience = WorkerAudience.Internal,
+                    Visibility = WorkerVisibility.BetaInternal,
+                    PrimaryPersona = ToolPrimaryPersonas.PlatformAuthor,
                     Enabled = true
                 }
             }
@@ -71,10 +106,9 @@ public sealed class McpToolCatalogTests
             PayloadJson = JsonUtil.Serialize(catalog)
         };
 
-        var parsed = McpToolCatalogLoader.ParseOrThrow(response);
+        var ex = Assert.Throws<InvalidOperationException>(() => McpToolCatalogLoader.ParseOrThrow(response));
 
-        Assert.Single(parsed.Tools);
-        Assert.Equal(ToolNames.DocumentGetActive, parsed.Tools[0].ToolName);
+        Assert.Contains("no MCP-visible tools", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

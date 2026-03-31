@@ -282,20 +282,45 @@ internal sealed class WorkerHostMissionEvent
 internal sealed class WorkerHostGatewayStatus
 {
     [DataMember(Order = 1)]
-    public SessionRuntimeHealthResponse Health { get; set; } = new SessionRuntimeHealthResponse();
+    public WorkerHostRuntimeReadiness Health { get; set; } = new WorkerHostRuntimeReadiness();
 
     [DataMember(Order = 2)]
-    public string ConfiguredProvider { get; set; } = string.Empty;
+    public bool SupportsTaskRuntime { get; set; }
 
     [DataMember(Order = 3)]
-    public string PlannerModel { get; set; } = string.Empty;
+    public string ConfiguredProvider { get; set; } = string.Empty;
 
     [DataMember(Order = 4)]
-    public string ResponseModel { get; set; } = string.Empty;
+    public string PlannerModel { get; set; } = string.Empty;
 
     [DataMember(Order = 5)]
-    public string ReasoningMode { get; set; } = WorkerReasoningModes.RuleFirst;
+    public string ResponseModel { get; set; } = string.Empty;
 
     [DataMember(Order = 6)]
+    public string ReasoningMode { get; set; } = WorkerReasoningModes.RuleFirst;
+
+    [DataMember(Order = 7)]
     public string SecretSourceKind { get; set; } = string.Empty;
+}
+
+[DataContract]
+internal sealed class WorkerHostRuntimeReadiness
+{
+    [DataMember(Order = 1)]
+    public bool Ready { get; set; }
+
+    [DataMember(Order = 2)]
+    public bool StandaloneChatReady { get; set; }
+
+    [DataMember(Order = 3)]
+    public bool LiveRevitReady { get; set; }
+
+    [DataMember(Order = 4)]
+    public bool Degraded { get; set; }
+
+    [DataMember(Order = 5)]
+    public string ReadinessSummary { get; set; } = string.Empty;
+
+    [DataMember(Order = 6)]
+    public string RuntimeTopology { get; set; } = string.Empty;
 }

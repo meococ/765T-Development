@@ -60,7 +60,7 @@ internal sealed class CurrentContextService
                 dto.LevelElevation = level.Elevation;
                 dto.LevelMode = "SELECTION_LEVEL";
                 dto.Confidence = "HIGH";
-                dto.Notes.Add("Suy luận level từ phần tử đang được chọn.");
+                dto.Notes.Add("Level inferred from the selected element.");
                 return dto;
             }
         }
@@ -82,7 +82,7 @@ internal sealed class CurrentContextService
                 dto.LevelElevation = nearest.Elevation;
                 dto.LevelMode = "VIEW3D_EYE_Z_NEAREST_LEVEL";
                 dto.Confidence = "MEDIUM";
-                dto.Notes.Add("Level ở 3D view là suy luận theo EyePosition.Z.");
+                dto.Notes.Add("Level in 3D view inferred from EyePosition.Z.");
             }
         }
 

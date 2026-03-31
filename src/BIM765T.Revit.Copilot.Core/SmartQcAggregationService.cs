@@ -10,6 +10,8 @@ using BIM765T.Revit.Contracts.Common;
 using BIM765T.Revit.Contracts.Platform;
 using BIM765T.Revit.Contracts.Serialization;
 
+using BIM765T.Revit.Copilot.Core.Brain;
+
 namespace BIM765T.Revit.Copilot.Core;
 
 public sealed class SmartQcEvidenceBundle
@@ -81,6 +83,13 @@ public sealed class SmartQcRuleDefinition
 
 public sealed class SmartQcAggregationService
 {
+    private readonly ICopilotLogger _logger;
+
+    public SmartQcAggregationService(ICopilotLogger? logger = null)
+    {
+        _logger = logger ?? TraceCopilotLogger.Instance;
+    }
+
     public SmartQcRulesetDefinition LoadRuleset(string rulesetName, out string resolvedPath)
     {
         var normalized = NormalizeRulesetName(rulesetName);
@@ -102,15 +111,15 @@ public sealed class SmartQcAggregationService
             }
             catch (InvalidDataException ex)
             {
-                Trace.WriteLine($"SmartQc ruleset parse failed for '{candidate}': {ex.Message}");
+                _logger.Warn($"SmartQc ruleset parse failed for '{candidate}': {ex.Message}");
             }
             catch (IOException ex)
             {
-                Trace.WriteLine($"SmartQc ruleset read failed for '{candidate}': {ex.Message}");
+                _logger.Warn($"SmartQc ruleset read failed for '{candidate}': {ex.Message}");
             }
             catch (UnauthorizedAccessException ex)
             {
-                Trace.WriteLine($"SmartQc ruleset access denied for '{candidate}': {ex.Message}");
+                _logger.Warn($"SmartQc ruleset access denied for '{candidate}': {ex.Message}");
             }
         }
 

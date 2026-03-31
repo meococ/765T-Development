@@ -77,7 +77,7 @@ internal sealed class ToolExecutor
         {
             journalEntry.DocumentKey = request.TargetDocument;
             journalEntry.ViewKey = request.TargetView;
-            _logger.Warn("Không thể enrich document/view key cho operation journal. Fallback sang target keys. Error: " + ex.Message);
+            _logger.Warn("Failed to enrich document/view key for operation journal. Falling back to target keys. Error: " + ex.Message);
         }
     }
 }

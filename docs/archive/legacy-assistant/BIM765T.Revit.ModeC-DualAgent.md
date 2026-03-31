@@ -37,7 +37,7 @@ Mode C là mode orchestration:
 ### 1) Refresh live Revit context
 
 ```powershell
-cd "C:\Users\ADMIN\Downloads\03_BIM_Dynamo\BIM765T-Revit-Agent"
+cd "<your-repo-root>/BIM765T-Revit-Agent"
 powershell -ExecutionPolicy Bypass -File .\tools\get_revit_task_context.ps1
 ```
 

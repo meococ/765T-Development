@@ -13,17 +13,17 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.LibraryRootName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_LIBRARY_ROOT_REQUIRED", DiagnosticSeverity.Error, "LibraryRootName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_LIBRARY_ROOT_REQUIRED", DiagnosticSeverity.Error, "LibraryRootName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.RelativeFamilyPath))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_RELATIVE_PATH_REQUIRED", DiagnosticSeverity.Error, "RelativeFamilyPath không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_RELATIVE_PATH_REQUIRED", DiagnosticSeverity.Error, "RelativeFamilyPath must not be empty."));
         }
 
         if (Path.IsPathRooted(request.RelativeFamilyPath ?? string.Empty))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativeFamilyPath phải là relative path dưới library root."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativeFamilyPath must be a relative path under the library root."));
         }
     }
 
@@ -31,19 +31,19 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ScheduleName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_NAME_REQUIRED", DiagnosticSeverity.Error, "ScheduleName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.CategoryName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_CATEGORY_REQUIRED", DiagnosticSeverity.Error, "CategoryName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_CATEGORY_REQUIRED", DiagnosticSeverity.Error, "CategoryName must not be empty."));
         }
 
-        RequireNonEmpty(request.Fields, "SCHEDULE_FIELDS_EMPTY", "Fields phải có ít nhất 1 item.", diagnostics);
+        RequireNonEmpty(request.Fields, "SCHEDULE_FIELDS_EMPTY", "Fields must have at least 1 item.", diagnostics);
 
         if (request.MaxFieldCount <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_MAX_FIELD_COUNT_INVALID", DiagnosticSeverity.Error, "MaxFieldCount phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("SCHEDULE_MAX_FIELD_COUNT_INVALID", DiagnosticSeverity.Error, "MaxFieldCount must be greater than 0."));
         }
     }
 
@@ -51,17 +51,17 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.OperationKind))
         {
-            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_OPERATION_KIND_REQUIRED", DiagnosticSeverity.Error, "OperationKind không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_OPERATION_KIND_REQUIRED", DiagnosticSeverity.Error, "OperationKind must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.OutputRootName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_ROOT_REQUIRED", DiagnosticSeverity.Error, "OutputRootName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_ROOT_REQUIRED", DiagnosticSeverity.Error, "OutputRootName must not be empty."));
         }
 
         if (Path.IsPathRooted(request.RelativePath ?? string.Empty))
         {
-            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativePath phải là relative path."));
+            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativePath must be a relative path."));
         }
     }
 
@@ -77,7 +77,7 @@ public static partial class ToolPayloadValidator
             (request.SheetIds == null || request.SheetIds.Count == 0) &&
             !request.UseActiveViewWhenEmpty)
         {
-            diagnostics.Add(DiagnosticRecord.Create("DWG_SCOPE_REQUIRED", DiagnosticSeverity.Error, "Cần ViewIds/SheetIds hoặc UseActiveViewWhenEmpty=true."));
+            diagnostics.Add(DiagnosticRecord.Create("DWG_SCOPE_REQUIRED", DiagnosticSeverity.Error, "ViewIds/SheetIds or UseActiveViewWhenEmpty=true is required."));
         }
     }
 
@@ -87,7 +87,7 @@ public static partial class ToolPayloadValidator
         if ((request.SheetIds == null || request.SheetIds.Count == 0) &&
             (request.SheetNumbers == null || request.SheetNumbers.Count == 0))
         {
-            diagnostics.Add(DiagnosticRecord.Create("PDF_SHEET_SCOPE_REQUIRED", DiagnosticSeverity.Error, "Cần SheetIds hoặc SheetNumbers."));
+            diagnostics.Add(DiagnosticRecord.Create("PDF_SHEET_SCOPE_REQUIRED", DiagnosticSeverity.Error, "SheetIds or SheetNumbers is required."));
         }
     }
 
@@ -95,22 +95,22 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(presetName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("EXPORT_PRESET_REQUIRED", DiagnosticSeverity.Error, "PresetName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("EXPORT_PRESET_REQUIRED", DiagnosticSeverity.Error, "PresetName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(outputRootName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_ROOT_REQUIRED", DiagnosticSeverity.Error, "OutputRootName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_ROOT_REQUIRED", DiagnosticSeverity.Error, "OutputRootName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("EXPORT_FILE_NAME_REQUIRED", DiagnosticSeverity.Error, "FileName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("EXPORT_FILE_NAME_REQUIRED", DiagnosticSeverity.Error, "FileName must not be empty."));
         }
 
         if (Path.IsPathRooted(relativeOutputPath ?? string.Empty))
         {
-            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativeOutputPath phải là relative path."));
+            diagnostics.Add(DiagnosticRecord.Create("OUTPUT_RELATIVE_PATH_NOT_RELATIVE", DiagnosticSeverity.Error, "RelativeOutputPath must be a relative path."));
         }
     }
 
@@ -118,7 +118,7 @@ public static partial class ToolPayloadValidator
     {
         if (double.IsNaN(request.InOffsetInch) || double.IsInfinity(request.InOffsetInch))
         {
-            diagnostics.Add(DiagnosticRecord.Create("HULL_OFFSET_INVALID", DiagnosticSeverity.Error, "InOffsetInch không hợp lệ."));
+            diagnostics.Add(DiagnosticRecord.Create("HULL_OFFSET_INVALID", DiagnosticSeverity.Error, "InOffsetInch is invalid."));
         }
     }
 
@@ -128,12 +128,12 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ParameterName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_NAME_REQUIRED", DiagnosticSeverity.Error, "ParameterName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_NAME_REQUIRED", DiagnosticSeverity.Error, "ParameterName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.ParameterType))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_TYPE_REQUIRED", DiagnosticSeverity.Error, "ParameterType không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_TYPE_REQUIRED", DiagnosticSeverity.Error, "ParameterType must not be empty."));
         }
     }
 
@@ -141,25 +141,25 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ParameterName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_NAME_REQUIRED", DiagnosticSeverity.Error, "ParameterName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PARAM_NAME_REQUIRED", DiagnosticSeverity.Error, "ParameterName must not be empty."));
         }
 
         if (string.IsNullOrWhiteSpace(request.Formula))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FORMULA_REQUIRED", DiagnosticSeverity.Error, "Formula không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FORMULA_REQUIRED", DiagnosticSeverity.Error, "Formula must not be empty."));
         }
     }
 
     private static void ValidateFamilySetTypeCatalog(FamilySetTypeCatalogRequest request, ICollection<DiagnosticRecord> diagnostics)
     {
-        RequireNonEmpty(request.Types, "FAMILY_TYPES_EMPTY", "Types phải có ít nhất 1 entry.", diagnostics);
+        RequireNonEmpty(request.Types, "FAMILY_TYPES_EMPTY", "Types must have at least 1 entry.", diagnostics);
         if (request.Types != null)
         {
             foreach (var entry in request.Types)
             {
                 if (entry != null && string.IsNullOrWhiteSpace(entry.TypeName))
                 {
-                    diagnostics.Add(DiagnosticRecord.Create("FAMILY_TYPE_NAME_REQUIRED", DiagnosticSeverity.Error, "TypeName không được rỗng."));
+                    diagnostics.Add(DiagnosticRecord.Create("FAMILY_TYPE_NAME_REQUIRED", DiagnosticSeverity.Error, "TypeName must not be empty."));
                 }
             }
         }
@@ -169,17 +169,17 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_NAME_REQUIRED", DiagnosticSeverity.Error, "Name không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_NAME_REQUIRED", DiagnosticSeverity.Error, "Name must not be empty."));
         }
 
         if (request.ExtentFeet <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_EXTENT_INVALID", DiagnosticSeverity.Error, "ExtentFeet phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_EXTENT_INVALID", DiagnosticSeverity.Error, "ExtentFeet must be greater than 0."));
         }
 
         if (Math.Abs(request.NormalX) < 1e-9 && Math.Abs(request.NormalY) < 1e-9 && Math.Abs(request.NormalZ) < 1e-9)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_NORMAL_ZERO", DiagnosticSeverity.Error, "Normal vector không được là (0,0,0)."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REFPLANE_NORMAL_ZERO", DiagnosticSeverity.Error, "Normal vector must not be (0,0,0)."));
         }
     }
 
@@ -187,12 +187,12 @@ public static partial class ToolPayloadValidator
     {
         if (request.Profile == null || request.Profile.Count < 3)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile phải có ít nhất 3 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile must have at least 3 points."));
         }
 
         if (Math.Abs(request.EndOffset - request.StartOffset) < 1e-9)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_EXTRUSION_HEIGHT_ZERO", DiagnosticSeverity.Error, "EndOffset - StartOffset không được bằng 0."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_EXTRUSION_HEIGHT_ZERO", DiagnosticSeverity.Error, "EndOffset - StartOffset must not be zero."));
         }
     }
 
@@ -200,12 +200,12 @@ public static partial class ToolPayloadValidator
     {
         if (request.Profile == null || request.Profile.Count < 3)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile phải có ít nhất 3 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile must have at least 3 points."));
         }
 
         if (request.PathPoints == null || request.PathPoints.Count < 2)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SWEEP_PATH_MIN_POINTS", DiagnosticSeverity.Error, "PathPoints phải có ít nhất 2 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SWEEP_PATH_MIN_POINTS", DiagnosticSeverity.Error, "PathPoints must have at least 2 points."));
         }
     }
 
@@ -213,17 +213,17 @@ public static partial class ToolPayloadValidator
     {
         if (request.BottomProfile == null || request.BottomProfile.Count < 3)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_BOTTOM_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "BottomProfile phải có ít nhất 3 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_BOTTOM_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "BottomProfile must have at least 3 points."));
         }
 
         if (request.TopProfile == null || request.TopProfile.Count < 3)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_TOP_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "TopProfile phải có ít nhất 3 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_TOP_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "TopProfile must have at least 3 points."));
         }
 
         if (request.TopOffset <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_BLEND_OFFSET_INVALID", DiagnosticSeverity.Error, "TopOffset phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_BLEND_OFFSET_INVALID", DiagnosticSeverity.Error, "TopOffset must be greater than 0."));
         }
     }
 
@@ -231,17 +231,17 @@ public static partial class ToolPayloadValidator
     {
         if (request.Profile == null || request.Profile.Count < 3)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile phải có ít nhất 3 điểm."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_PROFILE_MIN_POINTS", DiagnosticSeverity.Error, "Profile must have at least 3 points."));
         }
 
         if (Math.Abs(request.EndAngle - request.StartAngle) < 1e-9)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REVOLUTION_ANGLE_ZERO", DiagnosticSeverity.Error, "EndAngle - StartAngle không được bằng 0."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REVOLUTION_ANGLE_ZERO", DiagnosticSeverity.Error, "EndAngle - StartAngle must not be zero."));
         }
 
         if (Math.Abs(request.AxisDirectionX) < 1e-9 && Math.Abs(request.AxisDirectionY) < 1e-9)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REVOLUTION_AXIS_ZERO", DiagnosticSeverity.Error, "Axis direction không được là (0,0)."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_REVOLUTION_AXIS_ZERO", DiagnosticSeverity.Error, "Axis direction must not be (0,0)."));
         }
     }
 
@@ -249,12 +249,12 @@ public static partial class ToolPayloadValidator
     {
         if (request.FormElementId <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FORM_ELEMENT_ID_REQUIRED", DiagnosticSeverity.Error, "FormElementId phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FORM_ELEMENT_ID_REQUIRED", DiagnosticSeverity.Error, "FormElementId must be greater than 0."));
         }
 
         if (string.IsNullOrWhiteSpace(request.SubcategoryName))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SUBCATEGORY_NAME_REQUIRED", DiagnosticSeverity.Error, "SubcategoryName không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SUBCATEGORY_NAME_REQUIRED", DiagnosticSeverity.Error, "SubcategoryName must not be empty."));
         }
     }
 
@@ -262,11 +262,11 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.FamilyFilePath))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FILE_PATH_REQUIRED", DiagnosticSeverity.Error, "FamilyFilePath không được rỗng."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FILE_PATH_REQUIRED", DiagnosticSeverity.Error, "FamilyFilePath must not be empty."));
         }
         else if (!Path.IsPathRooted(request.FamilyFilePath))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FILE_PATH_NOT_ROOTED", DiagnosticSeverity.Error, "FamilyFilePath phải là absolute path."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_FILE_PATH_NOT_ROOTED", DiagnosticSeverity.Error, "FamilyFilePath must be an absolute path."));
         }
     }
 
@@ -274,7 +274,7 @@ public static partial class ToolPayloadValidator
     {
         if (!string.IsNullOrWhiteSpace(request.SaveAsPath) && !Path.IsPathRooted(request.SaveAsPath))
         {
-            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SAVE_PATH_NOT_ROOTED", DiagnosticSeverity.Error, "SaveAsPath phải là absolute path."));
+            diagnostics.Add(DiagnosticRecord.Create("FAMILY_SAVE_PATH_NOT_ROOTED", DiagnosticSeverity.Error, "SaveAsPath must be an absolute path."));
         }
     }
 
@@ -284,7 +284,7 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ScriptId) && string.IsNullOrWhiteSpace(request.InlineCode))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, "Cần ScriptId hoặc InlineCode."));
+            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, "ScriptId or InlineCode is required."));
         }
     }
 
@@ -292,23 +292,23 @@ public static partial class ToolPayloadValidator
     {
         if (string.IsNullOrWhiteSpace(request.ScriptId) && string.IsNullOrWhiteSpace(request.InlineCode))
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, "Cần ScriptId hoặc InlineCode."));
+            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, "ScriptId or InlineCode is required."));
         }
 
         if (request.TimeoutMs <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_INVALID", DiagnosticSeverity.Error, "TimeoutMs phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_INVALID", DiagnosticSeverity.Error, "TimeoutMs must be greater than 0."));
         }
 
         if (request.TimeoutMs > 300000)
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_TOO_LARGE", DiagnosticSeverity.Error, "TimeoutMs không được > 300000 (5 phút)."));
+            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_TOO_LARGE", DiagnosticSeverity.Error, "TimeoutMs must not exceed 300000 (5 minutes)."));
         }
     }
 
     private static void ValidateScriptCompose(ScriptComposeRequest request, ICollection<DiagnosticRecord> diagnostics)
     {
-        RequireNonEmpty(request.Steps, "SCRIPT_COMPOSE_STEPS_EMPTY", "Steps phải có ít nhất 1 step.", diagnostics);
+        RequireNonEmpty(request.Steps, "SCRIPT_COMPOSE_STEPS_EMPTY", "Steps must have at least 1 step.", diagnostics);
 
         if (request.Steps != null)
         {
@@ -317,20 +317,20 @@ public static partial class ToolPayloadValidator
                 var step = request.Steps[i];
                 if (step == null)
                 {
-                    diagnostics.Add(DiagnosticRecord.Create("SCRIPT_COMPOSE_STEP_NULL", DiagnosticSeverity.Error, $"Step [{i}] không được null."));
+                    diagnostics.Add(DiagnosticRecord.Create("SCRIPT_COMPOSE_STEP_NULL", DiagnosticSeverity.Error, $"Step [{i}] must not be null."));
                     continue;
                 }
 
                 if (string.IsNullOrWhiteSpace(step.ScriptId) && string.IsNullOrWhiteSpace(step.InlineCode))
                 {
-                    diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, $"Step [{i}]: Cần ScriptId hoặc InlineCode."));
+                    diagnostics.Add(DiagnosticRecord.Create("SCRIPT_SOURCE_REQUIRED", DiagnosticSeverity.Error, $"Step [{i}]: ScriptId or InlineCode is required."));
                 }
             }
         }
 
         if (request.TimeoutMs <= 0)
         {
-            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_INVALID", DiagnosticSeverity.Error, "TimeoutMs phải > 0."));
+            diagnostics.Add(DiagnosticRecord.Create("SCRIPT_TIMEOUT_INVALID", DiagnosticSeverity.Error, "TimeoutMs must be greater than 0."));
         }
     }
 }

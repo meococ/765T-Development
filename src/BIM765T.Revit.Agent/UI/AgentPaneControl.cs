@@ -798,7 +798,7 @@ public sealed partial class AgentPaneControl : UserControl
 
             }
 
-            var workspaceId = FirstNonEmpty(UiShellState.CurrentWorkspaceId, workerContext.WorkspaceId);
+            var workspaceId = UiShellState.ResolveWorkspaceId(UiShellState.CurrentWorkspaceId, workerContext.WorkspaceId);
 
             var bundle = await ResolveAmbientProjectBundleAsync(workspaceId);
 
@@ -818,10 +818,10 @@ public sealed partial class AgentPaneControl : UserControl
 
             var deepScanStatus = FirstNonEmpty(bundle?.DeepScanStatus, UiShellState.CurrentDeepScanStatus, ProjectDeepScanStatuses.NotStarted);
 
-            var sessionTitle = !string.IsNullOrWhiteSpace(UiShellState.LastSessionId) ? "Resume dashboard" : "765T Dashboard";
-
+            var sessionTitle = string.Equals(UiShellState.CurrentShellMode, UiShellState.ShellModes.Transcript, StringComparison.OrdinalIgnoreCase)
+                ? "Resume dashboard"
+                : "765T Dashboard";
             var contextStatus = ResolveTopBarContextStatus(
-
                 bundle?.Exists == true ? ProjectOnboardingStatuses.Initialized : UiShellState.CurrentInitStatus,
 
                 deepScanStatus,
@@ -1009,12 +1009,21 @@ public sealed partial class AgentPaneControl : UserControl
 
             var sessions = JsonUtil.DeserializeRequired<System.Collections.Generic.List<WorkerSessionSummary>>(response.PayloadJson);
 
-            var resolvedCurrentSessionId = FirstNonEmpty(currentSessionId, UiShellState.LastSessionId);
+            var resolvedCurrentSessionId = string.Equals(UiShellState.CurrentShellMode, UiShellState.ShellModes.Transcript, StringComparison.OrdinalIgnoreCase)
+                ? FirstNonEmpty(currentSessionId, UiShellState.LastSessionId)
+                : string.Empty;
 
             var autoOpenedSessionId = await _workerSurface.TryAutoResumeLatestSessionAsync(sessions, UiShellState.CurrentDocumentKey, resolvedCurrentSessionId);
 
             var selectedSessionId = FirstNonEmpty(autoOpenedSessionId, resolvedCurrentSessionId, requestedSessionId);
-
+            if (!string.Equals(UiShellState.CurrentShellMode, UiShellState.ShellModes.Transcript, StringComparison.OrdinalIgnoreCase))
+            {
+                selectedSessionId = string.Empty;
+            }
+            if (string.Equals(UiShellState.CurrentShellMode, UiShellState.ShellModes.Waiting, StringComparison.OrdinalIgnoreCase))
+            {
+                selectedSessionId = string.Empty;
+            }
             _sidebar.SetSessions(sessions, selectedSessionId);
 
             _lastSessionRailRefreshUtc = now;

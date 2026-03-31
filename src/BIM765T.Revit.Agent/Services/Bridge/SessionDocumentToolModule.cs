@@ -24,9 +24,9 @@ internal sealed class SessionDocumentToolModule : IToolModule
         var fileLifecycleDocument = ToolManifestPresets.FileLifecycle("document");
 
         registry.Register(ToolNames.SessionListTools, "List tool manifests/capabilities.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
-            (uiapp, request) => ToolResponses.Success(request, new ToolCatalogResponse { Tools = registry.GetToolCatalog() }));
+            (uiapp, request) => ToolResponses.Success(request, new ToolCatalogResponse { Tools = registry.GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi) }));
         registry.Register(ToolNames.SessionGetCapabilities, "Get bridge runtime capabilities.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
-            (uiapp, request) => ToolResponses.Success(request, platform.GetCapabilities(registry.GetToolCatalog())));
+            (uiapp, request) => ToolResponses.Success(request, platform.GetCapabilities(registry.GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi))));
         registry.Register(ToolNames.SessionListOpenDocuments, "List all open Revit documents.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
             (uiapp, request) => ToolResponses.Success(request, platform.ListOpenDocuments(uiapp)));
         registry.Register(ToolNames.SessionGetRecentEvents, "Get recent tracked Revit events.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
@@ -38,7 +38,7 @@ internal sealed class SessionDocumentToolModule : IToolModule
             {
                 var payload = ToolPayloads.Read<TaskContextRequest>(request);
                 var doc = platform.ResolveDocument(uiapp, string.IsNullOrWhiteSpace(payload.DocumentKey) ? request.TargetDocument : payload.DocumentKey);
-                return ToolResponses.Success(request, platform.GetTaskContext(uiapp, doc, payload, registry.GetToolCatalog()));
+                return ToolResponses.Success(request, platform.GetTaskContext(uiapp, doc, payload, registry.GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi)));
             },
             "{\"DocumentKey\":\"\",\"MaxRecentOperations\":10,\"MaxRecentEvents\":10,\"IncludeCapabilities\":true,\"IncludeToolCatalog\":true}");
 

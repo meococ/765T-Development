@@ -124,7 +124,7 @@ public sealed class ChatTimelineProjectorTests
             .Single();
 
         Assert.Equal(SystemTurnKinds.Onboarding, onboardingTurn.TurnKind);
-        Assert.Equal("Cần khởi tạo project context", onboardingTurn.Title);
+        Assert.Equal("Project context initialization needed", onboardingTurn.Title);
         var initAction = Assert.Single(onboardingTurn.Actions, x => string.Equals(x.ActionKind, SystemTurnActionKinds.InitWorkspace, StringComparison.Ordinal));
         Assert.Equal(string.Empty, initAction.CommandText);
         Assert.DoesNotContain(vm.Entries, x => string.Equals(x.Kind, TimelineEntryKinds.ArtifactRow, StringComparison.Ordinal));
@@ -176,7 +176,7 @@ public sealed class ChatTimelineProjectorTests
             MissionId = "mission-local"
         });
 
-        store.BeginUserTurn("kiểm tra model health");
+        store.BeginUserTurn("check model health");
 
         var vm = new ChatTimelineProjector().Project(store);
         var userMessages = vm.Entries
@@ -187,7 +187,7 @@ public sealed class ChatTimelineProjectorTests
         var trace = traceEntry.Trace;
 
         Assert.Single(userMessages);
-        Assert.Equal("kiểm tra model health", userMessages[0]);
+        Assert.Equal("check model health", userMessages[0]);
         Assert.True(vm.IsBusy);
         Assert.Equal(WorkerMissionStates.Understanding, store.LatestMissionResponse.State);
         Assert.Equal("Waiting", Assert.Single(trace.Events).EventType);
@@ -218,7 +218,7 @@ public sealed class ChatTimelineProjectorTests
             && string.Equals(x.Message.StatusCode, "STREAMING", StringComparison.OrdinalIgnoreCase));
 
         Assert.True(vm.IsBusy);
-        Assert.Contains("dang doc context", assistantTurn.Message.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Reading context", assistantTurn.Message.Content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -246,9 +246,9 @@ public sealed class ChatTimelineProjectorTests
             && string.Equals(x.Message.StatusCode, "STREAMING", StringComparison.OrdinalIgnoreCase));
         var traceTurn = Assert.Single(vm.Entries, x => string.Equals(x.Kind, TimelineEntryKinds.MissionTraceTurn, StringComparison.Ordinal));
 
-        Assert.Contains("Dang tong hop cau tra loi", assistantTurn.Message.Content, StringComparison.Ordinal);
+        Assert.Contains("Composing response", assistantTurn.Message.Content, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("PlanBuilt", Assert.Single(traceTurn.Trace.Events).EventType);
-        Assert.Equal("Da lap plan an toan cho luot nay.", Assert.Single(traceTurn.Trace.Events).Summary);
+        Assert.Equal("Safe plan built for this turn.", Assert.Single(traceTurn.Trace.Events).Summary);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public sealed class ChatTimelineProjectorTests
                 WorkspaceId = "workspace-alpha",
                 InitStatus = ProjectOnboardingStatuses.Initialized,
                 DeepScanStatus = ProjectDeepScanStatuses.NotStarted,
-                Summary = "Workspace đã có context cơ bản."
+                Summary = "Workspace has basic context."
             }
         };
 
@@ -295,6 +295,56 @@ public sealed class ChatTimelineProjectorTests
         var ex = await Assert.ThrowsAsync<InvalidDataException>(() => client.GetMissionAsync("mission-404", CancellationToken.None));
 
         Assert.Contains("Planner failed validation.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task WorkerHostMissionClient_Surfaces_Runtime_Readiness_Summary()
+    {
+        using var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            Content = new StringContent(
+                "{\"readinessSummary\":\"WorkerHost ready for standalone chat only; live Revit execution unavailable.\"}",
+                Encoding.UTF8,
+                "application/json")
+        });
+        using var client = new WorkerHostMissionClient("http://localhost:50765/", handler);
+
+        var ex = await Assert.ThrowsAsync<InvalidDataException>(() => client.GetMissionAsync("mission-standalone", CancellationToken.None));
+
+        Assert.Contains("standalone chat only", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task WorkerHostMissionClient_Deserializes_Gateway_Readiness_Status()
+    {
+        using var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                "{" +
+                "\"Health\":{" +
+                "\"Ready\":true," +
+                "\"StandaloneChatReady\":true," +
+                "\"LiveRevitReady\":false," +
+                "\"Degraded\":true," +
+                "\"ReadinessSummary\":\"WorkerHost ready for standalone chat only; live Revit execution unavailable.\"," +
+                "\"RuntimeTopology\":\"workerhost_public_control_plane + revit_private_kernel\"}," +
+                "\"SupportsTaskRuntime\":false," +
+                "\"ConfiguredProvider\":\"RULE FIRST\"," +
+                "\"PlannerModel\":\"\"," +
+                "\"ResponseModel\":\"\"," +
+                "\"ReasoningMode\":\"RULE_FIRST\"," +
+                "\"SecretSourceKind\":\"none\"}",
+                Encoding.UTF8,
+                "application/json")
+        });
+        using var client = new WorkerHostMissionClient("http://localhost:50765/", handler);
+
+        var status = await client.GetStatusAsync(CancellationToken.None);
+
+        Assert.True(status.Health.StandaloneChatReady);
+        Assert.False(status.Health.LiveRevitReady);
+        Assert.False(status.SupportsTaskRuntime);
+        Assert.Contains("standalone chat only", status.Health.ReadinessSummary, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler

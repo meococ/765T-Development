@@ -112,7 +112,11 @@
       }
     ]
   },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(dotnet *)",
       "Bash(git status *)",

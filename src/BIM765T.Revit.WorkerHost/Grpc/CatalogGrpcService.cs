@@ -35,6 +35,14 @@ internal sealed class CatalogGrpcService : CatalogService.CatalogServiceBase
         }, context).ConfigureAwait(false);
 
         var catalog = JsonUtil.Deserialize<ToolCatalogResponse>(invoke.PayloadJson);
+        catalog.Tools = catalog.Tools
+            .Where(tool => tool != null)
+            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.Hidden, StringComparison.OrdinalIgnoreCase))
+            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.BetaInternal, StringComparison.OrdinalIgnoreCase))
+            .Where(tool => string.Equals(tool.Audience, WorkerAudience.Commercial, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(tool => tool.ToolName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         var reply = new CatalogReply
         {
             Status = new StatusEnvelope
@@ -43,7 +51,7 @@ internal sealed class CatalogGrpcService : CatalogService.CatalogServiceBase
                 StatusCode = invoke.Status.StatusCode,
                 Message = invoke.Status.StatusCode
             },
-            PayloadJson = invoke.PayloadJson ?? string.Empty
+            PayloadJson = JsonUtil.Serialize(catalog)
         };
         reply.Status.Diagnostics.AddRange(invoke.Status.Diagnostics);
         foreach (var tool in catalog.Tools)
@@ -125,5 +133,4 @@ internal sealed class CatalogGrpcService : CatalogService.CatalogServiceBase
         reply.Status.Diagnostics.AddRange(invoke.Status.Diagnostics);
         return reply;
     }
-
 }

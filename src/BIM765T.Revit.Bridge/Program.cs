@@ -24,8 +24,6 @@ internal static class Program
 
     private static async Task<int> Main(string[] args)
     {
-        // Fix Vietnamese text mojibake — Console mặc định Windows dùng code page local (1252/437)
-        // Cần set UTF-8 trước khi output JSON chứa tiếng Việt
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
         var rawCommand = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.OrdinalIgnoreCase)) ?? ToolNames.DocumentGetActive;
@@ -43,10 +41,6 @@ internal static class Program
         var scopeJson = ResolveJsonLikeOption(GetOption(args, "--scope"), "--scope");
         var sessionId = GetOption(args, "--session-id") ?? "cli-session";
         var correlationId = GetOption(args, "--correlation-id") ?? Guid.NewGuid().ToString("N");
-        // P1-5 FIX: Tất cả mutation/file-lifecycle tools mặc định dry-run=true.
-        // Trước đây save/save_as/sync mặc định dry-run=false → lần gọi đầu
-        // không có approval token → ra APPROVAL_INVALID thay vì preview flow.
-        // Giờ nhất quán: mọi tool đều dry-run trước, user chủ động --dry-run false khi cần execute.
         var dryRunOverride = GetOption(args, "--dry-run");
         var dryRun = string.IsNullOrWhiteSpace(dryRunOverride) || bool.Parse(dryRunOverride);
 
@@ -85,6 +79,36 @@ internal static class Program
                 {
                     response = await InvokeViaLegacyPipeAsync(request, legacyPipeName, kernelEx).ConfigureAwait(false);
                 }
+            }
+
+            response.Diagnostics ??= new System.Collections.Generic.List<DiagnosticRecord>();
+            response.Diagnostics.Insert(0, DiagnosticRecord.Create(
+                "BRIDGE_CANONICAL_PUBLIC_INGRESS",
+                DiagnosticSeverity.Info,
+                "Canonical public ingress is WorkerHost. Kernel and legacy pipes are transitional adapter lanes only."));
+
+            if (HasDiagnostic(response, "BRIDGE_FALLBACK_KERNEL_PIPE"))
+            {
+                response.Diagnostics.Insert(1, DiagnosticRecord.Create(
+                    "BRIDGE_TOPOLOGY_TRANSITIONAL",
+                    DiagnosticSeverity.Warning,
+                    "CLI bridge fell back to the private Revit kernel pipe. This path is transitional; WorkerHost remains the canonical public ingress."));
+            }
+
+            if (HasDiagnostic(response, "BRIDGE_FALLBACK_LEGACY_PIPE"))
+            {
+                response.Diagnostics.Insert(1, DiagnosticRecord.Create(
+                    "BRIDGE_TOPOLOGY_LEGACY",
+                    DiagnosticSeverity.Warning,
+                    "CLI bridge fell back to the legacy pipe. This lane is legacy and should be considered sunset-bound, not canonical."));
+            }
+
+            if (!HasDiagnostic(response, "BRIDGE_FALLBACK_KERNEL_PIPE") && !HasDiagnostic(response, "BRIDGE_FALLBACK_LEGACY_PIPE"))
+            {
+                response.Diagnostics.Insert(1, DiagnosticRecord.Create(
+                    "BRIDGE_TOPOLOGY_CANONICAL",
+                    DiagnosticSeverity.Info,
+                    "CLI bridge is operating through the canonical WorkerHost public ingress."));
             }
 
             Console.WriteLine(JsonUtil.Serialize(response));
@@ -126,6 +150,11 @@ internal static class Program
             Console.WriteLine(JsonUtil.Serialize(response));
             return 1;
         }
+    }
+
+    private static bool HasDiagnostic(ToolResponseEnvelope response, string code)
+    {
+        return response.Diagnostics?.Any(d => string.Equals(d.Code, code, StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     private static async Task<ToolResponseEnvelope> InvokeViaWorkerHostAsync(ToolRequestEnvelope request, string pipeName)
@@ -255,7 +284,6 @@ internal static class Program
         return response;
     }
 
-
     private static CompatToolRequest BuildCompatRequest(ToolRequestEnvelope request)
     {
         return new CompatToolRequest
@@ -356,165 +384,22 @@ internal static class Program
             return JsonUtil.Serialize(new ElementGraphRequest());
         }
 
-        if (string.Equals(toolName, ToolNames.TypeListElementTypes, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(toolName, ToolNames.AnnotationListTextNoteTypes, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(toolName, ToolNames.SessionListTools, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(toolName, ToolNames.SessionGetCapabilities, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(toolName, ToolNames.TypeListElementTypes, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(toolName, ToolNames.AnnotationListTextNoteTypes, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(toolName, ToolNames.DocumentGetActive, StringComparison.OrdinalIgnoreCase))
         {
-            return JsonUtil.Serialize(new ElementTypeQueryRequest());
+            return "{}";
         }
 
-        if (string.Equals(toolName, ToolNames.AnnotationGetTextTypeUsage, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new TextNoteTypeUsageRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ParameterSetSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new SetParametersRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ElementMoveSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new MoveElementsRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ElementDeleteSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new DeleteElementsRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ElementPlaceFamilyInstanceSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new PlaceFamilyInstanceRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ReviewParameterCompleteness, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ReviewParameterCompletenessRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ParameterTrace, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ParameterTraceRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ReviewSheetSummary, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new SheetSummaryRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ReviewCaptureSnapshot, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new CaptureSnapshotRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.SessionGetTaskContext, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new TaskContextRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ReviewRunRuleSet, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ReviewRuleSetRunRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ViewCreate3dSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new Create3DViewRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ViewCreateOrUpdateFilterSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new CreateOrUpdateViewFilterRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ViewApplyFilterSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ApplyViewFilterRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.AnnotationAddTextNoteSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new AddTextNoteRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.AnnotationUpdateTextNoteStyleSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new UpdateTextNoteStyleRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.AnnotationUpdateTextNoteContentSafe, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new UpdateTextNoteContentRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ReviewActiveViewSummary, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ActiveViewSummaryRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.ViewUsage, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new ViewUsageRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.SheetDependencies, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new SheetDependenciesRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.FileSaveAsDocument, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new SaveAsDocumentRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.DocumentOpenBackgroundRead, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new OpenBackgroundDocumentRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.DocumentCloseNonActive, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new CloseDocumentRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.WorksharingSynchronizeWithCentral, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new SynchronizeRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.DomainHullDryRun, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new BIM765T.Revit.Contracts.Hull.HullDryRunRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.WorkflowPlan, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new WorkflowPlanRequest { WorkflowName = "workflow.model_health", InputJson = "{}" });
-        }
-
-        if (string.Equals(toolName, ToolNames.WorkflowApply, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(toolName, ToolNames.WorkflowResume, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new WorkflowApplyRequest());
-        }
-
-        if (string.Equals(toolName, ToolNames.WorkflowGetRun, StringComparison.OrdinalIgnoreCase))
-        {
-            return JsonUtil.Serialize(new WorkflowGetRunRequest());
-        }
-
-        return string.Empty;
+        return "{}";
     }
 
     private static string ResolveJsonLikeOption(string? raw, string optionName)
     {
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return string.Empty;
-        }
-
-        return CliFileInputGuard.ResolveJsonOrFile(raw, optionName);
+        return string.IsNullOrWhiteSpace(raw)
+            ? string.Empty
+            : CliFileInputGuard.ResolveJsonOrFile(raw, optionName);
     }
 }
-
-

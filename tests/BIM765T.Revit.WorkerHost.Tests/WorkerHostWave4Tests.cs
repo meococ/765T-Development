@@ -158,9 +158,13 @@ public sealed class WorkerHostWave4Tests
             var report = await service.CollectAsync(probePublicControlPlane: false, CancellationToken.None);
 
             Assert.True(report.Ready);
+            Assert.True(report.StandaloneChatReady);
+            Assert.True(report.LiveRevitReady);
             Assert.True(report.Degraded);
             Assert.Equal(1, report.Store.DeadLetterOutboxCount);
             Assert.Contains(report.Diagnostics, x => x.IndexOf("dead-letter", StringComparison.OrdinalIgnoreCase) >= 0);
+            Assert.Contains(report.Diagnostics, x => x.Contains("runtime_readiness:", StringComparison.Ordinal));
+            Assert.Contains(report.Diagnostics, x => x.Contains("bridge_fallbacks_present:", StringComparison.Ordinal));
         }
         finally
         {

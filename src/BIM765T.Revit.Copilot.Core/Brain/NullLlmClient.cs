@@ -27,12 +27,18 @@ public sealed class NullLlmClient : ILlmClient
     // 0 = not yet logged; 1 = logged. CAS prevents duplicate emission even under concurrent first calls.
     private static int _startupLogged;
 
+    private readonly ICopilotLogger _logger;
+
+    public NullLlmClient(ICopilotLogger? logger = null)
+    {
+        _logger = logger ?? TraceCopilotLogger.Instance;
+    }
+
     /// <inheritdoc />
     /// <remarks>
     /// Always returns <see cref="DiagnosticResponse"/> — never throws, never blocks.
-    /// On the very first call, emits a one-time <see cref="Trace.TraceWarning"/> so the
-    /// condition is visible in any attached trace listener or debug output without requiring
-    /// a logger dependency on this netstandard2.0 assembly.
+    /// On the very first call, emits a one-time warning via <see cref="ICopilotLogger"/> so the
+    /// condition is visible in production logs.
     /// The <paramref name="systemPrompt"/> and <paramref name="userMessage"/> parameters
     /// are accepted but intentionally ignored because no model is available.
     /// </remarks>
@@ -40,7 +46,7 @@ public sealed class NullLlmClient : ILlmClient
     {
         if (Interlocked.CompareExchange(ref _startupLogged, 1, 0) == 0)
         {
-            Trace.TraceWarning(StartupWarning);
+            _logger.Warn(StartupWarning);
         }
 
         return Task.FromResult(DiagnosticResponse);

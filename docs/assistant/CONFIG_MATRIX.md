@@ -28,7 +28,7 @@
 - `%USERPROFILE%\.codex\config.toml`
 - Env vars provider/auth
   - MiniMax should use `MINIMAX_*`; avoid using `OPENAI_BASE_URL` for MiniMax as it can conflict with other tools in the workspace
-  - When workspace has multiple provider keys coexisting, set `BIM765T_LLM_PROVIDER=MINIMAX` to pin runtime to MiniMax and avoid drifting to Anthropic/OpenAI due to extra env vars
+  - When workspace has multiple provider keys coexisting, set `BIM765T_LLM_PROVIDER=MINIMAX` to pin runtime to MiniMax and avoid drifting to OpenRouter (first-found-wins order: OpenRouter → MiniMax → OpenAI → Anthropic)
 
 - `%APPDATA%\BIM765T.Revit.Agent\workspaces\`
 - `%APPDATA%\BIM765T.Revit.Agent\settings.json`

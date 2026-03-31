@@ -167,7 +167,7 @@ internal sealed class ActionButton : Border
         {
             _iconBorder.Child = _spinner;
             _spinner.Start();
-            if (_subtitleBlock != null) _subtitleBlock.Text = "Đang xử lý...";
+            if (_subtitleBlock != null) _subtitleBlock.Text = "Processing...";
             Cursor = Cursors.Wait;
         }
         else

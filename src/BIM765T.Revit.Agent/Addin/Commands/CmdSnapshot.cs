@@ -17,7 +17,7 @@ public sealed class CmdSnapshot : IExternalCommand
     {
         if (!AgentHost.TryGetCurrent(out var runtime) || runtime == null)
         {
-            TaskDialog.Show("765T", "Agent chưa sẵn sàng.");
+            TaskDialog.Show("765T", "Agent is not ready.");
             return Result.Failed;
         }
 

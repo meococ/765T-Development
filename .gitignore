@@ -63,6 +63,10 @@ Project MMBS/
 *.rws
 *.slog
 
+# Claude Code local state (contains API keys — NEVER commit)
+.claude/settings.local.json
+.claude/plans/
+
 # OS/editor
 .DS_Store
 Thumbs.db

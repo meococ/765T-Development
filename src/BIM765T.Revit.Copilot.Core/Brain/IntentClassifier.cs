@@ -91,7 +91,15 @@ public sealed class IntentClassifier
             return Build("sheet_analysis_request", normalized, ExtractSheetHint(message));
         }
 
-        if (MatchesAny(normalized, "naming", "iso 19650", "lod", "loi", "workset", "parameter", "excel", "spec", "bep"))
+        // QC/health: precise match only — 'qc', 'health', 'warning', 'audit' are strong signals.
+        // 'kiem tra' and 'review' are too broad alone (match systems/coordination), so require pairing.
+        if (MatchesAny(normalized, "qc", "health", "warning", "audit")
+            || (MatchesAny(normalized, "kiem tra", "review") && MatchesAny(normalized, "model", "health", "qc", "warning", "audit")))
+        {
+            return Build("qc_request", normalized);
+        }
+
+        if (MatchesAny(normalized, "naming", "iso 19650", "lod", "lodloi", "workset", "parameter", "excel", "spec", "bep"))
         {
             return Build("governance_request", normalized);
         }
@@ -106,7 +114,8 @@ public sealed class IntentClassifier
             return Build("coordination_request", normalized);
         }
 
-        if (MatchesAny(normalized, "route", "routing", "slope", "duct", "pipe", "fixture", "open end", "disconnected", "system"))
+        if (MatchesAny(normalized, "route", "routing", "slope", "duct", "pipe", "fixture", "open end", "disconnected", "mep system")
+            || (MatchesAny(normalized, "system") && MatchesAny(normalized, "duct", "pipe", "fixture", "route", "slope", "mep")))
         {
             return Build("systems_request", normalized);
         }
@@ -137,7 +146,7 @@ public sealed class IntentClassifier
             return Build("mutation_request", normalized);
         }
 
-        if (MatchesAny(normalized, "qc", "kiem tra", "review", "health", "warning", "model", "audit"))
+        if (MatchesAny(normalized, "model", "review"))
         {
             return Build("qc_request", normalized);
         }

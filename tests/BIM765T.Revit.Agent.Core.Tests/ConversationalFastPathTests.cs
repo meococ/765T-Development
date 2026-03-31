@@ -78,7 +78,9 @@ public sealed class ConversationalFastPathTests
     public void ConversationalTimeout_IsShorterThanDefaultTimeout()
     {
         // Conversational fast-path should be 8s — significantly shorter than the default 20s.
-        Assert.Equal(8, LlmResponseEnhancer.ConversationalTimeoutSeconds);
+        var profile = LlmTimeoutProfile.Default;
+        Assert.Equal(8, profile.ConversationalTimeoutSeconds);
+        Assert.True(profile.ConversationalTimeoutSeconds < profile.ResponseTimeoutSeconds);
     }
 
     // ── EnhanceConversationalAsync: no LLM configured → rule-only fallback ──

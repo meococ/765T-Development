@@ -21,19 +21,20 @@ public sealed class OpenAiCompatibleLlmClient : ILlmClient
     private const string DefaultApiUrl = "https://api.openai.com/v1/chat/completions";
     private const string DefaultModel = "gpt-5-mini";
     private const int DefaultMaxTokens = 1024;
-    private const int DefaultTimeoutSeconds = 12;
 
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _model;
     private readonly string _apiUrl;
     private readonly int _maxTokens;
+    private readonly int _httpTimeoutSeconds;
     private readonly string _providerLabel;
     private readonly string _organization;
     private readonly string _project;
     private readonly string _httpReferer;
     private readonly string _xTitle;
     private readonly bool _enableReasoningSplit;
+    private readonly ICopilotLogger _logger;
 
     private static int _startupLogged;
 
@@ -47,9 +48,14 @@ public sealed class OpenAiCompatibleLlmClient : ILlmClient
         string? organization = null,
         string? project = null,
         string? httpReferer = null,
-        string? xTitle = null)
+        string? xTitle = null,
+        ICopilotLogger? logger = null,
+        LlmTimeoutProfile? timeoutProfile = null)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger ?? TraceCopilotLogger.Instance;
+        var profile = timeoutProfile ?? LlmTimeoutProfile.Default;
+        _httpTimeoutSeconds = profile.HttpTimeoutSeconds;
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new ArgumentException("API key must not be empty.", nameof(apiKey));
@@ -91,7 +97,7 @@ public sealed class OpenAiCompatibleLlmClient : ILlmClient
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(DefaultTimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(_httpTimeoutSeconds));
 
             using var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
             request.Headers.Add("Authorization", $"Bearer {_apiKey}");
@@ -417,17 +423,17 @@ public sealed class OpenAiCompatibleLlmClient : ILlmClient
         builder.Append('"');
     }
 
-    private static void LogOnce(string message)
+    private void LogOnce(string message)
     {
         if (Interlocked.CompareExchange(ref _startupLogged, 1, 0) == 0)
         {
-            Trace.TraceInformation(message);
+            _logger.Info(message);
         }
     }
 
-    private static void LogAlways(string message)
+    private void LogAlways(string message)
     {
-        Trace.TraceWarning(message);
+        _logger.Warn(message);
     }
 
     private static string Truncate(string value, int maxLength)

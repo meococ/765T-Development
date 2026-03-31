@@ -26,7 +26,7 @@ public sealed class CmdSettings : IExternalCommand
             }
 
             Process.Start("explorer.exe", "/select,\"" + settingsPath + "\"");
-            TaskDialog.Show("765T AI Settings", "Đã mở vị trí settings.json trong Explorer.");
+            TaskDialog.Show("765T AI Settings", "Opened settings.json location in Explorer.");
             return Result.Succeeded;
         }
         catch (Exception ex)

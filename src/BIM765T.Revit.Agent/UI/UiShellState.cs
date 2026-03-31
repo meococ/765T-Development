@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using BIM765T.Revit.Contracts.Platform;
 
@@ -6,6 +6,14 @@ namespace BIM765T.Revit.Agent.UI;
 
 internal static class UiShellState
 {
+    internal static class ShellModes
+    {
+        internal const string Onboarding = "onboarding";
+        internal const string Dashboard = "dashboard";
+        internal const string Transcript = "transcript";
+        internal const string Waiting = "waiting";
+    }
+
     private static readonly object SyncRoot = new object();
     private static string _lastSessionId = string.Empty;
     private static string _lastMissionId = string.Empty;
@@ -15,6 +23,7 @@ internal static class UiShellState
     private static string _documentKey = string.Empty;
     private static string _documentTitle = string.Empty;
     private static string _activeViewName = string.Empty;
+    private static string _shellMode = ShellModes.Onboarding;
 
     internal static string LastSessionId
     {
@@ -104,6 +113,17 @@ internal static class UiShellState
         }
     }
 
+    internal static string CurrentShellMode
+    {
+        get
+        {
+            lock (SyncRoot)
+            {
+                return _shellMode;
+            }
+        }
+    }
+
     internal static string CurrentActiveView => CurrentActiveViewName;
 
     internal static void UpdateFromWorker(WorkerResponse response)
@@ -118,7 +138,7 @@ internal static class UiShellState
         {
             _lastSessionId = FirstNonEmpty(response.SessionId, onboarding.SessionId, _lastSessionId);
             _lastMissionId = FirstNonEmpty(response.MissionId, onboarding.MissionId, _lastMissionId);
-            _workspaceId = FirstNonEmpty(onboarding.WorkspaceId, response.WorkspaceId, response.ContextSummary?.WorkspaceId, _workspaceId);
+            _workspaceId = ResolveWorkspaceId(onboarding.WorkspaceId, response.WorkspaceId, response.ContextSummary?.WorkspaceId, _workspaceId);
             _deepScanStatus = FirstNonEmpty(onboarding.DeepScanStatus, InferDeepScanStatus(response.ContextSummary), _deepScanStatus, ProjectDeepScanStatuses.NotStarted);
             _initStatus = FirstNonEmpty(
                 onboarding.InitStatus,
@@ -128,6 +148,10 @@ internal static class UiShellState
             _documentKey = FirstNonEmpty(response.ContextSummary?.DocumentKey, _documentKey);
             _documentTitle = FirstNonEmpty(response.ContextSummary?.DocumentTitle, _documentTitle);
             _activeViewName = FirstNonEmpty(response.ContextSummary?.ActiveViewName, _activeViewName);
+            if (!string.IsNullOrWhiteSpace(response.SessionId) || !string.IsNullOrWhiteSpace(response.MissionId))
+            {
+                _shellMode = ShellModes.Transcript;
+            }
         }
     }
 
@@ -135,13 +159,19 @@ internal static class UiShellState
     {
         lock (SyncRoot)
         {
-            _workspaceId = FirstNonEmpty(bundle?.WorkspaceId, workspaceId, _workspaceId);
+            _workspaceId = ResolveWorkspaceId(bundle?.WorkspaceId, workspaceId, _workspaceId);
             if (bundle != null)
             {
                 _deepScanStatus = FirstNonEmpty(bundle.DeepScanStatus, _deepScanStatus, ProjectDeepScanStatuses.NotStarted);
                 _initStatus = bundle.Exists
                     ? ProjectOnboardingStatuses.Initialized
-                    : ProjectOnboardingStatuses.NotInitialized;
+                    : string.IsNullOrWhiteSpace(_workspaceId)
+                        ? ProjectOnboardingStatuses.NotInitialized
+                        : _initStatus;
+                if (bundle.Exists && string.Equals(_shellMode, ShellModes.Onboarding, StringComparison.OrdinalIgnoreCase))
+                {
+                    _shellMode = ShellModes.Dashboard;
+                }
             }
             else if (string.IsNullOrWhiteSpace(_workspaceId))
             {
@@ -170,6 +200,10 @@ internal static class UiShellState
         lock (SyncRoot)
         {
             _lastSessionId = FirstNonEmpty(sessionId, _lastSessionId);
+            if (!string.IsNullOrWhiteSpace(_lastSessionId))
+            {
+                _shellMode = ShellModes.Transcript;
+            }
         }
     }
 
@@ -178,6 +212,18 @@ internal static class UiShellState
         lock (SyncRoot)
         {
             _lastMissionId = FirstNonEmpty(missionId, _lastMissionId);
+            if (!string.IsNullOrWhiteSpace(_lastMissionId))
+            {
+                _shellMode = ShellModes.Transcript;
+            }
+        }
+    }
+
+    internal static void SetShellMode(string? shellMode)
+    {
+        lock (SyncRoot)
+        {
+            _shellMode = FirstNonEmpty(shellMode, _shellMode, ShellModes.Onboarding);
         }
     }
 
@@ -189,8 +235,29 @@ internal static class UiShellState
             {
                 _lastSessionId = string.Empty;
                 _lastMissionId = string.Empty;
+                _shellMode = string.IsNullOrWhiteSpace(_workspaceId) ? ShellModes.Onboarding : ShellModes.Dashboard;
             }
         }
+    }
+
+    internal static string ResolveWorkspaceId(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            var trimmed = NormalizeWorkspaceId(value);
+            if (!string.IsNullOrWhiteSpace(trimmed))
+            {
+                return trimmed;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    internal static string NormalizeWorkspaceId(string? value)
+    {
+        var trimmed = (value ?? string.Empty).Trim();
+        return string.Equals(trimmed, "default", StringComparison.OrdinalIgnoreCase) ? string.Empty : trimmed;
     }
 
     private static string InferDeepScanStatus(WorkerContextSummary? summary)

@@ -192,6 +192,16 @@ internal sealed class WorkerHostMissionClient : IDisposable
         {
             return await SendCoreAsync<T>(method, path, body, cancellationToken).ConfigureAwait(false);
         }
+        catch (InvalidDataException ex) when (!cancellationToken.IsCancellationRequested && ShouldProbeRuntimeStatus(ex))
+        {
+            var status = await WorkerHostRuntimeBootstrapper.TryGetGatewayStatusAsync(_httpClient.BaseAddress, cancellationToken).ConfigureAwait(false);
+            if (status != null)
+            {
+                throw BuildUnavailableException(status, ex);
+            }
+
+            throw;
+        }
         catch (HttpRequestException) when (!cancellationToken.IsCancellationRequested)
         {
             await EnsureAvailableAsync(cancellationToken).ConfigureAwait(false);
@@ -201,6 +211,11 @@ internal sealed class WorkerHostMissionClient : IDisposable
         {
             await EnsureAvailableAsync(cancellationToken).ConfigureAwait(false);
             return await SendCoreAsync<T>(method, path, body, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            var status = await WorkerHostRuntimeBootstrapper.TryGetGatewayStatusAsync(_httpClient.BaseAddress, cancellationToken).ConfigureAwait(false);
+            throw BuildUnavailableException(status, ex);
         }
     }
 
@@ -229,6 +244,32 @@ internal sealed class WorkerHostMissionClient : IDisposable
         return JsonUtil.DeserializeRequired<T>(json);
     }
 
+    private static bool ShouldProbeRuntimeStatus(InvalidDataException ex)
+    {
+        return string.IsNullOrWhiteSpace(ex.Message)
+            || string.Equals(ex.Message, "Internal Server Error", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(ex.Message, "Not Found", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(ex.Message, "Bad Request", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(ex.Message, "WorkerHost request failed.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static InvalidDataException BuildUnavailableException(WorkerHostGatewayStatus? status, Exception ex)
+    {
+        var health = status?.Health;
+        var summary = health?.ReadinessSummary;
+        if (health != null && health.StandaloneChatReady && !health.LiveRevitReady)
+        {
+            return new InvalidDataException(
+                "WorkerHost dang san sang cho standalone chat nhung kernel Revit chua available. Can mo Revit va project de chay tac vu live."
+                + (string.IsNullOrWhiteSpace(summary) ? string.Empty : " Chi tiet: " + summary), ex);
+        }
+        return new InvalidDataException(
+            string.IsNullOrWhiteSpace(summary)
+                ? ex.Message
+                : summary,
+            ex);
+    }
+
     private static string ExtractErrorMessage(string? json, string? fallback)
     {
         if (!string.IsNullOrWhiteSpace(json))
@@ -238,6 +279,12 @@ internal sealed class WorkerHostMissionClient : IDisposable
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return message;
+            }
+
+            var readinessSummary = TryReadJsonStringValue(payloadJson, "readinessSummary");
+            if (!string.IsNullOrWhiteSpace(readinessSummary))
+            {
+                return readinessSummary;
             }
 
             var statusCode = TryReadJsonStringValue(payloadJson, "statusCode");

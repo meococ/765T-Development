@@ -66,7 +66,7 @@ internal sealed class DocumentResolverService : IDocumentResolver
         {
             if (active == null)
             {
-                throw new RevitContextException("Không có active document.");
+                throw new RevitContextException("No active document.");
             }
 
             return active;
@@ -82,7 +82,7 @@ internal sealed class DocumentResolverService : IDocumentResolver
             }
         }
 
-        throw new InvalidOperationException("Không resolve được target document: " + requestedDocument);
+        throw new InvalidOperationException("Cannot resolve target document: " + requestedDocument);
     }
 
     public View ResolveView(UIApplication uiapp, Document doc, string requestedView, int? requestedViewId = null)
@@ -117,10 +117,10 @@ internal sealed class DocumentResolverService : IDocumentResolver
 
         if (string.IsNullOrWhiteSpace(requestedView) && !requestedViewId.HasValue)
         {
-            throw new RevitContextException("Không có active view.");
+            throw new RevitContextException("No active view.");
         }
 
-        throw new InvalidOperationException("Không resolve được target view.");
+        throw new InvalidOperationException("Cannot resolve target view.");
     }
 
     public ViewSheet ResolveSheet(Document doc, SheetSummaryRequest request)
@@ -155,7 +155,7 @@ internal sealed class DocumentResolverService : IDocumentResolver
             }
         }
 
-        throw new InvalidOperationException("Không resolve được sheet theo SheetId/SheetNumber/SheetName.");
+        throw new InvalidOperationException("Cannot resolve sheet by SheetId/SheetNumber/SheetName.");
     }
 
     private DocumentLookupIndex GetLookupIndex(Document doc)

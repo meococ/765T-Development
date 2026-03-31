@@ -18,18 +18,18 @@ internal sealed class HullValidationService
         {
             foreach (var action in group)
             {
-                action.Diagnostics.Add(DiagnosticRecord.Create("DUPLICATE_TRACE_KEY", DiagnosticSeverity.Warning, "Trace key trùng trong dry-run planner: " + group.Key, action.SourceId));
+                action.Diagnostics.Add(DiagnosticRecord.Create("DUPLICATE_TRACE_KEY", DiagnosticSeverity.Warning, "Duplicate trace key in dry-run planner: " + group.Key, action.SourceId));
             }
         }
 
         if (duplicateTraceKeys.Count > 0)
         {
-            response.Diagnostics.Add(DiagnosticRecord.Create("VALIDATION_DUPLICATE_TRACE", DiagnosticSeverity.Warning, "Dry-run phát hiện trace key trùng, cần xử lý trước khi mở write tools."));
+            response.Diagnostics.Add(DiagnosticRecord.Create("VALIDATION_DUPLICATE_TRACE", DiagnosticSeverity.Warning, "Dry-run detected duplicate trace keys; resolve before enabling write tools."));
         }
 
         if (response.Actions.Count == 0)
         {
-            response.Diagnostics.Add(DiagnosticRecord.Create("EMPTY_PLAN", DiagnosticSeverity.Info, "Không có planned action nào trong active view."));
+            response.Diagnostics.Add(DiagnosticRecord.Create("EMPTY_PLAN", DiagnosticSeverity.Info, "No planned actions in the active view."));
         }
     }
 }

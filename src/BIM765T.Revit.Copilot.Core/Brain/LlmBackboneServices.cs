@@ -382,7 +382,6 @@ public sealed class NullLlmPlanner : ILlmPlanner
 
 public sealed class LlmPlanningService : ILlmPlanner
 {
-    private const int PlannerTimeoutSeconds = 4;
     private static readonly HashSet<string> AllowedIntents = new(StringComparer.OrdinalIgnoreCase)
     {
         "greeting",
@@ -471,12 +470,14 @@ public sealed class LlmPlanningService : ILlmPlanner
     private readonly LlmProviderConfiguration _profile;
     private readonly OpenAiCompatibleLlmClient? _primaryClient;
     private readonly OpenAiCompatibleLlmClient? _fallbackClient;
+    private readonly LlmTimeoutProfile _timeoutProfile;
 
-    public LlmPlanningService(LlmProviderConfiguration profile, OpenAiCompatibleLlmClient? primaryClient, OpenAiCompatibleLlmClient? fallbackClient)
+    public LlmPlanningService(LlmProviderConfiguration profile, OpenAiCompatibleLlmClient? primaryClient, OpenAiCompatibleLlmClient? fallbackClient, LlmTimeoutProfile? timeoutProfile = null)
     {
         _profile = profile ?? new LlmProviderConfiguration();
         _primaryClient = primaryClient;
         _fallbackClient = fallbackClient;
+        _timeoutProfile = timeoutProfile ?? LlmTimeoutProfile.Default;
     }
 
     public bool IsConfigured => _profile.IsConfigured && _primaryClient != null;
@@ -526,7 +527,7 @@ public sealed class LlmPlanningService : ILlmPlanner
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(PlannerTimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(_timeoutProfile.PlannerTimeoutSeconds));
             var json = await client.CompleteJsonAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
 
             var proposal = ParseProposal(json);

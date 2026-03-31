@@ -19,12 +19,11 @@ namespace BIM765T.Revit.Copilot.Core.Brain;
 /// </summary>
 public sealed class LlmResponseEnhancer
 {
-    private const int ResponseTimeoutSeconds = 20;
     private const int MaxHistoryMessages = 4;
 
     private const string PreferredSystemPrompt =
         "You are 765T Assistant, a high-quality BIM copilot embedded inside Autodesk Revit. " +
-        "Always answer in natural Vietnamese with full diacritics. Address the user as 'anh' and refer to yourself as 'em'. " +
+        "Always answer in clear, natural English. " +
         "Answer the user's actual request directly, not by paraphrasing an internal template. " +
         "Use the current Revit document/view context and any tool evidence when relevant. " +
         "Do not sound like an autoresponder, macro, helpdesk bot, or scripted wizard. " +
@@ -37,11 +36,15 @@ public sealed class LlmResponseEnhancer
 
     private readonly ILlmClient _llmClient;
     private readonly bool _isLlmReal;
+    private readonly ICopilotLogger _logger;
+    private readonly LlmTimeoutProfile _timeoutProfile;
 
-    public LlmResponseEnhancer(ILlmClient? llmClient)
+    public LlmResponseEnhancer(ILlmClient? llmClient, ICopilotLogger? logger = null, LlmTimeoutProfile? timeoutProfile = null)
     {
         _llmClient = llmClient ?? new NullLlmClient();
         _isLlmReal = llmClient != null && !(llmClient is NullLlmClient);
+        _logger = logger ?? TraceCopilotLogger.Instance;
+        _timeoutProfile = timeoutProfile ?? LlmTimeoutProfile.Default;
     }
 
     public bool IsLlmConfigured => _isLlmReal;
@@ -131,7 +134,7 @@ public sealed class LlmResponseEnhancer
             $"Intent: {intent}\n" +
             $"Planned tools: {toolList}\n" +
             $"Rule-based reasoning: {ruleBasedReasoning}\n\n" +
-            "Rewrite the reasoning summary in concise Vietnamese. Explain the logic, not the internal engine.";
+            "Rewrite the reasoning summary concisely in English. Explain the logic, not the internal engine.";
 
         return CallLlmWithFallback(PreferredSystemPrompt, userPrompt, ruleBasedReasoning);
     }
@@ -149,15 +152,15 @@ public sealed class LlmResponseEnhancer
         }
 
         var toolList = plannedTools != null ? string.Join(", ", plannedTools) : string.Empty;
-        var docTitle = contextSummary?.DocumentTitle ?? "khong ro";
-        var viewName = contextSummary?.ActiveViewName ?? "khong ro";
+        var docTitle = contextSummary?.DocumentTitle ?? "unknown";
+        var viewName = contextSummary?.ActiveViewName ?? "unknown";
 
         var userPrompt =
             $"Intent: {intent}\n" +
             $"Document: {docTitle}, View: {viewName}\n" +
             $"Planned tools: {toolList}\n" +
             $"Rule-based plan: {ruleBasedPlan}\n\n" +
-            "Rewrite the plan in concise Vietnamese. Tell the user what will happen next and why. Mention preview or approval only when relevant.";
+            "Rewrite the plan concisely in English. Tell the user what will happen next and why. Mention preview or approval only when relevant.";
 
         return CallLlmWithFallback(BuildSystemPromptWithPersona(persona), userPrompt, ruleBasedPlan);
     }
@@ -176,7 +179,7 @@ public sealed class LlmResponseEnhancer
             $"Tool: {toolName}\n" +
             $"Intent: {intent}\n" +
             $"Rule-based rationale: {ruleBasedWhy}\n\n" +
-            "Rewrite this as one concise Vietnamese sentence explaining why this tool is relevant now.";
+            "Rewrite this as one concise English sentence explaining why this tool is relevant now.";
 
         return CallLlmWithFallback(PreferredSystemPrompt, userPrompt, ruleBasedWhy);
     }
@@ -217,8 +220,8 @@ public sealed class LlmResponseEnhancer
                 toolResults);
         }
 
-        var docTitle = contextSummary?.DocumentTitle ?? "khong ro";
-        var viewName = contextSummary?.ActiveViewName ?? "khong ro";
+        var docTitle = contextSummary?.DocumentTitle ?? "unknown";
+        var viewName = contextSummary?.ActiveViewName ?? "unknown";
         var selectionCount = contextSummary?.SelectionCount ?? 0;
 
         var prompt = new StringBuilder(1024);
@@ -269,7 +272,7 @@ public sealed class LlmResponseEnhancer
             .AppendLine("Fallback safety draft:")
             .AppendLine(ruleBasedText)
             .AppendLine()
-            .AppendLine("Write the final assistant reply in Vietnamese.")
+            .AppendLine("Write the final assistant reply in English.")
             .AppendLine("Use the fallback draft only as a safety reference; do not simply paraphrase it.")
             .AppendLine("Prefer the user's actual request, the conversation history, current Revit context, and tool evidence.")
             .AppendLine("If the request is simple and conversational, answer directly and naturally.")
@@ -333,8 +336,8 @@ public sealed class LlmResponseEnhancer
         IEnumerable<WorkerChatMessage>? recentMessages,
         string toolResults)
     {
-        var docTitle = contextSummary?.DocumentTitle ?? "khong ro";
-        var viewName = contextSummary?.ActiveViewName ?? "khong ro";
+        var docTitle = contextSummary?.DocumentTitle ?? "unknown";
+        var viewName = contextSummary?.ActiveViewName ?? "unknown";
         var selectionCount = contextSummary?.SelectionCount ?? 0;
 
         var prompt = new StringBuilder(768);
@@ -430,32 +433,32 @@ public sealed class LlmResponseEnhancer
     {
         if (string.Equals(intent, "greeting", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: chao em\nAssistant: Chào anh. Em đang ở file ABC.rvt, view {3D}. Em có thể kiểm tra nhanh context hiện tại hoặc rà QC model trước cho anh.";
+            return "User: hello\nAssistant: Hello. Currently in file ABC.rvt, view {3D}. I can quickly check the current context or run a model QC for you.";
         }
 
         if (string.Equals(intent, "identity_query", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: em la gi\nAssistant: Em là 765T Worker, trợ lý BIM chạy trực tiếp trong Revit. Ngay lúc này em có thể đọc context file đang mở, kiểm tra family/sheet/view, hoặc rà QC read-only cho anh.";
+            return "User: who are you\nAssistant: I am 765T Worker, a BIM assistant running directly inside Revit. Right now I can read the open file context, check families/sheets/views, or run a read-only QC for you.";
         }
 
         if (string.Equals(intent, "context_query", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: kiem tra context hien tai\nAssistant: Hiện em đang ở file ABC.rvt, view {3D}, chưa chọn phần tử nào. Nếu anh cần, em có thể đọc sâu hơn vào warnings, family, hoặc sheet.";
+            return "User: check current context\nAssistant: Currently in file ABC.rvt, view {3D}, no elements selected. I can dig deeper into warnings, families, or sheets if needed.";
         }
 
         if (string.Equals(intent, "project_research_request", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: tong quan project\nAssistant: File ABC.rvt hiện có 1,240 phần tử, 12 sheet, 8 family loaded. Workspace bundle cho thấy project đang ở giai đoạn DD. Em có thể đi sâu vào sheet summary hoặc model health nếu anh cần.";
+            return "User: project overview\nAssistant: File ABC.rvt currently has 1,240 elements, 12 sheets, 8 families loaded. Workspace bundle indicates the project is in DD phase. I can drill into sheet summary or model health if needed.";
         }
 
         if (string.Equals(intent, "qc_request", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: kiem tra model health\nAssistant: Em sẽ chạy QC read-only cho file ABC.rvt. Kiểm tra warnings, unused families, và room boundaries. Không thay đổi gì trong model.";
+            return "User: check model health\nAssistant: I will run read-only QC on file ABC.rvt. Checking warnings, unused families, and room boundaries. No changes to the model.";
         }
 
         if (string.Equals(intent, "family_analysis_request", StringComparison.OrdinalIgnoreCase))
         {
-            return "User: phan tich family\nAssistant: Em sẽ phân tích family đang được load trong ABC.rvt — số lượng, dung lượng, và nested depth. Anh muốn em tập trung vào family nào cụ thể không?";
+            return "User: analyze family\nAssistant: I will analyze families loaded in ABC.rvt — count, file size, and nested depth. Would you like me to focus on a specific family?";
         }
 
         return string.Empty;
@@ -510,7 +513,7 @@ public sealed class LlmResponseEnhancer
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(ResponseTimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(_timeoutProfile.ResponseTimeoutSeconds));
             var result = await _llmClient.CompleteAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result) || result.Contains("[LLM not configured]"))
@@ -518,17 +521,17 @@ public sealed class LlmResponseEnhancer
                 return LlmNarrationResult.Fallback(fallbackText, "LLM narration returned empty output. Using rule fallback.");
             }
 
-            Trace.TraceInformation($"BIM765T LlmResponseEnhancer: LLM enhanced text ({result.Length} chars).");
+            _logger.Info($"BIM765T LlmResponseEnhancer: LLM enhanced text ({result.Length} chars).");
             return LlmNarrationResult.Enhanced(result, "LLM narration generated the final response text.");
         }
         catch (OperationCanceledException)
         {
-            Trace.TraceWarning("BIM765T LlmResponseEnhancer: LLM call timed out. Using rule-based text.");
-            return LlmNarrationResult.Fallback(fallbackText, $"LLM narration timed out after {ResponseTimeoutSeconds} seconds. Using rule fallback.");
+            _logger.Warn($"BIM765T LlmResponseEnhancer: LLM call timed out after {_timeoutProfile.ResponseTimeoutSeconds}s. Using rule-based text.");
+            return LlmNarrationResult.Fallback(fallbackText, $"LLM narration timed out after {_timeoutProfile.ResponseTimeoutSeconds} seconds. Using rule fallback.");
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning($"BIM765T LlmResponseEnhancer: LLM call failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.");
+            _logger.Error($"BIM765T LlmResponseEnhancer: LLM call failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.", ex);
             return LlmNarrationResult.Fallback(fallbackText, $"LLM narration failed: {ex.GetType().Name}.");
         }
     }
@@ -564,12 +567,11 @@ public sealed class LlmResponseEnhancer
     }
 
     /// <summary>
-    /// Conversational fast-path LLM narration with tighter timeout (8s instead of 20s).
+    /// Conversational fast-path LLM narration with tighter timeout.
     /// Uses compact prompt (no tool evidence, no reasoning/plan summaries).
     /// Called by ConversationalStep for read-only and informational intents.
     /// Falls back to rule-based text if LLM is unavailable or slow.
     /// </summary>
-    public const int ConversationalTimeoutSeconds = 8;
 
     public async Task<LlmNarrationResult> EnhanceConversationalAsync(
         string userMessage,
@@ -592,7 +594,7 @@ public sealed class LlmResponseEnhancer
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(ConversationalTimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(_timeoutProfile.ConversationalTimeoutSeconds));
             var result = await _llmClient.CompleteAsync(systemPrompt, userPrompt, cts.Token).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result) || result.Contains("[LLM not configured]"))
@@ -600,17 +602,17 @@ public sealed class LlmResponseEnhancer
                 return LlmNarrationResult.Fallback(fallbackText, "Conversational LLM returned empty. Using rule fallback.");
             }
 
-            Trace.TraceInformation($"BIM765T LlmResponseEnhancer: Conversational LLM text ({result.Length} chars, {ConversationalTimeoutSeconds}s budget).");
-            return LlmNarrationResult.Enhanced(result, $"Conversational fast-path LLM narration ({ConversationalTimeoutSeconds}s timeout).");
+            _logger.Info($"BIM765T LlmResponseEnhancer: Conversational LLM text ({result.Length} chars, {_timeoutProfile.ConversationalTimeoutSeconds}s budget).");
+            return LlmNarrationResult.Enhanced(result, $"Conversational fast-path LLM narration ({_timeoutProfile.ConversationalTimeoutSeconds}s timeout).");
         }
         catch (OperationCanceledException)
         {
-            Trace.TraceWarning($"BIM765T LlmResponseEnhancer: Conversational LLM timed out after {ConversationalTimeoutSeconds}s. Using rule-based text.");
-            return LlmNarrationResult.Fallback(fallbackText, $"Conversational LLM timed out after {ConversationalTimeoutSeconds}s. Using rule fallback.");
+            _logger.Warn($"BIM765T LlmResponseEnhancer: Conversational LLM timed out after {_timeoutProfile.ConversationalTimeoutSeconds}s. Using rule-based text.");
+            return LlmNarrationResult.Fallback(fallbackText, $"Conversational LLM timed out after {_timeoutProfile.ConversationalTimeoutSeconds}s. Using rule fallback.");
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning($"BIM765T LlmResponseEnhancer: Conversational LLM failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.");
+            _logger.Error($"BIM765T LlmResponseEnhancer: Conversational LLM failed ({ex.GetType().Name}: {ex.Message}). Using rule-based text.", ex);
             return LlmNarrationResult.Fallback(fallbackText, $"Conversational LLM failed: {ex.GetType().Name}.");
         }
     }

@@ -87,11 +87,6 @@ internal sealed class ToolRegistry
         return _workflows.TryGetValue(toolName, out workflow!);
     }
 
-    /// <summary>
-    /// Registers a workflow-based tool that runs as a multi-step state machine
-    /// instead of a single synchronous handler. Async steps execute on the thread pool,
-    /// sync steps execute on the Revit UI thread — eliminating UI freezing for long-running tools.
-    /// </summary>
     internal void RegisterWorkflow(
         string toolName,
         string description,
@@ -113,8 +108,6 @@ internal sealed class ToolRegistry
             Factory = factory
         };
 
-        // Also register a normal handler as catalog entry so TryGet succeeds for manifest/catalog queries.
-        // The ToolExternalEventHandler will prefer workflows when both exist.
         if (!_registrations.ContainsKey(toolName))
         {
             _registrations[toolName] = new ToolRegistration
@@ -127,14 +120,31 @@ internal sealed class ToolRegistry
 
     internal List<ToolManifest> GetToolCatalog()
     {
-        var list = new List<ToolManifest>();
-        foreach (var registration in _registrations.Values)
-        {
-            list.Add(CloneManifest(registration.Manifest));
-        }
+        return GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi);
+    }
 
-        list.Sort((a, b) => string.Compare(a.ToolName, b.ToolName, StringComparison.OrdinalIgnoreCase));
-        return list;
+    internal List<ToolManifest> GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience audience)
+    {
+        return FilterToolCatalog(CloneToolCatalog(_registrations.Values.Select(registration => registration.Manifest)), audience);
+    }
+
+    internal static List<ToolManifest> FilterToolCatalog(IEnumerable<ToolManifest> manifests, ToolCatalogFilter.ToolCatalogAudience audience)
+    {
+        return audience switch
+        {
+            ToolCatalogFilter.ToolCatalogAudience.Mcp => ToolCatalogFilter.FilterForMcp(manifests),
+            ToolCatalogFilter.ToolCatalogAudience.PublicCatalog => ToolCatalogFilter.FilterForPublicCatalog(manifests),
+            _ => ToolCatalogFilter.FilterForSessionList(manifests)
+        };
+    }
+
+    internal static List<ToolManifest> CloneToolCatalog(IEnumerable<ToolManifest> manifests)
+    {
+        return (manifests ?? Enumerable.Empty<ToolManifest>())
+            .Where(manifest => manifest != null)
+            .Select(CloneManifest)
+            .OrderBy(manifest => manifest.ToolName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     internal void RegisterMutationTool<TPayload>(
@@ -320,5 +330,11 @@ internal sealed class ToolRegistry
 internal sealed class ToolRegistration
 {
     internal ToolManifest Manifest { get; set; } = new ToolManifest();
-    internal Func<UIApplication, ToolRequestEnvelope, ToolResponseEnvelope> Handler { get; set; } = (_, _) => new ToolResponseEnvelope();
+    internal Func<UIApplication, ToolRequestEnvelope, ToolResponseEnvelope> Handler { get; set; } = (_, request) => ToolResponses.Failure(request, StatusCodes.InternalError);
+}
+
+internal sealed class WorkflowRegistration
+{
+    internal ToolManifest Manifest { get; set; } = new ToolManifest();
+    internal Func<ToolRequestEnvelope, WorkflowSetup> Factory { get; set; } = _ => throw new InvalidOperationException("Workflow factory not configured.");
 }

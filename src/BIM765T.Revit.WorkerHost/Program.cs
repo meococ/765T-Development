@@ -129,40 +129,49 @@ internal static class Program
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            // Global per-IP limiter: 100 requests per minute
+            // Global per-IP limiter
             options.AddPolicy("PerIpLimit", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 100,
+                        PermitLimit = settings.RateLimitPerIpPermitLimit,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = 10
+                        QueueLimit = settings.RateLimitPerIpQueueLimit
                     }));
 
-            // Chat endpoint limiter: 10 requests per minute per IP (expensive operation)
+            // Chat endpoint limiter (expensive operation)
             options.AddPolicy("ChatLimit", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 10,
+                        PermitLimit = settings.RateLimitChatPermitLimit,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = 2
+                        QueueLimit = settings.RateLimitChatQueueLimit
                     }));
         });
 
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton(new SqliteMissionEventStore(settings.EventStorePath));
         builder.Services.AddSingleton<IMissionEventBus, InMemoryMissionEventBus>();
-        builder.Services.AddSingleton<IKernelClient>(_ => new KernelPipeClient(settings.KernelPipeName));
+        var timeoutProfile = settings.BuildLlmTimeoutProfile();
+        builder.Services.AddSingleton(timeoutProfile);
+        builder.Services.AddSingleton<IKernelClient>(_ => new KernelPipeClient(
+            settings.KernelPipeName,
+            initialConnectTimeoutMs: settings.KernelInitialConnectTimeoutMs,
+            maxConnectTimeoutMs: settings.KernelMaxConnectTimeoutMs,
+            maxRetries: settings.KernelMaxRetries));
+        builder.Services.AddSingleton<ICopilotLogger>(sp =>
+            new MsLoggerCopilotAdapter(sp.GetRequiredService<ILoggerFactory>().CreateLogger("BIM765T.Copilot")));
         builder.Services.AddSingleton(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<EmbeddingProviderFactory>>();
             var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
-            return EmbeddingProviderFactory.Create(settings, httpFactory, logger);
+            var copilotLogger = sp.GetRequiredService<ICopilotLogger>();
+            return EmbeddingProviderFactory.Create(settings, httpFactory, logger, copilotLogger, timeoutProfile);
         });
         builder.Services.AddSingleton<IEmbeddingClient>(sp =>
             sp.GetRequiredService<EmbeddingProviderResult>().Client);
@@ -176,12 +185,20 @@ internal static class Program
         builder.Services.AddSingleton<IMemorySearchService>(sp => sp.GetRequiredService<MemorySearchService>());
         builder.Services.AddSingleton<ISecretProvider, EnvSecretProvider>();
         builder.Services.AddSingleton<ILlmProviderConfigResolver, OpenRouterFirstLlmProviderConfigResolver>();
-        builder.Services.AddSingleton<ILlmPlanner>(sp => CreatePlanner(sp.GetRequiredService<ILlmProviderConfigResolver>().Resolve()));
-        builder.Services.AddSingleton<IToolCandidateBuilder, MissionToolCandidateBuilder>();
-        builder.Services.AddSingleton<IBoundedMissionPlanner, BoundedMissionPlanner>();
+        builder.Services.AddSingleton<ILlmPlanner>(sp => CreatePlanner(
+            sp.GetRequiredService<ILlmProviderConfigResolver>().Resolve(),
+            sp.GetRequiredService<ICopilotLogger>(),
+            sp.GetRequiredService<LlmTimeoutProfile>()));
+        builder.Services.AddSingleton<IToolCandidateBuilder>(sp =>
+            new MissionToolCandidateBuilder(new IntentClassifier(), new PersonaRegistry(), sp.GetRequiredService<WorkerHostSettings>()));
+        builder.Services.AddSingleton<IBoundedMissionPlanner>(sp =>
+            new BoundedMissionPlanner(sp.GetRequiredService<ILlmPlanner>()));
         builder.Services.AddSingleton<IExecutionPolicyEvaluator, ExecutionPolicyEvaluator>();
         builder.Services.AddSingleton<IReadOnlyResearchOrchestrator, ReadOnlyResearchOrchestrator>();
-        builder.Services.AddSingleton<PlannerAgent>();
+        builder.Services.AddSingleton(sp => new PlannerAgent(
+            sp.GetRequiredService<IToolCandidateBuilder>(),
+            sp.GetRequiredService<IBoundedMissionPlanner>(),
+            sp.GetRequiredService<IReadOnlyResearchOrchestrator>()));
         builder.Services.AddSingleton<RetrieverAgent>();
         builder.Services.AddSingleton<SafetyAgent>();
         builder.Services.AddSingleton<VerifierAgent>();
@@ -205,6 +222,7 @@ internal static class Program
         builder.Services.AddSingleton<ProjectInitHostService>();
         builder.Services.AddSingleton<ProjectDeepScanHostService>();
         builder.Services.AddSingleton<CapabilityHostService>();
+        builder.Services.AddSingleton<StandaloneConversationService>();
         builder.Services.AddSingleton<ExternalAiGatewayService>();
         builder.Services.AddHostedService<MarkdownMemoryBootstrapper>();
         builder.Services.AddHostedService<MemoryOutboxProjectorService>();
@@ -320,7 +338,7 @@ internal static class Program
         security.AddAccessRule(new PipeAccessRule(identity, rights, AccessControlType.Allow));
     }
 
-    private static ILlmPlanner CreatePlanner(LlmProviderConfiguration profile)
+    private static ILlmPlanner CreatePlanner(LlmProviderConfiguration profile, ICopilotLogger? logger = null, LlmTimeoutProfile? timeoutProfile = null)
     {
         if (profile == null
             || !profile.IsConfigured
@@ -329,17 +347,20 @@ internal static class Program
             return new NullLlmPlanner();
         }
 
+        var tp = timeoutProfile ?? LlmTimeoutProfile.Default;
         var primary = new OpenAiCompatibleLlmClient(
             new HttpClient(),
             profile.ApiKey,
             model: profile.PlannerPrimaryModel,
-            maxTokens: 640,
+            maxTokens: tp.PlannerMaxTokens,
             apiUrl: profile.ApiUrl,
             providerLabel: profile.ConfiguredProvider,
             organization: profile.Organization,
             project: profile.Project,
             httpReferer: profile.HttpReferer,
-            xTitle: profile.XTitle);
+            xTitle: profile.XTitle,
+            logger: logger,
+            timeoutProfile: tp);
         OpenAiCompatibleLlmClient? fallback = null;
         if (!string.IsNullOrWhiteSpace(profile.PlannerFallbackModel)
             && !string.Equals(profile.PlannerFallbackModel, profile.PlannerPrimaryModel, StringComparison.OrdinalIgnoreCase))
@@ -348,15 +369,17 @@ internal static class Program
                 new HttpClient(),
                 profile.ApiKey,
                 model: profile.PlannerFallbackModel,
-                maxTokens: 640,
+                maxTokens: tp.PlannerMaxTokens,
                 apiUrl: profile.ApiUrl,
                 providerLabel: profile.ConfiguredProvider,
                 organization: profile.Organization,
                 project: profile.Project,
                 httpReferer: profile.HttpReferer,
-                xTitle: profile.XTitle);
+                xTitle: profile.XTitle,
+                logger: logger,
+                timeoutProfile: tp);
         }
 
-        return new LlmPlanningService(profile, primary, fallback);
+        return new LlmPlanningService(profile, primary, fallback, tp);
     }
 }

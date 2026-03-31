@@ -29,7 +29,7 @@ internal sealed class EnhanceStep : IAsyncYieldStep<MessageWorkflowContext>
         if (enhancer == null || !enhancer.IsLlmConfigured)
         {
             context.NarrationMode = WorkerNarrationModes.RuleOnly;
-            context.NarrationDiagnostics = "LLM narration client khong duoc cau hinh trong runtime add-in.";
+            context.NarrationDiagnostics = "LLM narration client is not configured in the runtime add-in.";
             return new BuildResponseStep(_worker);
         }
 

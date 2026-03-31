@@ -839,6 +839,7 @@ internal sealed class WorkerTab : UserControl
 
 
         {
+            UiShellState.SetShellMode(UiShellState.ShellModes.Transcript);
 
 
 
@@ -859,7 +860,7 @@ internal sealed class WorkerTab : UserControl
 
 
         {
-
+            UiShellState.SetShellMode(UiShellState.ShellModes.Transcript);
 
 
             return;
@@ -954,8 +955,8 @@ internal sealed class WorkerTab : UserControl
 
 
 
+        UiShellState.SetShellMode(UiShellState.ShellModes.Onboarding);
         await ShowOnboardingStateAsync();
-
 
 
     }
@@ -1333,7 +1334,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            Summary = FirstNonEmpty(bundle?.Summary, context.ProjectSummary, "Chat đã sẵn sàng. Init workspace để mở project-aware context cho model này.")
+            Summary = FirstNonEmpty(bundle?.Summary, context.ProjectSummary, "Chat is ready. Init workspace to enable project-aware context for this model.")
 
 
 
@@ -1536,12 +1537,9 @@ internal sealed class WorkerTab : UserControl
 
 
         _isBusy = true;
-
-
+        UiShellState.SetShellMode(UiShellState.ShellModes.Waiting);
 
         _chatStore.BeginUserTurn(trimmedMessage);
-
-
 
         _chatStore.BeginMissionStream(missionId);
 
@@ -1612,6 +1610,7 @@ internal sealed class WorkerTab : UserControl
 
 
             ApplyMissionResponse(response);
+            UiShellState.SetShellMode(UiShellState.ShellModes.Transcript);
 
 
 
@@ -1632,8 +1631,9 @@ internal sealed class WorkerTab : UserControl
 
 
             HandleMissionFailure(ex.Message);
-
-
+            UiShellState.SetShellMode(string.IsNullOrWhiteSpace(UiShellState.CurrentWorkspaceId)
+                ? UiShellState.ShellModes.Onboarding
+                : UiShellState.ShellModes.Dashboard);
 
         }
 
@@ -1724,12 +1724,9 @@ internal sealed class WorkerTab : UserControl
 
 
         var worker = _chatStore.LatestWorkerResponse ?? new WorkerResponse();
-
-
+        worker.Messages ??= new List<WorkerChatMessage>();
 
         var pendingUserMessage = _chatStore.PendingUserMessage;
-
-
 
         var lastUserMessage = worker.Messages.LastOrDefault(x => string.Equals(x.Role, WorkerMessageRoles.User, StringComparison.OrdinalIgnoreCase))?.Content;
 
@@ -2305,7 +2302,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                ReportLocalActionFailure("Model hiện tại chưa có đường dẫn lưu. Hãy lưu file trước khi khởi tạo workspace.", "PROJECT_INIT_PATH_REQUIRED");
+                ReportLocalActionFailure("Current model has no saved file path. Please save the file before initializing workspace.", "PROJECT_INIT_PATH_REQUIRED");
 
 
 
@@ -2333,7 +2330,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                ReportLocalActionFailure("Không thể xác định thư mục nguồn cho model hiện tại.", "PROJECT_INIT_SOURCE_ROOT_MISSING");
+                ReportLocalActionFailure("Cannot determine the source directory for the current model.", "PROJECT_INIT_SOURCE_ROOT_MISSING");
 
 
 
@@ -2405,7 +2402,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                ReportToolActionFailure("Không thể chuẩn bị project context cho model hiện tại.", previewEnvelope);
+                ReportToolActionFailure("Failed to prepare project context for the current model.", previewEnvelope);
 
 
 
@@ -2461,7 +2458,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                    $"Workspace '{effectiveWorkspaceId}' đã sẵn sàng. Chat sẽ dùng project context hiện có cho các lượt tiếp theo.",
+                    $"Workspace '{effectiveWorkspaceId}' is ready. Chat will use existing project context for subsequent turns.",
 
 
 
@@ -2469,7 +2466,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                ToastNotification.Show(_toastArea, $"Workspace '{effectiveWorkspaceId}' đã sẵn sàng.", ToastType.Success);
+                ToastNotification.Show(_toastArea, $"Workspace '{effectiveWorkspaceId}' is ready.", ToastType.Success);
 
 
 
@@ -2541,7 +2538,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                ReportToolActionFailure("Khởi tạo workspace thất bại.", applyEnvelope);
+                ReportToolActionFailure("Workspace initialization failed.", applyEnvelope);
 
 
 
@@ -2577,7 +2574,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-                $"Đã khởi tạo workspace '{apply.WorkspaceId}'. Chat giờ có project context gắn với model hiện tại.",
+                $"Workspace '{apply.WorkspaceId}' initialized. Chat now has project context bound to the current model.",
 
 
 
@@ -2585,7 +2582,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            ToastNotification.Show(_toastArea, $"Workspace '{apply.WorkspaceId}' đã được khởi tạo.", ToastType.Success);
+            ToastNotification.Show(_toastArea, $"Workspace '{apply.WorkspaceId}' initialized.", ToastType.Success);
 
 
 
@@ -2601,7 +2598,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            ReportLocalActionFailure(FirstNonEmpty(ex.Message, "Khởi tạo workspace thất bại."), "PROJECT_INIT_ERROR");
+            ReportLocalActionFailure(FirstNonEmpty(ex.Message, "Workspace initialization failed."), "PROJECT_INIT_ERROR");
 
 
 
@@ -2689,7 +2686,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            throw new InvalidOperationException(BuildToolFailureMessage("Không thể đọc active document context.", response));
+            throw new InvalidOperationException(BuildToolFailureMessage("Failed to read active document context.", response));
 
 
 
@@ -3758,7 +3755,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            return "Đang đọc context, kiểm tra an toàn và chuẩn bị phản hồi trong cùng một luồng chat.";
+            return "Reading context, running safety checks, and preparing response in a single chat turn.";
 
 
 
@@ -3782,11 +3779,10 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            var workspaceId = FirstNonEmpty(onboarding.WorkspaceId, vm.LatestWorkerResponse.WorkspaceId, UiShellState.CurrentWorkspaceId, "default");
+            var workspaceId = UiShellState.ResolveWorkspaceId(onboarding.WorkspaceId, vm.LatestWorkerResponse.WorkspaceId, UiShellState.CurrentWorkspaceId);
+            var workspaceLabel = string.IsNullOrWhiteSpace(workspaceId) ? "current workspace" : workspaceId;
 
-
-
-            return $"Project context chưa sẵn sàng. Dùng /init-workspace để khởi tạo workspace '{workspaceId}'.";
+            return $"Project context is not ready. Use /init-workspace to initialize workspace '{workspaceLabel}'.";
 
 
 
@@ -3806,7 +3802,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-            return "Workspace đã có context cơ bản. Dùng /deep-scan để bổ sung pattern, evidence và findings sâu hơn.";
+            return "Workspace has basic context. Use /deep-scan to add deeper patterns, evidence, and findings.";
 
 
 
@@ -3851,41 +3847,11 @@ internal sealed class WorkerTab : UserControl
 
 
             if (string.Equals(vm.LatestWorkerResponse.NarrationMode, WorkerNarrationModes.LlmEnhanced, StringComparison.OrdinalIgnoreCase))
-
-
-
             {
-
-
-
-                return $"{providerLabel} {modelLabel} • trả lời: LLM";
-
-
-
+                return $"{providerLabel} {modelLabel} \u2022 response: LLM";
             }
 
-
-
-
-
-
-
-            if (string.Equals(vm.LatestWorkerResponse.NarrationMode, WorkerNarrationModes.LlmFallback, StringComparison.OrdinalIgnoreCase))
-
-
-
-            {
-
-
-
-                return $"{providerLabel} {modelLabel} • trả lời: rule fallback";
-
-
-
-            }
-
-
-
+            return $"{providerLabel} {modelLabel} \u2022 response: rule fallback";
         }
 
 
@@ -3914,7 +3880,7 @@ internal sealed class WorkerTab : UserControl
 
 
 
-        return "Chat tập trung một luồng. Dùng / để mở slash commands hoặc giao mục tiêu trực tiếp bằng tiếng Việt.";
+        return "Single-thread chat. Use / for slash commands or describe your goal directly.";
 
 
 
@@ -3988,17 +3954,15 @@ internal sealed class WorkerTab : UserControl
 
             || reportResponse.Exists;
 
-        var workspaceId = FirstNonEmpty(bundle.WorkspaceId, reportResponse.WorkspaceId, onboarding.WorkspaceId, worker.WorkspaceId, context.WorkspaceId, UiShellState.CurrentWorkspaceId, "default");
-
+        var workspaceId = UiShellState.ResolveWorkspaceId(bundle.WorkspaceId, reportResponse.WorkspaceId, onboarding.WorkspaceId, worker.WorkspaceId, context.WorkspaceId, UiShellState.CurrentWorkspaceId);
+        var workspaceLabel = string.IsNullOrWhiteSpace(workspaceId) ? "current workspace" : workspaceId;
         var viewName = FirstNonEmpty(context.ActiveViewName, UiShellState.CurrentActiveViewName, "Active view pending");
-
         var summary = FirstNonEmpty(report.Summary, bundle.DeepScanSummary, bundle.Summary, context.ProjectSummary, onboarding.Summary,
-
             initialized
 
-                ? "Workspace da san sang. Em co the dung project context de explain, review va project-aware chat."
+                ? "Workspace is ready. You can use project context for explain, review, and project-aware chat."
 
-                : "Em dang dung live Revit context. Bam Init workspace de mo project-aware grounding va Project Brief.");
+                : "Using live Revit context. Click Init Workspace to enable project-aware grounding and Project Brief.");
 
         var state = new ProjectBriefCardState
 
@@ -4016,13 +3980,13 @@ internal sealed class WorkerTab : UserControl
 
             Subtitle = !initialized
 
-                ? $"{FirstNonEmpty(context.DocumentTitle, UiShellState.CurrentDocumentTitle, "Model hien tai")} ? {viewName}"
+                ? $"{FirstNonEmpty(context.DocumentTitle, UiShellState.CurrentDocumentTitle, "Current model")} ? {viewName}"
 
                 : deepScanCompleted
 
-                    ? $"Workspace '{workspaceId}' da co brief grounded tu context bundle va deep scan."
+                    ? $"Workspace '{workspaceLabel}' has brief grounded from context bundle and deep scan."
 
-                    : $"Workspace '{workspaceId}' da co context co ban. Chay deep scan de bo sung findings va evidence.",
+                    : $"Workspace '{workspaceLabel}' has basic context. Run deep scan to add findings and evidence.",
 
             Summary = summary,
 

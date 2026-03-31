@@ -126,7 +126,7 @@ internal sealed class ChatTimelineProjector
             trace.Events.Add(new MissionTraceEventVm
             {
                 EventType = "Waiting",
-                Summary = "765T đang đọc context, kiểm tra an toàn và chuẩn bị phản hồi.",
+                Summary = "765T is reading context, running safety checks, and preparing a response.",
                 AccentKind = WorkerFlowStages.Thinking
             });
             return trace;
@@ -154,19 +154,19 @@ internal sealed class ChatTimelineProjector
             var approval = new SystemStateTurnVm
             {
                 TurnKind = SystemTurnKinds.Approval,
-                Title = "Cần phê duyệt",
-                Summary = FirstNonEmpty(worker.PendingApproval.Summary, "Preview đã sẵn sàng và đang chờ phê duyệt.")
+                Title = "Approval required",
+                Summary = FirstNonEmpty(worker.PendingApproval.Summary, "Preview is ready and awaiting approval.")
             };
             approval.Badges.Add(FirstNonEmpty(worker.PendingApproval.ExecutionTier, WorkerExecutionTiers.Tier1).ToUpperInvariant());
             approval.Actions.Add(new SystemTurnActionVm
             {
                     ActionKind = SystemTurnActionKinds.Approve,
-                    Label = "Phê duyệt"
+                    Label = "Approve"
                 });
             approval.Actions.Add(new SystemTurnActionVm
             {
                 ActionKind = SystemTurnActionKinds.Reject,
-                Label = "Từ chối"
+                Label = "Reject"
             });
             return approval;
         }
@@ -193,7 +193,7 @@ internal sealed class ChatTimelineProjector
                 turn.Actions.Add(new SystemTurnActionVm
                 {
                     ActionKind = SystemTurnActionKinds.OpenArtifact,
-                    Label = "Mở artifact",
+                    Label = "Open artifact",
                     Path = fallback.ArtifactPaths[0]
                 });
                 turn.Actions.Add(new SystemTurnActionVm
@@ -227,13 +227,13 @@ internal sealed class ChatTimelineProjector
             {
                 TurnKind = SystemTurnKinds.Onboarding,
                 Title = string.Equals(onboarding.InitStatus, ProjectOnboardingStatuses.Initialized, StringComparison.OrdinalIgnoreCase)
-                    ? "Nên chạy deep scan"
-                    : "Cần khởi tạo project context",
+                    ? "Deep scan recommended"
+                    : "Project context initialization needed",
                 Summary = FirstNonEmpty(
                     onboarding.Summary,
                     string.Equals(onboarding.InitStatus, ProjectOnboardingStatuses.Initialized, StringComparison.OrdinalIgnoreCase)
-                        ? "Workspace đã tồn tại nhưng deep scan chưa hoàn tất."
-                        : "Khởi tạo workspace trước khi dựa vào project context.")
+                        ? "Workspace exists but deep scan is not yet complete."
+                        : "Initialize workspace before relying on project context.")
             };
             turn.Badges.Add(FirstNonEmpty(onboarding.WorkspaceId, "ONBOARDING").ToUpperInvariant());
             turn.Badges.Add(FirstNonEmpty(onboarding.DeepScanStatus, ProjectDeepScanStatuses.NotStarted).ToUpperInvariant());
@@ -361,23 +361,23 @@ internal sealed class ChatTimelineProjector
         switch (latestEvent?.EventType ?? string.Empty)
         {
             case "TaskStarted":
-                return "Em da nhan yeu cau. Dang mo context tu model hien tai...";
+                return "Request received. Opening context from the current model...";
             case "IntentClassified":
-                return "Em da hieu huong cau hoi. Dang bo sung ngu canh Revit de tra loi dung muc tieu...";
+                return "Intent identified. Enriching Revit context for an accurate response...";
             case "ContextResolved":
-                return "Em dang doc document, view, selection, va memory lien quan truoc khi tra loi...";
+                return "Reading document, view, selection, and related memory before responding...";
             case "PlanBuilt":
-                return "Em da co huong xu ly. Dang tong hop cau tra loi va next step cho anh...";
+                return "Plan ready. Composing response and next steps...";
             case "ExecutionStarted":
-                return "Em dang chay buoc xu ly trong Revit...";
+                return "Running execution step in Revit...";
             case "PreviewGenerated":
-                return "Em da tao preview. Dang tong hop ket qua de hien cho anh...";
+                return "Preview created. Composing results...";
             case "ApprovalRequested":
-                return "Em da co preview va dang cho anh phe duyet buoc tiep theo.";
+                return "Preview ready and awaiting your approval for the next step.";
             default:
-                var documentTitle = FirstNonEmpty(worker.ContextSummary?.DocumentTitle, "model hien tai");
-                var viewName = FirstNonEmpty(worker.ContextSummary?.ActiveViewName, "view dang active");
-                return $"Em dang doc context cua '{documentTitle}' tai '{viewName}' va chuan bi phan hoi...";
+                var documentTitle = FirstNonEmpty(worker.ContextSummary?.DocumentTitle, "current model");
+                var viewName = FirstNonEmpty(worker.ContextSummary?.ActiveViewName, "active view");
+                return $"Reading context of '{documentTitle}' at '{viewName}' and preparing response...";
         }
     }
 
@@ -385,7 +385,7 @@ internal sealed class ChatTimelineProjector
     {
         if (store?.IsBusy == true)
         {
-            return "765T đang phân tích yêu cầu, kiểm tra an toàn và chuẩn bị phản hồi.";
+            return "765T is analyzing the request, running safety checks, and preparing a response.";
         }
 
         return FirstNonEmpty(
@@ -393,7 +393,7 @@ internal sealed class ChatTimelineProjector
             mission.PlanningSummary,
             mission.ResponseText,
             worker.Messages.LastOrDefault(x => string.Equals(x.Role, WorkerMessageRoles.Worker, StringComparison.OrdinalIgnoreCase))?.Content,
-            "Mission trace khả dụng cho phản hồi này.");
+            "Mission trace available for this response.");
     }
 
     private static string SummarizeEvent(WorkerHostMissionEvent missionEvent)
@@ -402,35 +402,35 @@ internal sealed class ChatTimelineProjector
         switch (missionEvent?.EventType ?? string.Empty)
         {
             case "TaskStarted":
-                return "Da nhan yeu cau va bat dau mission.";
+                return "Request received and mission started.";
             case "IntentClassified":
-                return "Da xac dinh loai yeu cau va scope xu ly.";
+                return "Request type and processing scope identified.";
             case "ContextResolved":
-                return "Da doc context Revit va retrieval lien quan.";
+                return "Revit context and related retrieval read.";
             case "PlanBuilt":
-                return "Da lap plan an toan cho luot nay.";
+                return "Safe plan built for this turn.";
             case "PreviewGenerated":
-                return "Da tao preview de review.";
+                return "Preview created for review.";
             case "ApprovalRequested":
-                return "Dang cho phe duyet.";
+                return "Awaiting approval.";
             case "ExecutionStarted":
-                return "Da bat dau thuc thi.";
+                return "Execution started.";
             case "RevitMutationApplied":
-                return "Da ap dung thay doi qua kernel Revit.";
+                return "Changes applied via Revit kernel.";
             case "VerificationPassed":
-                return "Xac minh da pass.";
+                return "Verification passed.";
             case "VerificationFailed":
-                return "Xac minh fail va can review.";
+                return "Verification failed — review needed.";
             case "TaskCompleted":
-                return "Mission da hoan tat.";
+                return "Mission completed.";
             case "TaskBlocked":
-                return "Mission bi block.";
+                return "Mission blocked.";
             case "TaskCanceled":
-                return "Mission da bi huy.";
+                return "Mission canceled.";
             case "UserApproved":
-                return "Da duoc phe duyet.";
+                return "Approved.";
             case "UserRejected":
-                return "Da bi tu choi.";
+                return "Rejected.";
             default:
                 return string.IsNullOrWhiteSpace(payload)
                     ? missionEvent?.EventType ?? "Event"

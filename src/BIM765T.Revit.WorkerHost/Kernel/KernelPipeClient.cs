@@ -18,14 +18,21 @@ namespace BIM765T.Revit.WorkerHost.Kernel;
 internal sealed class KernelPipeClient : IKernelClient
 {
     private const int DefaultTimeoutMs = 120_000;
-    private const int InitialConnectTimeoutMs = 10_000; // Increased from 5s to 10s for Revit startup
-    private const int MaxConnectTimeoutMs = 30_000;
-    private const int MaxRetries = 3;
     private readonly string _pipeName;
+    private readonly int _initialConnectTimeoutMs;
+    private readonly int _maxConnectTimeoutMs;
+    private readonly int _maxRetries;
 
-    public KernelPipeClient(string pipeName)
+    public KernelPipeClient(
+        string pipeName,
+        int initialConnectTimeoutMs = 10_000,
+        int maxConnectTimeoutMs = 30_000,
+        int maxRetries = 3)
     {
         _pipeName = pipeName;
+        _initialConnectTimeoutMs = initialConnectTimeoutMs > 0 ? initialConnectTimeoutMs : 10_000;
+        _maxConnectTimeoutMs = maxConnectTimeoutMs > 0 ? maxConnectTimeoutMs : 30_000;
+        _maxRetries = maxRetries > 0 ? maxRetries : 3;
     }
 
     public async Task<KernelInvocationResult> InvokeAsync(KernelToolRequest request, CancellationToken cancellationToken)
@@ -36,13 +43,13 @@ internal sealed class KernelPipeClient : IKernelClient
         var effectiveToken = timeoutCts.Token;
 
         // Retry loop for connection with exponential backoff
-        var connectTimeoutMs = InitialConnectTimeoutMs;
+        var connectTimeoutMs = _initialConnectTimeoutMs;
         Exception? lastException = null;
-        for (var attempt = 0; attempt < MaxRetries; attempt++)
+        for (var attempt = 0; attempt < _maxRetries; attempt++)
         {
             if (TryCheckPipeAdvertised(_pipeName, out var pipeAdvertised) && !pipeAdvertised)
             {
-                if (attempt < MaxRetries - 1)
+                if (attempt < _maxRetries - 1)
                 {
                     var delay = ComputeBackoffDelayMs(attempt);
                     await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
@@ -67,38 +74,38 @@ internal sealed class KernelPipeClient : IKernelClient
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && !effectiveToken.IsCancellationRequested)
             {
                 // If overall timeout hasn't fired, this was a connect timeout - retry
-                if (attempt < MaxRetries - 1)
+                if (attempt < _maxRetries - 1)
                 {
                     var delay = ComputeBackoffDelayMs(attempt);
                     await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                    connectTimeoutMs = Math.Min(connectTimeoutMs * 2, MaxConnectTimeoutMs);
+                    connectTimeoutMs = Math.Min(connectTimeoutMs * 2, _maxConnectTimeoutMs);
                     lastException = null;
                     continue;
                 }
                 return BuildFailure(StatusCodes.RevitUnavailable, "Revit kernel pipe unavailable after multiple connection attempts. Open Revit with an active project and try again.");
             }
-            catch (IOException ex) when (attempt < MaxRetries - 1)
+            catch (IOException ex) when (attempt < _maxRetries - 1)
             {
                 lastException = ex;
                 var delay = ComputeBackoffDelayMs(attempt);
                 await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, MaxConnectTimeoutMs);
+                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, _maxConnectTimeoutMs);
                 continue;
             }
-            catch (TimeoutException ex) when (attempt < MaxRetries - 1)
+            catch (TimeoutException ex) when (attempt < _maxRetries - 1)
             {
                 lastException = ex;
                 var delay = ComputeBackoffDelayMs(attempt);
                 await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, MaxConnectTimeoutMs);
+                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, _maxConnectTimeoutMs);
                 continue;
             }
-            catch (Exception ex) when (attempt < MaxRetries - 1)
+            catch (Exception ex) when (attempt < _maxRetries - 1)
             {
                 lastException = ex;
                 var delay = ComputeBackoffDelayMs(attempt);
                 await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, MaxConnectTimeoutMs);
+                connectTimeoutMs = Math.Min(connectTimeoutMs * 2, _maxConnectTimeoutMs);
                 continue;
             }
         }

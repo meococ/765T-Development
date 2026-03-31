@@ -29,15 +29,16 @@ public sealed class AnthropicLlmClient : ILlmClient
     private const string DefaultAnthropicModel = "claude-sonnet-4-20250514";
     private const string DefaultOpenAiModel = "claude-sonnet-4.6";
     private const int DefaultMaxTokens = 1024;
-    private const int DefaultTimeoutSeconds = 20;
     private const string AnthropicVersion = "2023-06-01";
 
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _model;
     private readonly int _maxTokens;
+    private readonly int _httpTimeoutSeconds;
     private readonly string _apiUrl;
     private readonly bool _useOpenAiFormat;
+    private readonly ICopilotLogger _logger;
 
     // One-time startup log via CAS — same pattern as NullLlmClient.
     private static int _startupLogged;
@@ -56,14 +57,20 @@ public sealed class AnthropicLlmClient : ILlmClient
     /// <param name="model">Model identifier. Auto-selected based on API format if null.</param>
     /// <param name="maxTokens">Max tokens per completion. Defaults to 1024.</param>
     /// <param name="apiUrl">Override API endpoint. Defaults to Anthropic production.</param>
+    /// <param name="logger">Optional logger. Falls back to Trace if null.</param>
     public AnthropicLlmClient(
         HttpClient httpClient,
         string apiKey,
         string? model = null,
         int maxTokens = DefaultMaxTokens,
-        string? apiUrl = null)
+        string? apiUrl = null,
+        ICopilotLogger? logger = null,
+        LlmTimeoutProfile? timeoutProfile = null)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger ?? TraceCopilotLogger.Instance;
+        var profile = timeoutProfile ?? LlmTimeoutProfile.Default;
+        _httpTimeoutSeconds = profile.HttpTimeoutSeconds;
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new ArgumentException("API key must not be empty.", nameof(apiKey));
@@ -103,7 +110,7 @@ public sealed class AnthropicLlmClient : ILlmClient
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(DefaultTimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(_httpTimeoutSeconds));
 
             var requestBody = _useOpenAiFormat
                 ? BuildOpenAiRequestBody(systemPrompt, userMessage)
@@ -336,18 +343,18 @@ public sealed class AnthropicLlmClient : ILlmClient
     /// Log the first successful connection once (startup confirmation).
     /// Errors always log (via <see cref="LogAlways"/>) for debuggability.
     /// </summary>
-    private static void LogOnce(string message)
+    private void LogOnce(string message)
     {
         if (Interlocked.CompareExchange(ref _startupLogged, 1, 0) == 0)
         {
-            Trace.TraceInformation(message);
+            _logger.Info(message);
         }
     }
 
     /// <summary>Log every time — used for errors so they are not silently swallowed.</summary>
-    private static void LogAlways(string message)
+    private void LogAlways(string message)
     {
-        Trace.TraceWarning(message);
+        _logger.Warn(message);
     }
 
     private static string Truncate(string value, int maxLength)

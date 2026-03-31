@@ -82,7 +82,7 @@ public sealed class WorkerReasoningEngine
         {
             Intent = classification.Intent,
             Goal = BuildGoal(classification.Intent, classification.TargetHint),
-            DecisionRationale = "Rule-first routing dua tren intent ro rang, history gan day, va lane Revit hien tai.",
+            DecisionRationale = "Rule-first routing based on clear intent, recent history, and current Revit lane.",
             ReasoningSummary = $"Intent={classification.Intent}; persona={persona.PersonaId}; continueMission={continueMission}.",
             ResponseLead = BuildResponseLead(classification.Intent)
         };
@@ -108,7 +108,7 @@ public sealed class WorkerReasoningEngine
         {
             Intent = classification.Intent,
             Goal = BuildGoal(classification.Intent, classification.TargetHint),
-            DecisionRationale = "Rule-first routing dua tren intent ro rang, history gan day, va lane Revit hien tai.",
+            DecisionRationale = "Rule-first routing based on clear intent, recent history, and current Revit lane.",
             ReasoningSummary = $"Intent={classification.Intent}; persona={persona.PersonaId}; continueMission={continueMission}.",
             ResponseLead = BuildResponseLead(classification.Intent)
         };
@@ -267,25 +267,25 @@ public sealed class WorkerReasoningEngine
         switch (classification.Intent)
         {
             case "greeting":
-                decision.PlanSummary = "Chao anh, em se lay context roi de xuat buoc read-only truoc.";
-                decision.SuggestedActions.Add(CreateSuggest("Kiem tra model health", "Chay QC read-only cho model hien tai.", ToolNames.ReviewSmartQc));
-                decision.SuggestedActions.Add(CreateSuggest("Xem context hien tai", "Lay document, view, selection va delta summary.", ToolNames.ContextGetDeltaSummary));
+                decision.PlanSummary = "Greet user, gather context, suggest read-only next steps.";
+                decision.SuggestedActions.Add(CreateSuggest("Check model health", "Run read-only QC on the current model.", ToolNames.ReviewSmartQc));
+                decision.SuggestedActions.Add(CreateSuggest("View current context", "Get document, view, selection and delta summary.", ToolNames.ContextGetDeltaSummary));
                 break;
 
             case "identity_query":
-                decision.PlanSummary = "Xac nhan vai tro worker, context dang mo, va cac lane em co the ho tro ngay trong Revit.";
-                decision.SuggestedActions.Add(CreateSuggest("Xem context hien tai", "Lay document, view, selection va delta summary.", ToolNames.ContextGetDeltaSummary));
-                decision.SuggestedActions.Add(CreateSuggest("Kiem tra model health", "Chay QC read-only cho model hien tai.", ToolNames.ReviewSmartQc));
+                decision.PlanSummary = "Confirm worker role, open context, and available support lanes in Revit.";
+                decision.SuggestedActions.Add(CreateSuggest("View current context", "Get document, view, selection and delta summary.", ToolNames.ContextGetDeltaSummary));
+                decision.SuggestedActions.Add(CreateSuggest("Check model health", "Run read-only QC on the current model.", ToolNames.ReviewSmartQc));
                 break;
 
             case "context_query":
-                decision.PlanSummary = "Doc context hien tai, delta gan day, va goi y buoc ke tiep.";
+                decision.PlanSummary = "Read current context, recent deltas, and suggest next steps.";
                 decision.PlannedTools.Add(ToolNames.SessionGetTaskContext);
                 decision.PlannedTools.Add(ToolNames.ContextGetDeltaSummary);
                 break;
 
             case "project_research_request":
-                decision.PlanSummary = "Chay grounded research loop 3 buoc: live context -> workspace context bundle -> deep-scan/artifact/standards/memory evidence neu co.";
+                decision.PlanSummary = "Grounded research loop: live context -> workspace context bundle -> deep-scan/artifact/standards/memory evidence.";
                 decision.PlannedTools.Add(ToolNames.SessionGetTaskContext);
                 decision.PlannedTools.Add(ToolNames.ContextGetDeltaSummary);
                 decision.PlannedTools.Add(ToolNames.ProjectGetContextBundle);
@@ -293,72 +293,72 @@ public sealed class WorkerReasoningEngine
                 decision.PlannedTools.Add(ToolNames.StandardsResolve);
                 decision.PlannedTools.Add(ToolNames.ArtifactSummarize);
                 decision.PlannedTools.Add(ToolNames.MemorySearchScoped);
-                decision.SuggestedActions.Add(CreateSuggest("Project overview grounded", "Tom tat current state dua tren live context + workspace bundle + deep scan neu san co.", ToolNames.ProjectGetContextBundle));
+                decision.SuggestedActions.Add(CreateSuggest("Grounded project overview", "Summarize current state from live context + workspace bundle + deep scan.", ToolNames.ProjectGetContextBundle));
                 break;
 
             case "sheet_analysis_request":
-                decision.PlanSummary = "Phan tich sheet bang summary + QC read-only, giu lane MVP gon va co evidence ro rang.";
+                decision.PlanSummary = "Analyze sheet with summary + read-only QC, keep MVP lane lean with clear evidence.";
                 decision.PlannedTools.Add(ToolNames.ReviewSheetSummary);
                 decision.PlannedTools.Add(ToolNames.ReviewSmartQc);
                 break;
 
             case "sheet_authoring_request":
-                decision.PlanSummary = "Resolve workspace standards + playbook truoc, sau do preview tool chain tao sheet/view/place/QC.";
+                decision.PlanSummary = "Resolve workspace standards + playbook first, then preview sheet/view/place/QC tool chain.";
                 decision.PlannedTools.Add(ToolNames.WorkspaceGetManifest);
                 decision.PlannedTools.Add(ToolNames.StandardsResolve);
                 decision.PlannedTools.Add(ToolNames.PlaybookMatch);
                 decision.PlannedTools.Add(ToolNames.PlaybookPreview);
-                decision.SuggestedActions.Add(CreateSuggest("Preview playbook sheet", "Resolve standards team va chain tao sheet truoc khi mutate.", ToolNames.PlaybookPreview));
+                decision.SuggestedActions.Add(CreateSuggest("Preview playbook sheet", "Resolve team standards and sheet creation chain before mutation.", ToolNames.PlaybookPreview));
                 break;
 
             case "view_authoring_request":
-                decision.PlanSummary = "Dung atlas fast-path truoc: quick-plan -> command.execute_safe; fallback ve playbook neu can.";
+                decision.PlanSummary = "Atlas fast-path first: quick-plan -> command.execute_safe; fallback to playbook if needed.";
                 decision.PlannedTools.Add(ToolNames.WorkflowQuickPlan);
                 decision.PlannedTools.Add(ToolNames.CommandDescribe);
                 decision.PlannedTools.Add(ToolNames.CommandExecuteSafe);
-                decision.SuggestedActions.Add(CreateSuggest("Quick view action", "Resolve create/duplicate/apply-template tu command atlas.", ToolNames.WorkflowQuickPlan));
+                decision.SuggestedActions.Add(CreateSuggest("Quick view action", "Resolve create/duplicate/apply-template from command atlas.", ToolNames.WorkflowQuickPlan));
                 break;
 
             case "documentation_request":
-                decision.PlanSummary = "Resolve documentation quick-path truoc, sau do fallback sang playbook sheet package neu task nhieu buoc.";
+                decision.PlanSummary = "Resolve documentation quick-path first, fallback to playbook sheet package for multi-step tasks.";
                 decision.PlannedTools.Add(ToolNames.WorkflowQuickPlan);
                 decision.PlannedTools.Add(ToolNames.CommandExecuteSafe);
                 decision.PlannedTools.Add(ToolNames.PlaybookPreview);
                 break;
 
             case "model_manage_request":
-                decision.PlanSummary = "Route vao model-manage quick-path de preview purge/cleanup/rename, giu approval gate neu co mutation.";
+                decision.PlanSummary = "Route to model-manage quick-path for preview purge/cleanup/rename, keep approval gate for mutations.";
                 decision.PlannedTools.Add(ToolNames.WorkflowQuickPlan);
                 decision.PlannedTools.Add(ToolNames.CommandExecuteSafe);
                 decision.PlannedTools.Add(ToolNames.CommandCoverageReport);
                 break;
 
             case "command_palette_request":
-                decision.PlanSummary = "Treat request as command-palette lookup: search -> describe -> quick-plan -> execute if safe.";
+                decision.PlanSummary = "Command-palette lookup: search -> describe -> quick-plan -> execute if safe.";
                 decision.PlannedTools.Add(ToolNames.CommandSearch);
                 decision.PlannedTools.Add(ToolNames.CommandDescribe);
                 decision.PlannedTools.Add(ToolNames.WorkflowQuickPlan);
                 break;
 
             case "element_authoring_request":
-                decision.PlanSummary = "Try atlas quick-path first for atomic authoring; if no safe lane exists, escalate to clarify/playbook.";
+                decision.PlanSummary = "Atlas quick-path first for atomic authoring; escalate to clarify/playbook if no safe lane exists.";
                 decision.PlannedTools.Add(ToolNames.CommandSearch);
                 decision.PlannedTools.Add(ToolNames.WorkflowQuickPlan);
                 decision.PlannedTools.Add(ToolNames.CommandExecuteSafe);
                 break;
 
             case "governance_request":
-                decision.PlanSummary = "Resolve governance domain, policy packs, playbook, va specialist truoc khi chon leaf tools.";
+                decision.PlanSummary = "Resolve governance domain, policy packs, playbook, and specialist before selecting leaf tools.";
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 decision.PlannedTools.Add(ToolNames.PlaybookMatch);
                 decision.PlannedTools.Add(ToolNames.PolicyResolve);
                 decision.PlannedTools.Add(ToolNames.SpecialistResolve);
                 decision.PlannedTools.Add(ToolNames.IntentCompile);
-                decision.SuggestedActions.Add(CreateSuggest("Governance compile", "Compile task governance theo policy + playbook workspace.", ToolNames.IntentCompile));
+                decision.SuggestedActions.Add(CreateSuggest("Governance compile", "Compile governance task from policy + workspace playbook.", ToolNames.IntentCompile));
                 break;
 
             case "annotation_request":
-                decision.PlanSummary = "Dung annotation/governance playbook va policy packs de plan tag/dim/room-finish safely.";
+                decision.PlanSummary = "Use annotation/governance playbook and policy packs to plan tag/dim/room-finish safely.";
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 decision.PlannedTools.Add(ToolNames.PlaybookMatch);
                 decision.PlannedTools.Add(ToolNames.PolicyResolve);
@@ -366,27 +366,27 @@ public sealed class WorkerReasoningEngine
                 break;
 
             case "coordination_request":
-                decision.PlanSummary = "Route vao coordination lane: guidance -> playbook -> policy -> specialist -> compiled fix/verify plan.";
+                decision.PlanSummary = "Coordination lane: guidance -> playbook -> policy -> specialist -> compiled fix/verify plan.";
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 decision.PlannedTools.Add(ToolNames.PlaybookMatch);
                 decision.PlannedTools.Add(ToolNames.PolicyResolve);
                 decision.PlannedTools.Add(ToolNames.SpecialistResolve);
                 decision.PlannedTools.Add(ToolNames.IntentCompile);
-                decision.SuggestedActions.Add(CreateSuggest("Preview clash plan", "Compile clash/opening task truoc khi vao fix loop.", ToolNames.IntentCompile));
+                decision.SuggestedActions.Add(CreateSuggest("Preview clash plan", "Compile clash/opening task before entering fix loop.", ToolNames.IntentCompile));
                 break;
 
             case "systems_request":
-                decision.PlanSummary = "Route vao systems lane: capture graph, compile task, va plan disconnected/slope/routing fixes.";
+                decision.PlanSummary = "Systems lane: capture graph, compile task, plan disconnected/slope/routing fixes.";
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 decision.PlannedTools.Add(ToolNames.SystemCaptureGraph);
                 decision.PlannedTools.Add(ToolNames.PolicyResolve);
                 decision.PlannedTools.Add(ToolNames.SpecialistResolve);
                 decision.PlannedTools.Add(ToolNames.IntentCompile);
-                decision.SuggestedActions.Add(CreateSuggest("Capture system graph", "Lay snapshot connectivity/slope truoc khi plan fix.", ToolNames.SystemCaptureGraph));
+                decision.SuggestedActions.Add(CreateSuggest("Capture system graph", "Snapshot connectivity/slope before planning fix.", ToolNames.SystemCaptureGraph));
                 break;
 
             case "integration_request":
-                decision.PlanSummary = "Route vao integration lane: compile task, preview sync delta, va giu boundary cloud/plugin-safe.";
+                decision.PlanSummary = "Integration lane: compile task, preview sync delta, keep cloud/plugin-safe boundary.";
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 decision.PlannedTools.Add(ToolNames.IntentCompile);
                 decision.PlannedTools.Add(ToolNames.IntegrationPreviewSync);
@@ -394,62 +394,62 @@ public sealed class WorkerReasoningEngine
                 break;
 
             case "intent_compile_request":
-                decision.PlanSummary = "Compile natural-language request thanh typed task plan, validate tool lanes, roi moi de xuat execute.";
+                decision.PlanSummary = "Compile natural-language request into typed task plan, validate tool lanes, then propose execute.";
                 decision.PlannedTools.Add(ToolNames.IntentCompile);
                 decision.PlannedTools.Add(ToolNames.IntentValidate);
                 decision.PlannedTools.Add(ToolNames.ToolGetGuidance);
                 break;
 
             case "family_analysis_request":
-                decision.PlanSummary = "Phan tich family hien tai hoac family duoc chi dinh bang X-Ray.";
+                decision.PlanSummary = "Analyze current or specified family using X-Ray.";
                 decision.PlannedTools.Add(ToolNames.FamilyXray);
                 break;
 
             case "qc_request":
-                decision.PlanSummary = "Chay model QC read-only, roi tom tat findings va next actions.";
+                decision.PlanSummary = "Run model QC read-only, then summarize findings and next actions.";
                 decision.PlannedTools.Add(ToolNames.ReviewModelHealth);
                 decision.PlannedTools.Add(ToolNames.ReviewSmartQc);
                 break;
 
             case "mutation_request":
-                decision.PlanSummary = "Khong mutate thang. Em se co preview hoac chan de xin ro pham vi truoc.";
+                decision.PlanSummary = "No direct mutation. Will preview or request scope clarification first.";
                 decision.SuggestedActions.Add(new WorkerActionCard
                 {
                     ActionKind = WorkerActionKinds.Clarify,
-                    Title = "Noi ro mutation",
-                    Summary = "Neu ro element/scope/tool mong muon, vi du purge unused hay fill parameter.",
+                    Title = "Clarify mutation scope",
+                    Summary = "Specify the element/scope/tool you want, e.g. purge unused or fill parameter.",
                     IsPrimary = true,
                     ExecutionTier = WorkerExecutionTiers.Tier1,
-                    WhyThisAction = "Mutation lane can scope ro truoc khi worker de xuat tool an toan.",
+                    WhyThisAction = "Mutation lane requires clear scope before worker proposes a safe tool.",
                     Confidence = 0.8d,
-                    RecoveryHint = "Neu can mutate ngay, hay noi ro family, element, parameter, view, hoac workflow.",
+                    RecoveryHint = "To mutate now, specify the family, element, parameter, view, or workflow.",
                     AutoExecutionEligible = false
                 });
                 break;
 
             case "approval":
-                decision.PlanSummary = "Co approval pending, em se validate token roi execute theo kernel an toan.";
+                decision.PlanSummary = "Approval pending — validate token and execute safely via kernel.";
                 decision.PlannedTools.Add("pending_approval");
                 break;
 
             case "reject":
-                decision.PlanSummary = "Huy pending approval va giu mission o trang thai blocked.";
+                decision.PlanSummary = "Cancel pending approval and set mission to blocked state.";
                 break;
 
             case "resume":
-                decision.PlanSummary = "Tiep tuc mission gan nhat neu trang thai va context con hop le.";
+                decision.PlanSummary = "Resume most recent mission if state and context are still valid.";
                 decision.PlannedTools.Add("resume_mission");
                 break;
 
             case "cancel":
-                decision.PlanSummary = "Ket thuc mission hien tai, khong thuc thi gi them.";
+                decision.PlanSummary = "End current mission, no further execution.";
                 break;
 
             default:
                 decision.RequiresClarification = true;
-                decision.PlanSummary = "Em chua map duoc intent du chac. Em se hoi lai ngan va de xuat tool an toan truoc.";
-                decision.SuggestedActions.Add(CreateSuggest("Kiem tra model health", "Chay QC read-only cho model hien tai.", ToolNames.ReviewSmartQc));
-                decision.SuggestedActions.Add(CreateSuggest("Lay context", "Doc active doc/view/selection va delta.", ToolNames.ContextGetDeltaSummary));
+                decision.PlanSummary = "Intent not confidently mapped. Will ask for clarification and suggest safe tools.";
+                decision.SuggestedActions.Add(CreateSuggest("Check model health", "Run read-only QC on the current model.", ToolNames.ReviewSmartQc));
+                decision.SuggestedActions.Add(CreateSuggest("Get context", "Read active doc/view/selection and delta.", ToolNames.ContextGetDeltaSummary));
                 break;
         }
     }
@@ -503,9 +503,9 @@ public sealed class WorkerReasoningEngine
                 || toolName.StartsWith("workflow.", StringComparison.OrdinalIgnoreCase)
                 ? WorkerExecutionTiers.Tier1
                 : WorkerExecutionTiers.Tier0,
-            WhyThisAction = "Suggestion nay duoc route theo intent + persona + lane Revit hien tai.",
+            WhyThisAction = "Suggestion routed by intent + persona + current Revit lane.",
             Confidence = 0.86d,
-            RecoveryHint = "Neu suggestion chua dung scope, hay mo ta lai document/view/selection muc tieu.",
+            RecoveryHint = "If suggestion does not match scope, re-describe the target document/view/selection.",
             AutoExecutionEligible = false
         };
     }
@@ -514,15 +514,15 @@ public sealed class WorkerReasoningEngine
     {
         if (string.Equals(intent, "greeting", StringComparison.OrdinalIgnoreCase))
         {
-            return "Em dang dong bo context Revit va san sang nhan task tiep theo.";
+            return "Syncing Revit context and ready for the next task.";
         }
 
         if (string.Equals(intent, "identity_query", StringComparison.OrdinalIgnoreCase))
         {
-            return "Em dang xac nhan vai tro worker va context dang mo de anh biet em co the lam gi ngay luc nay.";
+            return "Confirming worker role and open context so you know what I can do right now.";
         }
 
-        return "Em dang lap plan an toan truoc khi chon tool hoac preview.";
+        return "Building a safe plan before selecting tool or preview.";
     }
 
     private static string BuildGoal(string intent, string targetHint)
@@ -530,53 +530,53 @@ public sealed class WorkerReasoningEngine
         switch (intent)
         {
             case "context_query":
-                return "Nam ngu canh Revit hien tai truoc khi hanh dong.";
+                return "Understand the current Revit context before acting.";
             case "identity_query":
-                return "Gioi thieu vai tro worker va kha nang trong model dang mo.";
+                return "Introduce worker role and capabilities in the open model.";
             case "project_research_request":
-                return "Tong hop hien trang du an theo live Revit context, workspace context bundle, va deep-scan evidence neu san co.";
+                return "Summarize project state from live Revit context, workspace context bundle, and deep-scan evidence if available.";
             case "sheet_analysis_request":
-                return string.IsNullOrWhiteSpace(targetHint) ? "Phan tich sheet hien tai." : $"Phan tich sheet {targetHint}.";
+                return string.IsNullOrWhiteSpace(targetHint) ? "Analyze the current sheet." : $"Analyze sheet {targetHint}.";
             case "sheet_authoring_request":
-                return string.IsNullOrWhiteSpace(targetHint) ? "Tao sheet theo chuan workspace." : $"Tao/preview sheet {targetHint} theo chuan workspace.";
+                return string.IsNullOrWhiteSpace(targetHint) ? "Create sheet per workspace standards." : $"Create/preview sheet {targetHint} per workspace standards.";
             case "view_authoring_request":
-                return "Thuc hien quick action cho view an toan, context-aware, va fallback sang playbook neu can.";
+                return "Execute safe, context-aware quick action for view; fallback to playbook if needed.";
             case "documentation_request":
-                return "Thuc hien documentation quick-path hoac package workflow tuy muc do phuc tap.";
+                return "Execute documentation quick-path or package workflow depending on complexity.";
             case "model_manage_request":
-                return "Preview va execute cac lenh manage/cleanup theo quick-path an toan.";
+                return "Preview and execute manage/cleanup commands via safe quick-path.";
             case "command_palette_request":
-                return "Resolve lenh tu command atlas, khong phai tool hunt bang context phinh to.";
+                return "Resolve command from atlas, not tool-hunt via inflated context.";
             case "element_authoring_request":
-                return "Thu authoring atomic qua atlas fast-path truoc khi vao workflow lon.";
+                return "Try atomic authoring via atlas fast-path before entering large workflow.";
             case "governance_request":
-                return "Resolve governance standards, playbooks, va fix lanes theo workspace.";
+                return "Resolve governance standards, playbooks, and fix lanes per workspace.";
             case "annotation_request":
-                return "Plan annotation/task room-finish theo policy va playbook an toan.";
+                return "Plan annotation/room-finish task per policy and playbook safely.";
             case "coordination_request":
-                return "Lap coordination plan cho clash/clearance/opening voi preview + verify.";
+                return "Build coordination plan for clash/clearance/opening with preview + verify.";
             case "systems_request":
-                return "Lap systems plan cho connectivity/slope/routing voi graph snapshot truoc.";
+                return "Build systems plan for connectivity/slope/routing with graph snapshot first.";
             case "integration_request":
-                return "Preview integration delta va giu external sync o lane connector-safe.";
+                return "Preview integration delta and keep external sync in connector-safe lane.";
             case "intent_compile_request":
-                return "Compile natural-language request thanh typed plan co the validate.";
+                return "Compile natural-language request into a typed, validatable plan.";
             case "family_analysis_request":
-                return string.IsNullOrWhiteSpace(targetHint) ? "Phan tich family hien tai." : $"Phan tich family {targetHint}.";
+                return string.IsNullOrWhiteSpace(targetHint) ? "Analyze the current family." : $"Analyze family {targetHint}.";
             case "qc_request":
-                return "QC model hien tai theo huong read-only.";
+                return "QC the current model in read-only mode.";
             case "mutation_request":
-                return "Lap plan mutate an toan, preview truoc khi execute.";
+                return "Build safe mutation plan, preview before execute.";
             case "approval":
-                return "Thuc thi preview da duoc approve.";
+                return "Execute the approved preview.";
             case "reject":
-                return "Huy approval pending mot cach an toan.";
+                return "Safely cancel pending approval.";
             case "resume":
-                return "Tiep tuc mission con dang do.";
+                return "Resume the pending mission.";
             case "cancel":
-                return "Dung mission hien tai.";
+                return "Stop the current mission.";
             default:
-                return "Ho tro worker theo ngu canh Revit hien tai.";
+                return "Assist worker based on the current Revit context.";
         }
     }
 }

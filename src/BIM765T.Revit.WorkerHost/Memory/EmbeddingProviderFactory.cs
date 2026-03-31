@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Net.Http;
+using BIM765T.Revit.Copilot.Core.Brain;
 using BIM765T.Revit.WorkerHost.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +50,7 @@ internal sealed class EmbeddingProviderFactory
     /// Checks OllamaUrl reachability; falls back to hash if unreachable.
     /// </summary>
     public static EmbeddingProviderResult Create(
-        WorkerHostSettings settings, IHttpClientFactory httpClientFactory, ILogger logger)
+        WorkerHostSettings settings, IHttpClientFactory httpClientFactory, ILogger logger, ICopilotLogger? copilotLogger = null, LlmTimeoutProfile? timeoutProfile = null)
     {
         // 1. Try Ollama if URL is configured
         var ollamaUrl = ResolveOllamaUrl(settings);
@@ -63,16 +63,14 @@ internal sealed class EmbeddingProviderFactory
                 httpClient.Timeout = TimeSpan.FromSeconds(20);
 
                 var model = ResolveOllamaModel(settings);
-                var client = new OllamaEmbeddingClient(httpClient, model);
+                var client = new OllamaEmbeddingClient(httpClient, model, copilotLogger, timeoutProfile);
                 ProbeOllamaAvailability(ollamaUrl);
                 OllamaRegisteredLog(logger, ollamaUrl, model, null);
-                Trace.TraceInformation($"BIM765T Using OllamaEmbeddingClient (semantic). URL={ollamaUrl}, model={model}.");
                 return new EmbeddingProviderResult { Client = client, Provider = client, DiagnosticMessage = $"ollama:{model}@{ollamaUrl}" };
             }
             catch (Exception ex)
             {
                 OllamaUnreachableLog(logger, ollamaUrl, $"{ex.GetType().Name}: {ex.Message}", null);
-                Trace.TraceWarning($"BIM765T Ollama unreachable at {ollamaUrl}. Falling back to hash.");
             }
         }
 
@@ -109,12 +107,14 @@ internal sealed class EmbeddingProviderFactory
     /// <summary>
     /// Quick probe: hit Ollama /api/tags to check it's alive.
     /// Throws if unreachable so caller falls back to hash.
+    /// Uses synchronous Send() to avoid sync-over-async deadlock during DI registration.
     /// </summary>
     private static void ProbeOllamaAvailability(string baseUrl)
     {
         using var probe = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
         var url = baseUrl.TrimEnd('/') + "/api/tags";
-        var response = probe.GetAsync(url).GetAwaiter().GetResult();
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = probe.Send(request);
         response.EnsureSuccessStatusCode();
     }
 }

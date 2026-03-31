@@ -67,10 +67,10 @@ internal sealed class ProjectBriefCard : Border
         insightGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         insightGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        Grid.SetColumn(BuildListSection("Em đã hiểu", safeState.Highlights, AppTheme.Success), 0);
-        insightGrid.Children.Add(BuildListSection("Em đã hiểu", safeState.Highlights, AppTheme.Success));
+        Grid.SetColumn(BuildListSection("Understood", safeState.Highlights, AppTheme.Success), 0);
+        insightGrid.Children.Add(BuildListSection("Understood", safeState.Highlights, AppTheme.Success));
 
-        var attention = BuildListSection("Cần xử lý tiếp", safeState.AttentionItems, AppTheme.Warning);
+        var attention = BuildListSection("Needs attention", safeState.AttentionItems, AppTheme.Warning);
         Grid.SetColumn(attention, 1);
         insightGrid.Children.Add(attention);
         root.Children.Add(insightGrid);

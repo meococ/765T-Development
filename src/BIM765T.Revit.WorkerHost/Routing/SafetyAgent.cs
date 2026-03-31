@@ -20,11 +20,11 @@ internal sealed partial class SafetyAgent
     };
 
     // Patterns that indicate potentially dangerous content in command text
-    [GeneratedRegex("(?i)(drop\\s+table|truncate\\s+db|delete\\s+from\\s+\\w+\\s+where\\s+1\\s*=\\s*1|format\\s+c:|rm\\s+-rf\\s+/|del\\s+/f\\s+/s\\s+/q)", RegexOptions.Compiled)]
+    [GeneratedRegex("(?i)(drop\\s+table|truncate\\s+db|delete\\s+from\\s+\\w+\\s+where\\s+1\\s*=\\s*1|format\\s+c:|rm\\s+-rf\\s+/|del\\s+/f\\s+/s\\s+/q)")]
     private static partial Regex DangerousPatternsRegex();
 
     // Patterns for SQL injection attempts
-    [GeneratedRegex("(?i)(union\\s+select|;\\s*drop\\s|;\\s*delete\\s+|'\\s*or\\s+'1'\\s*=\\s*'1)", RegexOptions.Compiled)]
+    [GeneratedRegex("(?i)(union\\s+select|;\\s*drop\\s|;\\s*delete\\s+|'\\s*or\\s+'1'\\s*=\\s*'1)")]
     private static partial Regex SqlInjectionRegex();
 
     public SafetyAssessment EvaluateSubmission(MissionPlan plan)

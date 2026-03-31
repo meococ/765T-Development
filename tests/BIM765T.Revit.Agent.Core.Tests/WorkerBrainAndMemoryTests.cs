@@ -121,7 +121,7 @@ public sealed class WorkerBrainAndMemoryTests : IDisposable
         Assert.Equal("qc_request", qcDecision.Intent);
         Assert.Contains(ToolNames.ReviewSmartQc, qcDecision.PlannedTools);
         Assert.Equal("identity_query", identityDecision.Intent);
-        Assert.Contains("vai tro worker", identityDecision.PlanSummary, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("worker role", identityDecision.PlanSummary, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("approval", approvalDecision.Intent);
         Assert.Contains("pending_approval", approvalDecision.PlannedTools);
     }

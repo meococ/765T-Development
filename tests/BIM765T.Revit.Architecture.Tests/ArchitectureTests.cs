@@ -306,6 +306,15 @@ public sealed class ArchitectureTests
         Assert.Contains("BridgeConstants.DefaultWorkerHostPipeName", mcpProgram, StringComparison.Ordinal);
         Assert.Contains("CompatibilityService.CompatibilityServiceClient", bridgeProgram, StringComparison.Ordinal);
         Assert.Contains("CompatibilityService.CompatibilityServiceClient", mcpProgram, StringComparison.Ordinal);
+        Assert.Contains("BRIDGE_CANONICAL_PUBLIC_INGRESS", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("BRIDGE_TOPOLOGY_TRANSITIONAL", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("BRIDGE_TOPOLOGY_LEGACY", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("Kernel and legacy pipes are transitional adapter lanes only", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("legacy and should be considered sunset-bound", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("canonical WorkerHost public ingress", bridgeProgram, StringComparison.Ordinal);
+        Assert.Contains("BridgeConstants.DefaultWorkerHostPipeName", mcpProgram, StringComparison.Ordinal);
+        Assert.DoesNotContain("BridgeConstants.DefaultKernelPipeName", mcpProgram, StringComparison.Ordinal);
+        Assert.DoesNotContain("BridgeConstants.DefaultPipeName", mcpProgram, StringComparison.Ordinal);
     }
 
     [Fact]

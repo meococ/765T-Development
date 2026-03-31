@@ -28,7 +28,7 @@ internal sealed class InternalToolClient
     internal event Action? ToolCompleted;
 
     internal static InternalToolClient Instance =>
-        _instance ?? throw new InvalidOperationException("InternalToolClient chưa được khởi tạo.");
+        _instance ?? throw new InvalidOperationException("InternalToolClient has not been initialized.");
 
     internal static void Initialize(Dispatcher dispatcher)
     {
@@ -48,7 +48,7 @@ internal sealed class InternalToolClient
     {
         if (!AgentHost.TryGetCurrent(out var runtime) || runtime == null)
         {
-            return Task.FromResult(CreateErrorResponse(toolName, "Agent host chưa khởi tạo."));
+            return Task.FromResult(CreateErrorResponse(toolName, "Agent host is not initialized."));
         }
 
         var correlationId = Guid.NewGuid().ToString("N");
@@ -77,7 +77,7 @@ internal sealed class InternalToolClient
         {
             invocation.TryCancelBeforeExecution();
             return Task.FromResult(CreateErrorResponse(toolName,
-                $"ExternalEvent.Raise() trả về {raiseResult}. Revit có thể đang bận hoặc hộp thoại modal đang mở."));
+                $"ExternalEvent.Raise() returned {raiseResult}. Revit may be busy or a modal dialog is open."));
         }
 
         ToolStarted?.Invoke();

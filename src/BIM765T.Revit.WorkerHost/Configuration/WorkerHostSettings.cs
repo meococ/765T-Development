@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BIM765T.Revit.Contracts.Common;
 using BIM765T.Revit.Contracts.Platform;
+using BIM765T.Revit.Copilot.Core.Brain;
 
 namespace BIM765T.Revit.WorkerHost.Configuration;
 
@@ -91,6 +92,42 @@ internal sealed class WorkerHostSettings
 
     public int WalCheckpointIntervalSeconds { get; set; } = 30;
 
+    // ────── LLM Timeout Profile ──────
+
+    public int LlmHttpTimeoutSeconds { get; set; } = 25;
+
+    public int LlmResponseTimeoutSeconds { get; set; } = 20;
+
+    public int LlmConversationalTimeoutSeconds { get; set; } = 8;
+
+    public int LlmPlannerTimeoutSeconds { get; set; } = 4;
+
+    public int LlmEmbeddingTimeoutSeconds { get; set; } = 15;
+
+    public int LlmPlannerMaxTokens { get; set; } = 640;
+
+    public int LlmNarrationMaxTokens { get; set; } = 1024;
+
+    // ────── Rate Limiting ──────
+
+    public int RateLimitPerIpPermitLimit { get; set; } = 100;
+
+    public int RateLimitChatPermitLimit { get; set; } = 10;
+
+    public int RateLimitPerIpQueueLimit { get; set; } = 10;
+
+    public int RateLimitChatQueueLimit { get; set; } = 2;
+
+    // ────── Kernel Pipe ──────
+
+    public int KernelInitialConnectTimeoutMs { get; set; } = 10_000;
+
+    public int KernelMaxConnectTimeoutMs { get; set; } = 30_000;
+
+    public int KernelMaxRetries { get; set; } = 3;
+
+    // ────── Outbox Projector ──────
+
     public int OutboxProjectorPollIntervalMs { get; set; } = 2_000;
 
     public int OutboxProjectorBatchSize { get; set; } = 32;
@@ -155,6 +192,20 @@ internal sealed class WorkerHostSettings
         return string.Equals(ResolveAutonomyMode(), WorkerAutonomyModes.Ship, StringComparison.OrdinalIgnoreCase)
             ? ShipPlannerConfidenceThreshold
             : BoundedPlannerConfidenceThreshold;
+    }
+
+    public LlmTimeoutProfile BuildLlmTimeoutProfile()
+    {
+        return new LlmTimeoutProfile
+        {
+            HttpTimeoutSeconds = LlmHttpTimeoutSeconds,
+            ResponseTimeoutSeconds = LlmResponseTimeoutSeconds,
+            ConversationalTimeoutSeconds = LlmConversationalTimeoutSeconds,
+            PlannerTimeoutSeconds = LlmPlannerTimeoutSeconds,
+            EmbeddingTimeoutSeconds = LlmEmbeddingTimeoutSeconds,
+            PlannerMaxTokens = LlmPlannerMaxTokens,
+            NarrationMaxTokens = LlmNarrationMaxTokens
+        };
     }
 
     private static string SanitizeCollectionToken(string? value, string fallback)

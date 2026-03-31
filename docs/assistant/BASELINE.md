@@ -34,7 +34,8 @@
 ## External AI Truth
 
 - External AI qua WorkerHost HTTP gateway
-- Provider env vars: OpenRouter / MiniMax / OpenAI / Anthropic (first found wins)
-- MiniMax default = `MiniMax-M2.7`, multi-key pin bằng `BIM765T_LLM_PROVIDER=MINIMAX`
+- Resolution order (first-found-wins): OpenRouter → MiniMax → OpenAI → Anthropic
+- Hard pin bằng `BIM765T_LLM_PROVIDER` (ví dụ: `MINIMAX`, `OPENROUTER`, `RULE_FIRST`)
+- OpenRouter default model = `openai/gpt-5.2`; MiniMax default = `MiniMax-M2.7-highspeed`
 - Embedded worker lane trong Agent vẫn active — chưa fully decoupled
 - Provider config local không phải highest-priority repo truth

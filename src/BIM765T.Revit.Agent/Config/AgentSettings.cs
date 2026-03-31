@@ -110,6 +110,15 @@ public sealed class AgentSettings
     public string UiThemeMode { get; set; } = UiThemeModes.Dark;
 
     /// <summary>
+    /// When <see langword="false"/> the WPF dockable pane is NOT registered with
+    /// Revit.  The ribbon tab, ribbon buttons, and kernel pipe still load normally
+    /// so that CLI / MCP / Bridge workflows remain fully functional.  Set to
+    /// <see langword="true"/> to re-enable the in-Revit chat pane.
+    /// </summary>
+    [DataMember(Order = 27)]
+    public bool EnableUiPane { get; set; } = false;
+
+    /// <summary>
     /// Returns true if any supported external AI gateway is configured via environment variables.
     /// Current supported priority:
     /// 0. BIM765T_LLM_PROVIDER (optional hard pin: OPENROUTER / MINIMAX / OPENAI / ANTHROPIC / RULE_FIRST)

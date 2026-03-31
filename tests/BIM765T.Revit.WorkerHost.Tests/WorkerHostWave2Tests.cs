@@ -129,9 +129,16 @@ public sealed class WorkerHostWave2Tests
             var report = await service.CollectAsync(probePublicControlPlane: false, CancellationToken.None);
 
             Assert.True(report.Ready);
+            Assert.True(report.StandaloneChatReady);
+            Assert.True(report.LiveRevitReady);
             Assert.True(report.Degraded);
             Assert.True(report.Kernel.Reachable);
             Assert.False(report.Qdrant.Reachable);
+            Assert.Contains("workerhost_public_control_plane + revit_private_kernel", report.RuntimeTopology, StringComparison.Ordinal);
+            Assert.Contains("WorkerHost public control plane", report.ReadinessSummary, StringComparison.Ordinal);
+            Assert.Contains(report.Diagnostics, x => x.Contains("canonical_public_ingress", StringComparison.Ordinal));
+            Assert.Contains(report.Diagnostics, x => x.Contains("standalone_chat_ready: true", StringComparison.Ordinal));
+            Assert.Contains(report.Diagnostics, x => x.Contains("live_revit_ready: true", StringComparison.Ordinal));
         }
         finally
         {

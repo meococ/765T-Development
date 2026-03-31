@@ -9,7 +9,15 @@ internal sealed class RuntimeHealthReport
 
     public bool Ready { get; set; }
 
+    public bool StandaloneChatReady { get; set; }
+
+    public bool LiveRevitReady { get; set; }
+
     public bool Degraded { get; set; }
+
+    public string ReadinessSummary { get; set; } = string.Empty;
+
+    public string RuntimeTopology { get; set; } = string.Empty;
 
     public string PublicPipeName { get; set; } = string.Empty;
 

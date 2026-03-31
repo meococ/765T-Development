@@ -106,6 +106,15 @@ internal sealed class PipeRequestProcessor
         }
 
         var manifest = _manifestResolver(request.ToolName);
+        if (!IsManifestAllowedForCaller(request.Caller, manifest, out var callerPolicyReason))
+        {
+            _logger.Warn("Pipe caller blocked by manifest exposure policy: " + callerPolicyReason);
+            return ToolResponses.Failure(
+                request,
+                StatusCodes.CallerNotAllowed,
+                DiagnosticRecord.Create("PIPE_CALLER_POLICY_BLOCKED", DiagnosticSeverity.Error, callerPolicyReason));
+        }
+
         var rateLimitDecision = _rateLimiter.Evaluate(request.Caller, manifest);
         if (!rateLimitDecision.Allowed)
         {
@@ -124,6 +133,40 @@ internal sealed class PipeRequestProcessor
         response.ProtocolVersion = BridgeProtocol.NormalizeOrDefault(response.ProtocolVersion);
         _logger.Info("Responding pipe request with status " + response.StatusCode + ".");
         return response;
+    }
+
+    private static bool IsManifestAllowedForCaller(string caller, ToolManifest? manifest, out string reason)
+    {
+        reason = string.Empty;
+        if (manifest == null)
+        {
+            return true;
+        }
+
+        var normalizedCaller = caller ?? string.Empty;
+        var isMcpCaller = normalizedCaller.IndexOf("BIM765T.Revit.McpHost", StringComparison.OrdinalIgnoreCase) >= 0;
+        if (!isMcpCaller)
+        {
+            return true;
+        }
+
+        if (string.Equals(manifest.Visibility, WorkerVisibility.Hidden, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(manifest.Visibility, WorkerVisibility.BetaInternal, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(manifest.Audience, WorkerAudience.Internal, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(manifest.PrimaryPersona, ToolPrimaryPersonas.PlatformAuthor, StringComparison.OrdinalIgnoreCase))
+        {
+            reason = $"MCP caller cannot invoke tool '{manifest.ToolName}' because it is not exposed on the MCP surface.";
+            return false;
+        }
+
+        if (!string.Equals(manifest.Audience, WorkerAudience.Commercial, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(manifest.Audience, WorkerAudience.Connector, StringComparison.OrdinalIgnoreCase))
+        {
+            reason = $"MCP caller cannot invoke tool '{manifest.ToolName}' because audience '{manifest.Audience}' is not allowed on the MCP surface.";
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -185,12 +228,12 @@ internal sealed class WindowsPipeCallerAuthorizer : IPipeCallerAuthorizer
                 }
             }
 
-            rejectReason = $"name mismatch (SID resolve failed): caller=`{clientIdentity}` current=`{current}`";
+            rejectReason = $"caller identity '{clientIdentity}' != current identity '{current}'";
             return false;
         }
         catch (Exception ex)
         {
-            rejectReason = $"identity comparison threw: {ex.GetType().Name} - {ex.Message}";
+            rejectReason = ex.Message;
             return false;
         }
     }

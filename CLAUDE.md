@@ -20,31 +20,39 @@ Tôi là **đồng dev xuất sắc, toàn diện** với 4 vai trò song song:
 - **Chủ động, không thụ động.** Thấy vấn đề → đề xuất giải pháp. Thấy cơ hội → đề xuất cải tiến.
 - **Codex là thợ code, tôi là người nghĩ.** Tôi plan + research + review, Codex triển khai.
 - **Suy nghĩ lâu nhất, chất lượng nhất, thông minh nhất** — đó là giá trị tôi mang lại.
+- **Làm theo flow liên tục, có trách nhiệm.** Research đầy đủ, vừa làm vừa triển khai, nhìn theo workflow end-to-end.
+- **Tâm thế ship product.** Tiêu chuẩn không phải “xong task” mà là đóng gói được một product chất lượng, chạy được, đo được, triển khai được.
+- **Ưu tiên automation và instrumentation.** Khi cần scale test/ops, chọn telemetry, harness, observability, deployment-aware workflow thay vì cách thủ công nặng và khó lặp lại.
 
-## Bối cảnh hiện tại — 2026-03-29
+## Bối cảnh hiện tại — 2026-03-31
 
 ### Trạng thái thực tế
 
-1. **Build:** Pass sạch (0 errors, 0 warnings). **Tests:** 435/435 pass.
+1. **Build:** Pass sạch (0 errors, 0 warnings). **Tests:** 250/250 pass.
 2. **Wave 1 cleanup HOÀN TẤT:** AGENTS.md, ASSISTANT.md restored. README accurate. Read order unified.
 3. **Pipeline Phase 1 SHIPPED (commit `6bd1e47`):** Conversational fast-path mở rộng từ 4 → 7 intents. `EnhanceConversationalAsync` timeout 8s (vs 20s). "tổng quan project", "kiểm tra model", "phân tích family" → 1-3s thay vì 5-18s.
-4. **Docs Phase 2 SHIPPED:** 765T_PRODUCT_VISION.md có TARGET STATE warning. ARCHITECTURE.md có authority clarification. Tool count fixed 192 → 237.
-5. **Audit backlog:** 18 tasks ban đầu → phần lớn P0 hoàn tất, P1-P2 còn lại là maintenance.
+4. **Docs Phase 2 SHIPPED (commit `6081c84`):** 765T_PRODUCT_VISION.md có TARGET STATE warning. ARCHITECTURE.md có authority clarification. Tool count fixed 192 → 237.
+5. **Semantic Memory Phase 3 SHIPPED (commit `613fd64`):** `OllamaEmbeddingClient` + `EmbeddingProviderFactory` + config + tests. WorkerHost tự thử Ollama local rồi fallback sang hash nếu chưa có server.
+6. **Timeout Centralization Phase SHIPPED:** `LlmTimeoutProfile` record thay thế 15+ magic numbers. `WorkerHostSettings` centralize rate-limit, kernel pipe retry, LLM timeout config. `appsettings.json` cho WorkerHost.
+7. **WorkerTab Service Extraction Phase (3A) SHIPPED:** 5 service classes extracted từ 6,831-line God Object. `ChatSubmissionService` fix P0 async-void bug. Services additive — WorkerTab chưa bị sửa.
+8. **UI Pane Feature Flag:** `EnableUiPane = false` trong `AgentSettings`. WPF chat pane tạm tắt để focus demo CLI/MCP flow.
+9. **Launch prep:** README polished, .gitignore hardened (secrets blocked), personal paths cleaned.
 
 ### Sự thật chưa fix
 
-- **Qdrant:** Hash embeddings (FNV-1a, non-semantic). Chưa có OllamaEmbeddingClient → Phase 3.
+- **WorkerHost standalone chat:** HTTP `/api/external-ai/chat` vẫn block nếu không có Revit, vì `MissionOrchestrator` luôn gọi kernel pipe. Fast-path hiện mới nằm ở Agent-side workflow.
 - **Role-based filtering:** Chưa implement. 237 tools broadcast cho tất cả roles.
-- **Worker pipeline:** 5-round full pipeline vẫn chạy cho action intents (đúng thiết kế). Conversational intents đã fast-path.
+- **WorkerTab wiring (Phase 3B):** 5 service classes đã extract nhưng chưa wire vào WorkerTab. Services additive, chạy song song code cũ.
 
 ### Mục tiêu tiếp theo
 
-- **Phase 3:** Ship semantic memory — OllamaEmbeddingClient + EmbeddingProviderFactory + config.
-- **Phase 4 (future):** Role-based tool filtering. Streaming UX improvements.
+- **P0:** Wire WorkerTab → services (Phase 3B-3E). Fix async void P0 bug trong production code path.
+- **P1:** WorkerHost standalone conversational fast-path.
+- **P2:** Role-based tool filtering. UI telemetry harness.
 
 ## Critical Notes — Read First
 
-> Updated after each working session. Last updated: 2026-03-29
+> Updated after each working session. Last updated: 2026-03-31
 
 ### Architecture Lesson — Worker Conversation Flow (2026-03-26)
 
@@ -178,6 +186,9 @@ Revit Process (net48)                    Standalone Process (net8.0)
 - **Tool modules:** `*ToolModule.cs` implements `IToolModule`, registers into `ToolRegistry`. Location: `src/BIM765T.Revit.Agent/Services/Bridge/`
 - **Mutation flow:** `DRY_RUN → APPROVAL → EXECUTE → VERIFY`. Token expires 5 min. Context hash must match.
 - **Named pipes:** Agent = `KernelPipeHostedService` (server), WorkerHost = `KernelPipeClient`
+- **LLM timeouts:** `LlmTimeoutProfile` record centralizes all timeout/token constants. Consumed by every LLM client and service.
+- **WorkerTab services:** 5 extracted services in `UI/Tabs/Services/` — `MissionStreamService`, `ChatSubmissionService`, `MissionCommandService`, `ProjectDashboardService`, `SessionLifecycleService`
+- **UI feature flag:** `AgentSettings.EnableUiPane` controls WPF pane registration at startup. Default `false` for CLI/MCP demo mode.
 
 ## Rules — See Canonical Sources
 
@@ -220,7 +231,7 @@ qdrant              uvx mcp-server-qdrant
 
 | What | Where |
 | ---- | ----- |
-| LLM provider | Env vars: `OPENROUTER_API_KEY`, `MINIMAX_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_AUTH_TOKEN`. Pin: `BIM765T_LLM_PROVIDER` |
+| LLM provider | First-found-wins: `OPENROUTER_API_KEY` → `MINIMAX_API_KEY` → `OPENAI_API_KEY` → `ANTHROPIC_AUTH_TOKEN`. Pin: `BIM765T_LLM_PROVIDER` |
 | Revit runtime | `src/BIM765T.Revit.Agent/Config/AgentSettings.cs` |
 | WorkerHost runtime | `src/BIM765T.Revit.WorkerHost/Configuration/WorkerHostSettings.cs` |
 | Workspace seed | `workspaces/default/workspace.json` |

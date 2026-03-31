@@ -36,7 +36,7 @@ internal sealed class MessageBubble : Border
     internal event Action<string>? CopyCodeRequested;
 #pragma warning restore CS0067
 
-    /// <summary>Event raised when user clicks "Chạy Script trong Revit".</summary>
+    /// <summary>Event raised when user clicks "Run Script in Revit".</summary>
     internal event Action<string>? RunScriptRequested;
 
     internal MessageBubble(WorkerChatMessage message)
@@ -525,7 +525,7 @@ internal sealed class MessageBubble : Border
     }
 
     // ══════════════════════════════════════════════════════════════
-    //  Action Bar — "Chạy Script trong Revit" + "Copy Code"
+    //  Action Bar — "Run Script in Revit" + "Copy Code"
     // ══════════════════════════════════════════════════════════════
     private UIElement BuildActionBar(string codeContent)
     {

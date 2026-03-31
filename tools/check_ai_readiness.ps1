@@ -253,9 +253,26 @@ if ($workerHostRunning) {
 
         $statusResponse = $response
 
-        $httpHealthOk = $true
+        $httpHealthOk = [bool]$response.Health.Ready -or [bool]$response.Health.StandaloneChatReady
 
-        $httpDetail = "OK - Provider: $($response.ConfiguredProvider), Model: $($response.PlannerModel), Mode: $($response.ReasoningMode)"
+        $modeLabel = if ([bool]$response.Health.LiveRevitReady) {
+            'standalone+live-revit'
+        }
+        elseif ([bool]$response.Health.StandaloneChatReady) {
+            'standalone-only'
+        }
+        else {
+            'not-ready'
+        }
+
+        $summary = if (-not [string]::IsNullOrWhiteSpace($response.Health.ReadinessSummary)) {
+            $response.Health.ReadinessSummary
+        }
+        else {
+            'No readiness summary returned'
+        }
+
+        $httpDetail = "OK - Mode: $modeLabel, Provider: $($response.ConfiguredProvider), Reasoning: $($response.ReasoningMode), Summary: $summary"
 
     }
 
@@ -267,6 +284,136 @@ if ($workerHostRunning) {
 
 }
 
+if ($statusResponse) {
+    Add-Check -Name 'WorkerHost Readiness Mode' `
+        -Passed ([bool]$statusResponse.Health.StandaloneChatReady) `
+        -Detail $(if ([bool]$statusResponse.Health.LiveRevitReady) {
+            "Standalone chat + live Revit ready. $($statusResponse.Health.ReadinessSummary)"
+        }
+        elseif ([bool]$statusResponse.Health.StandaloneChatReady) {
+            "Standalone chat ready, live Revit unavailable. $($statusResponse.Health.ReadinessSummary)"
+        }
+        else {
+            "WorkerHost status returned but readiness is false. $($statusResponse.Health.ReadinessSummary)"
+        }) `
+        -Fix 'Run .\tools\start_workerhost.ps1 and, for live work, open Revit with an active project'
+}
+
+if ($statusResponse) {
+    Add-Check -Name 'Canonical Runtime Topology' `
+        -Passed ([string]$statusResponse.Health.RuntimeTopology -eq 'workerhost_public_control_plane + revit_private_kernel') `
+        -Detail $(if (-not [string]::IsNullOrWhiteSpace($statusResponse.Health.RuntimeTopology)) { $statusResponse.Health.RuntimeTopology } else { 'Runtime topology not reported' }) `
+        -Fix 'WorkerHost status should report WorkerHost as canonical public ingress and Revit kernel as private execution lane'
+}
+
+if ($statusResponse -and $statusResponse.Health.Diagnostics) {
+    $bridgeFallbackDetail = @($statusResponse.Health.Diagnostics | Where-Object { $_ -like 'bridge_fallbacks_present:*' })
+    Add-Check -Name 'Bridge Fallback Policy' `
+        -Passed ($bridgeFallbackDetail.Count -gt 0) `
+        -Detail $(if ($bridgeFallbackDetail.Count -gt 0) { $bridgeFallbackDetail -join ' | ' } else { 'No bridge fallback policy diagnostic found' }) `
+        -Fix 'Health diagnostics should explicitly describe bridge fallback lanes as transitional/legacy rather than canonical'
+}
+
+if ($statusResponse) {
+    $overallReady = $overallReady -and [bool]$statusResponse.Health.StandaloneChatReady
+}
+
+if ($statusResponse) {
+    $liveWorkReady = [bool]$statusResponse.Health.LiveRevitReady
+}
+else {
+    $liveWorkReady = $false
+}
+
+if ($statusResponse) {
+    Add-Check -Name 'Live Revit Execution' `
+        -Passed $liveWorkReady `
+        -Detail $(if ($liveWorkReady) { 'Live Revit execution path is reachable.' } else { 'Live Revit execution path is not ready yet.' }) `
+        -Fix 'Open Revit and a project to activate the private kernel lane for live execution'
+}
+
+if (-not $statusResponse) {
+    $liveWorkReady = $false
+}
+
+if (-not $statusResponse) {
+    $overallReady = $false
+}
+
+if (-not $statusResponse) {
+    Add-Check -Name 'WorkerHost Readiness Mode' `
+        -Passed $false `
+        -Detail 'No WorkerHost status available' `
+        -Fix 'Run .\tools\start_workerhost.ps1'
+}
+
+if (-not $statusResponse) {
+    Add-Check -Name 'Canonical Runtime Topology' `
+        -Passed $false `
+        -Detail 'No WorkerHost status available' `
+        -Fix 'Start WorkerHost so the canonical topology status can be queried'
+}
+
+if (-not $statusResponse) {
+    Add-Check -Name 'Bridge Fallback Policy' `
+        -Passed $false `
+        -Detail 'No WorkerHost status available' `
+        -Fix 'Start WorkerHost to inspect bridge fallback diagnostics'
+}
+
+if (-not $statusResponse) {
+    Add-Check -Name 'Live Revit Execution' `
+        -Passed $false `
+        -Detail 'No WorkerHost status available' `
+        -Fix 'Start WorkerHost, then open Revit and a project for live execution'
+}
+
+if ($statusResponse) {
+    $resultMode = if ($statusResponse.Health.LiveRevitReady) { 'standalone+live-revit' } elseif ($statusResponse.Health.StandaloneChatReady) { 'standalone-only' } else { 'not-ready' }
+}
+else {
+    $resultMode = 'not-ready'
+}
+
+$script:readinessMode = $resultMode
+
+$script:liveWorkReady = $liveWorkReady
+
+$script:statusSummary = if ($statusResponse) { $statusResponse.Health.ReadinessSummary } else { '' }
+
+$script:runtimeTopology = if ($statusResponse) { $statusResponse.Health.RuntimeTopology } else { '' }
+
+$script:workerHostHttpReady = $httpHealthOk
+
+$script:workerHostStandaloneReady = if ($statusResponse) { [bool]$statusResponse.Health.StandaloneChatReady } else { $false }
+
+$script:workerHostLiveReady = if ($statusResponse) { [bool]$statusResponse.Health.LiveRevitReady } else { $false }
+
+$script:workerHostSupportsTaskRuntime = if ($statusResponse) { [bool]$statusResponse.SupportsTaskRuntime } else { $false }
+
+$script:workerHostDiagnostics = if ($statusResponse) { @($statusResponse.Health.Diagnostics) } else { @() }
+
+$script:workerHostWarnings = if ($statusResponse) { @($statusResponse.StatusWarnings) } else { @() }
+
+$script:workerHostRestartRequired = if ($statusResponse) { [bool]$statusResponse.RestartRequired } else { $false }
+
+$script:overallReady = $overallReady
+
+$script:workerHostStatusAvailable = $null -ne $statusResponse
+
+$script:workerHostReadinessSummary = $script:statusSummary
+
+$script:workerHostRuntimeTopology = $script:runtimeTopology
+
+$script:workerHostMode = $script:readinessMode
+
+$script:workerHostCanonicalIngress = 'workerhost_public_control_plane'
+
+$script:workerHostPrivateKernelLane = 'revit_private_kernel'
+
+$script:workerHostBridgeFallbackPolicy = if ($statusResponse) { 'transitional_or_legacy_only' } else { '' }
+
+$script:workerHostReadinessVersion = 'phase1'
 
 
 Add-Check -Name 'WorkerHost HTTP API' `

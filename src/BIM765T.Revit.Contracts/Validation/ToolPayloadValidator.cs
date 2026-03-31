@@ -19,7 +19,7 @@ public static partial class ToolPayloadValidator
                 "Tool payload is null.",
                 new[]
                 {
-                    DiagnosticRecord.Create("PAYLOAD_NULL", DiagnosticSeverity.Error, "Payload không được null.")
+                    DiagnosticRecord.Create("PAYLOAD_NULL", DiagnosticSeverity.Error, "Payload must not be null.")
                 });
         }
 
@@ -35,7 +35,7 @@ public static partial class ToolPayloadValidator
         var diagnostics = new List<DiagnosticRecord>();
         if (payload == null)
         {
-            diagnostics.Add(DiagnosticRecord.Create("PAYLOAD_NULL", DiagnosticSeverity.Error, "Payload không được null."));
+            diagnostics.Add(DiagnosticRecord.Create("PAYLOAD_NULL", DiagnosticSeverity.Error, "Payload must not be null."));
             return diagnostics;
         }
 
@@ -227,7 +227,7 @@ public static partial class ToolPayloadValidator
     {
         if (value.HasValue && (value.Value < 0 || value.Value > 255))
         {
-            diagnostics.Add(DiagnosticRecord.Create(code, DiagnosticSeverity.Error, $"{name} phải nằm trong khoảng 0..255."));
+            diagnostics.Add(DiagnosticRecord.Create(code, DiagnosticSeverity.Error, $"{name} must be in range 0..255."));
         }
     }
 }

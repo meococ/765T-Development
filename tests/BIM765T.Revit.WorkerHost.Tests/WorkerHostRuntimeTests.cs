@@ -202,6 +202,78 @@ public sealed class WorkerHostRuntimeTests
     }
 
     [Fact]
+    public async Task MissionOrchestrator_SubmitLocalConversationAsync_AppendsLifecycleEvents_WithoutKernel()
+    {
+        var databasePath = CreateTempDatabasePath();
+        try
+        {
+            var store = new SqliteMissionEventStore(databasePath);
+            var memory = new MemorySearchService(store, new ThrowingSemanticMemoryClient());
+            var kernel = new QueueKernelClient();
+            var orchestrator = new MissionOrchestrator(
+                store,
+                new InMemoryMissionEventBus(),
+                new BIM765T.Revit.WorkerHost.Configuration.WorkerHostSettings(),
+                kernel,
+                new PlannerAgent(),
+                new RetrieverAgent(memory),
+                new ExecutionPolicyEvaluator(new SafetyAgent()),
+                new VerifierAgent());
+            var meta = new EnvelopeMetadata
+            {
+                MissionId = "mission-local-01",
+                SessionId = "session-local-01",
+                CorrelationId = "corr-local-01",
+                ActorId = "tester",
+                RequestedAtUtc = DateTime.UtcNow.ToString("O")
+            };
+            var retrieval = await orchestrator.RetrieveAsync("hello", string.Empty, CancellationToken.None);
+            var plan = orchestrator.BuildSubmissionPlan(
+                "hello",
+                "revit_worker",
+                WorkerClientSurfaces.Mcp,
+                continueMission: false,
+                meta,
+                retrieval);
+            var workerResponse = new WorkerResponse
+            {
+                SessionId = "session-local-01",
+                MissionId = "mission-local-01",
+                MissionStatus = WorkerMissionStates.Completed,
+                Messages = new List<WorkerChatMessage>
+                {
+                    new WorkerChatMessage { Content = "Standalone reply." }
+                }
+            };
+
+            var result = await orchestrator.SubmitLocalConversationAsync(
+                "mission-local-01",
+                "{}",
+                "hello",
+                "revit_worker",
+                WorkerClientSurfaces.Mcp,
+                continueMission: false,
+                meta,
+                plan,
+                retrieval,
+                workerResponse,
+                CancellationToken.None);
+
+            Assert.Equal(WorkerMissionStates.Completed, result.Snapshot.State);
+            Assert.True(result.Snapshot.Terminal);
+            Assert.Equal("Standalone reply.", result.Snapshot.ResponseText);
+            Assert.Equal(StatusCodes.Ok, result.KernelResult.StatusCode);
+            Assert.Empty(kernel.Requests);
+            Assert.Contains(result.Events, x => x.EventType == "TaskStarted");
+            Assert.Contains(result.Events, x => x.EventType == "TaskCompleted");
+        }
+        finally
+        {
+            SafeDelete(databasePath);
+        }
+    }
+
+    [Fact]
     public async Task MissionOrchestrator_SubmitAndApproveMission_AppendsEnterpriseLifecycleEvents()
     {
         var databasePath = CreateTempDatabasePath();

@@ -18,17 +18,28 @@ using BIM765T.Revit.WorkerHost.Health;
 using BIM765T.Revit.WorkerHost.Kernel;
 using BIM765T.Revit.WorkerHost.Routing;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace BIM765T.Revit.WorkerHost.ExternalAi;
 
-internal sealed class ExternalAiGatewayService
+internal sealed partial class ExternalAiGatewayService
 {
     private readonly MissionOrchestrator _orchestrator;
     private readonly IMissionEventBus _eventBus;
     private readonly RuntimeHealthService _runtimeHealth;
     private readonly CapabilityHostService _capabilities;
     private readonly WorkerHostSettings _settings;
+    private readonly StandaloneConversationService _standaloneConversation;
     private readonly ILlmProviderConfigResolver _llmConfigResolver;
+    private readonly ILogger<ExternalAiGatewayService> _logger;
+
+    private static readonly Action<ILogger, int, Exception?> LogWorkerResponseDeserializeFailed =
+        LoggerMessage.Define<int>(LogLevel.Warning, new EventId(1, "WorkerResponseDeserializeFailed"),
+            "Failed to deserialize WorkerResponse ({Length} chars)");
+
+    private static readonly Action<ILogger, int, Exception?> LogRuntimeProfileDeserializeFailed =
+        LoggerMessage.Define<int>(LogLevel.Warning, new EventId(2, "RuntimeProfileDeserializeFailed"),
+            "Failed to deserialize SessionRuntimeHealthResponse ({Length} chars)");
 
     public ExternalAiGatewayService(
         MissionOrchestrator orchestrator,
@@ -36,14 +47,18 @@ internal sealed class ExternalAiGatewayService
         RuntimeHealthService runtimeHealth,
         CapabilityHostService capabilities,
         WorkerHostSettings settings,
-        ILlmProviderConfigResolver llmConfigResolver)
+        StandaloneConversationService standaloneConversation,
+        ILlmProviderConfigResolver llmConfigResolver,
+        ILogger<ExternalAiGatewayService> logger)
     {
         _orchestrator = orchestrator;
         _eventBus = eventBus;
         _runtimeHealth = runtimeHealth;
         _capabilities = capabilities;
         _settings = settings;
+        _standaloneConversation = standaloneConversation;
         _llmConfigResolver = llmConfigResolver;
+        _logger = logger;
     }
 
     public async Task<ExternalAiGatewayStatusResponse> GetStatusAsync(CancellationToken cancellationToken)
@@ -55,6 +70,7 @@ internal sealed class ExternalAiGatewayService
         return new ExternalAiGatewayStatusResponse
         {
             Health = health,
+            SupportsTaskRuntime = health.LiveRevitReady,
             ConfiguredProvider = profile.ConfiguredProvider,
             PlannerModel = profile.PlannerPrimaryModel,
             ResponseModel = profile.ResponseModel,
@@ -73,6 +89,7 @@ internal sealed class ExternalAiGatewayService
     {
         request ??= new ExternalAiChatRequest();
         var missionId = string.IsNullOrWhiteSpace(request.MissionId) ? Guid.NewGuid().ToString("N") : request.MissionId;
+        request.MissionId = missionId;
         var meta = BuildMeta(
             missionId,
             request.SessionId,
@@ -81,10 +98,38 @@ internal sealed class ExternalAiGatewayService
             request.TargetDocument,
             request.TargetView,
             request.TimeoutMs);
+        var requestJson = JsonUtil.Serialize(request);
+        var profile = _llmConfigResolver.Resolve();
+        var retrieval = await _orchestrator.RetrieveAsync(request.Message ?? string.Empty, meta.DocumentKey, cancellationToken).ConfigureAwait(false);
+        var plan = _orchestrator.BuildSubmissionPlan(
+            request.Message ?? string.Empty,
+            request.PersonaId ?? string.Empty,
+            WorkerClientSurfaces.Mcp,
+            request.ContinueMission,
+            meta,
+            retrieval);
+
+        if (_standaloneConversation.ShouldHandleLocally(request))
+        {
+            var workerResponse = await _standaloneConversation.BuildResponseAsync(request, plan, retrieval, profile, cancellationToken).ConfigureAwait(false);
+            var localResult = await _orchestrator.SubmitLocalConversationAsync(
+                missionId,
+                requestJson,
+                request.Message ?? string.Empty,
+                request.PersonaId ?? string.Empty,
+                WorkerClientSurfaces.Mcp,
+                request.ContinueMission,
+                meta,
+                plan,
+                retrieval,
+                workerResponse,
+                cancellationToken).ConfigureAwait(false);
+            return ToResponse(localResult.Snapshot, localResult.Events, localResult.KernelResult, profile);
+        }
 
         var result = await _orchestrator.SubmitMissionAsync(
             missionId,
-            JsonUtil.Serialize(request),
+            requestJson,
             request.Message ?? string.Empty,
             request.PersonaId ?? string.Empty,
             WorkerClientSurfaces.Mcp,
@@ -92,7 +137,7 @@ internal sealed class ExternalAiGatewayService
             meta,
             cancellationToken).ConfigureAwait(false);
 
-        return ToResponse(result.Snapshot, result.Events, result.KernelResult, _llmConfigResolver.Resolve());
+        return ToResponse(result.Snapshot, result.Events, result.KernelResult, profile);
     }
 
     public async Task<ExternalAiMissionResponse> GetMissionAsync(string missionId, CancellationToken cancellationToken)
@@ -276,7 +321,7 @@ internal sealed class ExternalAiGatewayService
         };
     }
 
-    private static ExternalAiMissionResponse ToResponse(MissionSnapshot snapshot, IReadOnlyList<MissionEventRecord> events, KernelInvocationResult result, LlmProviderConfiguration profile)
+    private ExternalAiMissionResponse ToResponse(MissionSnapshot snapshot, IReadOnlyList<MissionEventRecord> events, KernelInvocationResult result, LlmProviderConfiguration profile)
     {
         var worker = TryReadWorkerResponse(snapshot.ResponseJson);
         return new ExternalAiMissionResponse
@@ -325,7 +370,7 @@ internal sealed class ExternalAiGatewayService
         };
     }
 
-    private static WorkerResponse? TryReadWorkerResponse(string payloadJson)
+    private WorkerResponse? TryReadWorkerResponse(string payloadJson)
     {
         if (string.IsNullOrWhiteSpace(payloadJson))
         {
@@ -336,8 +381,9 @@ internal sealed class ExternalAiGatewayService
         {
             return JsonUtil.DeserializeRequired<WorkerResponse>(payloadJson);
         }
-        catch
+        catch (Exception ex)
         {
+            LogWorkerResponseDeserializeFailed(_logger, payloadJson.Length, ex);
             return null;
         }
     }
@@ -347,7 +393,7 @@ internal sealed class ExternalAiGatewayService
         return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
     }
 
-    private static SessionRuntimeHealthResponse? TryReadRuntimeProfile(string? payloadJson)
+    private SessionRuntimeHealthResponse? TryReadRuntimeProfile(string? payloadJson)
     {
         if (string.IsNullOrWhiteSpace(payloadJson))
         {
@@ -358,8 +404,9 @@ internal sealed class ExternalAiGatewayService
         {
             return JsonUtil.Deserialize<SessionRuntimeHealthResponse>(payloadJson);
         }
-        catch
+        catch (Exception ex)
         {
+            LogRuntimeProfileDeserializeFailed(_logger, payloadJson!.Length, ex);
             return null;
         }
     }
@@ -523,6 +570,7 @@ internal sealed class ExternalAiGatewayCatalogResponse
 internal sealed class ExternalAiGatewayStatusResponse
 {
     public RuntimeHealthReport Health { get; set; } = new RuntimeHealthReport();
+    public bool SupportsTaskRuntime { get; set; }
     public string ConfiguredProvider { get; set; } = string.Empty;
     public string PlannerModel { get; set; } = string.Empty;
     public string ResponseModel { get; set; } = string.Empty;

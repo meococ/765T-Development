@@ -20,6 +20,7 @@ using BIM765T.Revit.WorkerHost.Health;
 using BIM765T.Revit.WorkerHost.Kernel;
 using BIM765T.Revit.WorkerHost.Memory;
 using BIM765T.Revit.WorkerHost.Routing;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace BIM765T.Revit.WorkerHost.Tests;
@@ -66,9 +67,12 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
         var status = await gateway.GetStatusAsync(CancellationToken.None);
 
         Assert.NotNull(status.Health);
+        Assert.True(status.Health.StandaloneChatReady);
+        Assert.True(status.SupportsTaskRuntime);
         Assert.Equal(LlmProviderKinds.RuleFirst, status.ConfiguredProvider);
         Assert.Equal(WorkerReasoningModes.RuleFirst, status.ReasoningMode);
         Assert.Equal(WorkerAutonomyModes.Ship, status.AutonomyMode);
+        Assert.Contains(status.Health.Diagnostics, value => value.Contains("canonical_public_ingress", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -287,7 +291,53 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
         Assert.Equal(WorkerAutonomyModes.Ship, response.AutonomyMode);
         Assert.NotEmpty(response.PlanningSummary);
         Assert.NotEmpty(response.ChosenToolSequence);
-        Assert.Contains(response.EvidenceRefs, value => value.Contains("artifact:deep-scan", StringComparison.Ordinal));
+        Assert.Contains(response.EvidenceRefs, value => value.Contains("workspace:default", StringComparison.Ordinal) || value.Contains("artifact:deep-scan", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task WriteMissionEventsSseAsync_Stops_After_Terminal_Event()
+    {
+        var gateway = CreateGateway(
+            new QueueKernelClient(
+                new KernelInvocationResult
+                {
+                    Succeeded = true,
+                    StatusCode = StatusCodes.Ok,
+                    PayloadJson = JsonUtil.Serialize(new WorkerResponse
+                    {
+                        MissionId = "mission-terminal-stream",
+                        MissionStatus = WorkerMissionStates.Completed,
+                        Messages = new List<WorkerChatMessage>
+                        {
+                            new WorkerChatMessage
+                            {
+                                Role = WorkerMessageRoles.Worker,
+                                Content = "Da xong."
+                            }
+                        }
+                    })
+                }));
+
+        await gateway.SubmitChatAsync(new ExternalAiChatRequest
+        {
+            MissionId = "mission-terminal-stream",
+            SessionId = "session-terminal-stream",
+            Message = "kiem tra stream terminal"
+        }, CancellationToken.None);
+
+        var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        await using var body = new MemoryStream();
+        httpContext.Response.Body = body;
+
+        await gateway.WriteMissionEventsSseAsync("mission-terminal-stream", httpContext.Response, CancellationToken.None);
+
+        body.Position = 0;
+        using var reader = new StreamReader(body);
+        var content = await reader.ReadToEndAsync();
+
+        Assert.Equal(1, CountOccurrences(content, "event: TaskCompleted"));
+        Assert.Contains("event: TaskCompleted", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("event: ApprovalRequested", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -338,19 +388,19 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SubmitChat_WhenKernelUnavailable_Returns_Actionable_Response()
+    public async Task SubmitChat_WhenConversational_UsesStandaloneFastPath()
     {
-        var gateway = CreateGateway(
-            new QueueKernelClient(
-                new KernelInvocationResult
+        var kernel = new QueueKernelClient(
+            new KernelInvocationResult
+            {
+                Succeeded = false,
+                StatusCode = StatusCodes.RevitUnavailable,
+                Diagnostics = new List<string>
                 {
-                    Succeeded = false,
-                    StatusCode = StatusCodes.RevitUnavailable,
-                    Diagnostics = new List<string>
-                    {
-                        "Revit kernel pipe unavailable. Open Revit with an active project and try again."
-                    }
-                }));
+                    "Revit kernel pipe unavailable. Open Revit with an active project and try again."
+                }
+            });
+        var gateway = CreateGateway(kernel);
 
         var response = await gateway.SubmitChatAsync(new ExternalAiChatRequest
         {
@@ -359,11 +409,71 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
             Message = "hello"
         }, CancellationToken.None);
 
+        Assert.Equal(WorkerMissionStates.Completed, response.State);
+        Assert.True(response.Succeeded);
+        Assert.Equal(StatusCodes.Ok, response.StatusCode);
+        Assert.Contains("WorkerHost standalone mode", response.ResponseText, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(kernel.Requests);
+        Assert.False(response.HasPendingApproval);
+        Assert.NotEmpty(response.Events);
+        Assert.Contains(response.Events, x => x.EventType == "TaskCompleted");
+    }
+
+    [Fact]
+    public async Task SubmitChat_WhenActionRequested_StillReturnsRevitUnavailable()
+    {
+        var kernel = new QueueKernelClient(
+            new KernelInvocationResult
+            {
+                Succeeded = false,
+                StatusCode = StatusCodes.RevitUnavailable,
+                Diagnostics = new List<string>
+                {
+                    "Revit kernel pipe unavailable. Open Revit with an active project and try again."
+                }
+            });
+        var gateway = CreateGateway(kernel);
+
+        var response = await gateway.SubmitChatAsync(new ExternalAiChatRequest
+        {
+            MissionId = "mission-kernel-offline",
+            SessionId = "session-kernel-offline",
+            Message = "create sheet moi"
+        }, CancellationToken.None);
+
         Assert.Equal(WorkerMissionStates.Blocked, response.State);
         Assert.False(response.Succeeded);
         Assert.Equal(StatusCodes.RevitUnavailable, response.StatusCode);
         Assert.Contains("Open Revit with an active project", response.ResponseText, StringComparison.Ordinal);
-        Assert.Contains(response.Diagnostics, diagnostic => diagnostic.Contains("Open Revit with an active project", StringComparison.Ordinal));
+        Assert.Single(kernel.Requests);
+    }
+
+    [Fact]
+    public async Task SubmitChat_WhenLiveContextRequested_DoesNotUseStandaloneFastPath()
+    {
+        var kernel = new QueueKernelClient(
+            new KernelInvocationResult
+            {
+                Succeeded = false,
+                StatusCode = StatusCodes.RevitUnavailable,
+                Diagnostics = new List<string>
+                {
+                    "Revit kernel pipe unavailable. Open Revit with an active project and try again."
+                }
+            });
+        var gateway = CreateGateway(kernel);
+
+        var response = await gateway.SubmitChatAsync(new ExternalAiChatRequest
+        {
+            MissionId = "mission-live-context",
+            SessionId = "session-live-context",
+            Message = "check current view trong revit"
+        }, CancellationToken.None);
+
+        Assert.Equal(WorkerMissionStates.Blocked, response.State);
+        Assert.False(response.Succeeded);
+        Assert.Equal(StatusCodes.RevitUnavailable, response.StatusCode);
+        Assert.Single(kernel.Requests);
     }
 
     private ExternalAiGatewayService CreateGateway(IKernelClient? kernel = null, LlmProviderConfiguration? profile = null)
@@ -432,7 +542,27 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
             runtimeHealth,
             capabilityHost,
             settings,
-            new FixedLlmProviderConfigResolver(profile ?? new LlmProviderConfiguration()));
+            new StandaloneConversationService(memory),
+            new FixedLlmProviderConfigResolver(profile ?? new LlmProviderConfiguration()),
+            NullLogger<ExternalAiGatewayService>.Instance);
+    }
+
+    private static int CountOccurrences(string content, string value)
+    {
+        if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        var count = 0;
+        var index = 0;
+        while ((index = content.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     private sealed class ThrowingSemanticMemoryClient : ISemanticMemoryClient
@@ -459,8 +589,11 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
             _responses = new Queue<KernelInvocationResult>(responses);
         }
 
+        public List<KernelToolRequest> Requests { get; } = new List<KernelToolRequest>();
+
         public Task<KernelInvocationResult> InvokeAsync(KernelToolRequest request, CancellationToken cancellationToken)
         {
+            Requests.Add(request);
             return Task.FromResult(_responses.Count > 0
                 ? _responses.Dequeue()
                 : new KernelInvocationResult

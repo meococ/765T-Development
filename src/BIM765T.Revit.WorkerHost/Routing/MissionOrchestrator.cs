@@ -7,6 +7,7 @@ using BIM765T.Revit.Contracts.Common;
 using BIM765T.Revit.Contracts.Platform;
 using BIM765T.Revit.Contracts.Proto;
 using BIM765T.Revit.Contracts.Serialization;
+using ContractStatusCodes = BIM765T.Revit.Contracts.Common.StatusCodes;
 using BIM765T.Revit.WorkerHost.Configuration;
 using BIM765T.Revit.WorkerHost.Eventing;
 using BIM765T.Revit.WorkerHost.Kernel;
@@ -80,7 +81,35 @@ internal sealed class MissionOrchestrator
     {
         var normalizedMissionId = string.IsNullOrWhiteSpace(missionId) ? Guid.NewGuid().ToString("N") : missionId;
         var retrieval = await _retriever.RetrieveAsync(message, meta.DocumentKey, 3, cancellationToken).ConfigureAwait(false);
-        var plan = _planner.BuildSubmissionPlan(new MissionPlanningContext
+        var plan = BuildSubmissionPlan(message, personaId, clientSurface, continueMission, meta, retrieval);
+        var safety = _policyEvaluator.EvaluateSubmission(plan);
+        if (!safety.Allowed)
+        {
+            return await BuildBlockedMissionAsync(normalizedMissionId, requestJson, meta, safety, cancellationToken).ConfigureAwait(false);
+        }
+
+        return await SubmitMissionWithPlanAsync(
+            normalizedMissionId,
+            requestJson,
+            message,
+            personaId,
+            clientSurface,
+            continueMission,
+            meta,
+            plan,
+            retrieval,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public MissionPlan BuildSubmissionPlan(
+        string message,
+        string personaId,
+        string clientSurface,
+        bool continueMission,
+        EnvelopeMetadata meta,
+        RetrievalContext retrieval)
+    {
+        return _planner.BuildSubmissionPlan(new MissionPlanningContext
         {
             SessionId = meta.SessionId ?? string.Empty,
             PersonaId = personaId ?? string.Empty,
@@ -93,12 +122,87 @@ internal sealed class MissionOrchestrator
             ContinueMission = continueMission,
             AutonomyMode = _settings.ResolveAutonomyMode()
         }, retrieval);
-        var safety = _policyEvaluator.EvaluateSubmission(plan);
-        if (!safety.Allowed)
+    }
+
+    public async Task<(MissionSnapshot Snapshot, IReadOnlyList<MissionEventRecord> Events, KernelInvocationResult KernelResult)> SubmitLocalConversationAsync(
+        string missionId,
+        string requestJson,
+        string message,
+        string personaId,
+        string clientSurface,
+        bool continueMission,
+        EnvelopeMetadata meta,
+        MissionPlan plan,
+        RetrievalContext retrieval,
+        WorkerResponse workerResponse,
+        CancellationToken cancellationToken)
+    {
+        var normalizedMissionId = string.IsNullOrWhiteSpace(missionId) ? Guid.NewGuid().ToString("N") : missionId;
+        var snapshot = CreateMissionSnapshot(normalizedMissionId, meta.SessionId ?? string.Empty, requestJson, plan);
+        var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerResponse), dryRun: true);
+        kernelRequest.MissionId = normalizedMissionId;
+
+        workerResponse.MissionId = normalizedMissionId;
+        workerResponse.SessionId = snapshot.SessionId;
+        workerResponse.MissionStatus = WorkerMissionStates.Completed;
+        workerResponse.PlanSummary = string.IsNullOrWhiteSpace(workerResponse.PlanSummary) ? plan.Summary : workerResponse.PlanSummary;
+        workerResponse.PlannerTraceSummary = string.IsNullOrWhiteSpace(workerResponse.PlannerTraceSummary) ? plan.PlannerTraceSummary : workerResponse.PlannerTraceSummary;
+        workerResponse.AutonomyMode = string.IsNullOrWhiteSpace(workerResponse.AutonomyMode) ? plan.AutonomyMode : workerResponse.AutonomyMode;
+        workerResponse.ChosenToolSequence = plan.ChosenToolSequence?.ToList() ?? new List<string>();
+        if (workerResponse.ContextSummary != null)
         {
-            return await BuildBlockedMissionAsync(normalizedMissionId, requestJson, meta, safety, cancellationToken).ConfigureAwait(false);
+            workerResponse.ContextSummary.GroundingLevel = string.IsNullOrWhiteSpace(workerResponse.ContextSummary.GroundingLevel)
+                ? snapshot.GroundingLevel
+                : workerResponse.ContextSummary.GroundingLevel;
+            workerResponse.ContextSummary.GroundingRefs = (workerResponse.ContextSummary.GroundingRefs ?? new List<string>())
+                .Concat(plan.EvidenceRefs ?? new List<string>())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
+        await AppendPlanningEventsAsync(normalizedMissionId, snapshot, kernelRequest, message, personaId, clientSurface, plan, retrieval, cancellationToken).ConfigureAwait(false);
+
+        var payloadJson = JsonUtil.Serialize(workerResponse);
+        var result = new KernelInvocationResult
+        {
+            Succeeded = true,
+            StatusCode = ContractStatusCodes.Ok,
+            PayloadJson = payloadJson,
+            ProtocolVersion = BridgeProtocol.PipeV1
+        };
+        var verification = new VerificationResult
+        {
+            State = WorkerMissionStates.Completed,
+            Terminal = true,
+            ResponseText = workerResponse.Messages.Count > 0 ? workerResponse.Messages[^1].Content ?? string.Empty : string.Empty
+        };
+        verification.Events.Add(new MissionEventDescriptor
+        {
+            EventType = "TaskCompleted",
+            Payload = new { status = ContractStatusCodes.Ok, response = payloadJson },
+            Terminal = true
+        });
+
+        ApplyResult(snapshot, result, kernelRequest, verification);
+        await AppendVerificationEventsAsync(normalizedMissionId, snapshot, kernelRequest, verification, cancellationToken).ConfigureAwait(false);
+
+        var events = await _store.ListAsync(normalizedMissionId, cancellationToken).ConfigureAwait(false);
+        return (snapshot, events, result);
+    }
+
+    private async Task<(MissionSnapshot Snapshot, IReadOnlyList<MissionEventRecord> Events, KernelInvocationResult KernelResult)> SubmitMissionWithPlanAsync(
+        string missionId,
+        string requestJson,
+        string message,
+        string personaId,
+        string clientSurface,
+        bool continueMission,
+        EnvelopeMetadata meta,
+        MissionPlan plan,
+        RetrievalContext retrieval,
+        CancellationToken cancellationToken)
+    {
         var workerRequest = new WorkerMessageRequest
         {
             SessionId = meta.SessionId ?? string.Empty,
@@ -114,10 +218,27 @@ internal sealed class MissionOrchestrator
             EvidenceRefs = plan.EvidenceRefs?.ToList() ?? new List<string>()
         };
 
-        var snapshot = new MissionSnapshot
+        var snapshot = CreateMissionSnapshot(missionId, workerRequest.SessionId, requestJson, plan);
+        var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
+        kernelRequest.MissionId = missionId;
+
+        await AppendPlanningEventsAsync(missionId, snapshot, kernelRequest, message ?? string.Empty, personaId ?? string.Empty, clientSurface, plan, retrieval, cancellationToken).ConfigureAwait(false);
+
+        var result = await _kernel.InvokeAsync(kernelRequest, cancellationToken).ConfigureAwait(false);
+        var verification = _verifier.Evaluate(result, snapshot, kernelRequest);
+        ApplyResult(snapshot, result, kernelRequest, verification);
+        await AppendVerificationEventsAsync(missionId, snapshot, kernelRequest, verification, cancellationToken).ConfigureAwait(false);
+
+        var events = await _store.ListAsync(missionId, cancellationToken).ConfigureAwait(false);
+        return (snapshot, events, result);
+    }
+
+    private MissionSnapshot CreateMissionSnapshot(string missionId, string sessionId, string requestJson, MissionPlan plan)
+    {
+        return new MissionSnapshot
         {
-            MissionId = normalizedMissionId,
-            SessionId = workerRequest.SessionId,
+            MissionId = missionId,
+            SessionId = sessionId,
             Intent = plan.Intent,
             RequestJson = requestJson,
             State = WorkerMissionStates.Understanding,
@@ -130,12 +251,21 @@ internal sealed class MissionOrchestrator
             EvidenceRefs = plan.EvidenceRefs?.ToList() ?? new List<string>(),
             AutonomyMode = plan.AutonomyMode
         };
+    }
 
-        var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
-        kernelRequest.MissionId = normalizedMissionId;
-
-        await AppendAsync(normalizedMissionId, "TaskStarted", new { message, personaId, clientSurface }, snapshot, kernelRequest, cancellationToken).ConfigureAwait(false);
-        await AppendAsync(normalizedMissionId, "IntentClassified", new
+    private async Task AppendPlanningEventsAsync(
+        string missionId,
+        MissionSnapshot snapshot,
+        KernelToolRequest kernelRequest,
+        string message,
+        string personaId,
+        string clientSurface,
+        MissionPlan plan,
+        RetrievalContext retrieval,
+        CancellationToken cancellationToken)
+    {
+        await AppendAsync(missionId, "TaskStarted", new { message, personaId, clientSurface }, snapshot, kernelRequest, cancellationToken).ConfigureAwait(false);
+        await AppendAsync(missionId, "IntentClassified", new
         {
             plan.Intent,
             plan.TargetHint,
@@ -143,14 +273,14 @@ internal sealed class MissionOrchestrator
             plan.GroundingLevel,
             plan.AutonomyMode
         }, snapshot, kernelRequest, cancellationToken).ConfigureAwait(false);
-        await AppendAsync(normalizedMissionId, "ContextResolved", new
+        await AppendAsync(missionId, "ContextResolved", new
         {
             hits = retrieval.Hits.ConvertAll(x => new { x.Title, x.SourceRef, x.Score }),
             retrieval.Summary,
             plan.GroundingLevel,
             plan.EvidenceRefs
         }, snapshot, kernelRequest, cancellationToken).ConfigureAwait(false);
-        await AppendAsync(normalizedMissionId, "PlanBuilt", new
+        await AppendAsync(missionId, "PlanBuilt", new
         {
             tool = ToolNames.WorkerMessage,
             summary = plan.Summary,
@@ -161,14 +291,11 @@ internal sealed class MissionOrchestrator
             plan.PlannerTraceSummary,
             plan.AutonomyMode
         }, snapshot, kernelRequest, cancellationToken).ConfigureAwait(false);
+    }
 
-        var result = await _kernel.InvokeAsync(kernelRequest, cancellationToken).ConfigureAwait(false);
-        var verification = _verifier.Evaluate(result, snapshot, kernelRequest);
-        ApplyResult(snapshot, result, kernelRequest, verification);
-        await AppendVerificationEventsAsync(normalizedMissionId, snapshot, kernelRequest, verification, cancellationToken).ConfigureAwait(false);
-
-        var events = await _store.ListAsync(normalizedMissionId, cancellationToken).ConfigureAwait(false);
-        return (snapshot, events, result);
+    public Task<RetrievalContext> RetrieveAsync(string message, string documentKey, CancellationToken cancellationToken)
+    {
+        return _retriever.RetrieveAsync(message, documentKey, 3, cancellationToken);
     }
 
     public Task<MissionSnapshot?> GetMissionAsync(string missionId, CancellationToken cancellationToken)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BIM765T.Revit.Agent.Config;
@@ -51,6 +50,39 @@ public sealed class PipeRequestProcessorTests
         Assert.False(response.Succeeded);
         Assert.Equal(StatusCodes.CallerNotAllowed, response.StatusCode);
         Assert.Contains(response.Diagnostics, x => x.Code == "PIPE_CALLER_REJECTED");
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Returns_CallerNotAllowed_When_Mcp_Caller_Invokes_InternalOnly_Tool()
+    {
+        var processor = CreateProcessor(
+            scheduler: new FakeScheduler(new ToolResponseEnvelope
+            {
+                RequestId = "req-internal-block",
+                ToolName = "internal.tool",
+                CorrelationId = "corr-internal-block",
+                ProtocolVersion = BridgeProtocol.PipeV1,
+                Succeeded = true,
+                StatusCode = StatusCodes.ReadSucceeded
+            }),
+            manifestResolver: _ => new ToolManifest
+            {
+                ToolName = "internal.tool",
+                Audience = WorkerAudience.Internal,
+                Visibility = WorkerVisibility.BetaInternal,
+                PrimaryPersona = ToolPrimaryPersonas.PlatformAuthor,
+                ExecutionTimeoutMs = 5000
+            });
+
+        var request = CreateRequest();
+        request.ToolName = "internal.tool";
+        request.Caller = "BIM765T.Revit.McpHost";
+
+        var response = await processor.ProcessAsync(JsonUtil.Serialize(request), "DOMAIN\\user", lookupFailed: false, CancellationToken.None);
+
+        Assert.False(response.Succeeded);
+        Assert.Equal(StatusCodes.CallerNotAllowed, response.StatusCode);
+        Assert.Contains(response.Diagnostics, x => x.Code == "PIPE_CALLER_POLICY_BLOCKED");
     }
 
     [Fact]
@@ -120,7 +152,8 @@ public sealed class PipeRequestProcessorTests
         AgentSettings? settings = null,
         RequestRateLimiter? limiter = null,
         IPipeCallerAuthorizer? authorizer = null,
-        IPipeRequestScheduler? scheduler = null)
+        IPipeRequestScheduler? scheduler = null,
+        Func<string, ToolManifest?>? manifestResolver = null)
     {
         settings ??= new AgentSettings
         {
@@ -143,7 +176,7 @@ public sealed class PipeRequestProcessorTests
 
         return new PipeRequestProcessor(
             settings,
-            _ => new ToolManifest { ToolName = ToolNames.DocumentGetActive, ExecutionTimeoutMs = 5000 },
+            manifestResolver ?? (_ => new ToolManifest { ToolName = ToolNames.DocumentGetActive, ExecutionTimeoutMs = 5000 }),
             limiter,
             new TestLogger(),
             authorizer,

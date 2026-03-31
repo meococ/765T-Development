@@ -66,7 +66,7 @@ internal sealed class HullSourceCollector
 
         if (element is Wall wall && wall.WallType.Kind == WallKind.Curtain)
         {
-            info.Diagnostics.Add(DiagnosticRecord.Create("SKIP_CURTAIN_WALL", DiagnosticSeverity.Info, "Curtain wall bị loại khỏi Hull flow.", info.SourceId));
+            info.Diagnostics.Add(DiagnosticRecord.Create("SKIP_CURTAIN_WALL", DiagnosticSeverity.Info, "Curtain wall excluded from Hull flow.", info.SourceId));
             return info;
         }
 
@@ -77,7 +77,7 @@ internal sealed class HullSourceCollector
         }
         else
         {
-            info.Diagnostics.Add(DiagnosticRecord.Create("MISSING_STRUCTURE_LAYER_1", DiagnosticSeverity.Warning, "Không tìm thấy Structure[1] hợp lệ.", info.SourceId));
+            info.Diagnostics.Add(DiagnosticRecord.Create("MISSING_STRUCTURE_LAYER_1", DiagnosticSeverity.Warning, "Valid Structure[1] layer not found.", info.SourceId));
         }
 
         return info;
