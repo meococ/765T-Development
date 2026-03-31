@@ -1,12 +1,14 @@
 # 765T Agentic BIM OS
 
-> AI agent vận hành trực tiếp bên trong Autodesk Revit thông qua kiến trúc local an toàn.
+**[English version → README.en.md](README.en.md)**
+
+AI agent van hanh truc tiep ben trong Autodesk Revit thong qua kien truc local an toan.
 
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-250%20passed-brightgreen)
 ![.NET](https://img.shields.io/badge/.NET-4.8%20%7C%208.0-blue)
 ![Revit](https://img.shields.io/badge/Revit-2024%20%7C%202026-orange)
-![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Tong Quan
 
@@ -80,6 +82,19 @@ He thong nay cho phep ban:
 
 AI agent doc Revit context, lap ke hoach, xin duyet (neu can), va thuc thi — tat ca trong IDE.
 
+## Yeu Cau He Thong
+
+| Yeu cau | Phien ban |
+| --- | --- |
+| **Windows** | 10 / 11 (64-bit) |
+| **.NET SDK** | 8.0+ |
+| **.NET Framework** | 4.8 (cho Revit add-in) |
+| **Autodesk Revit** | 2024 hoac 2026 (ban quyen) |
+| Docker + Qdrant | Tuy chon — fallback sang lexical search neu khong co |
+| Ollama | Tuy chon — fallback sang hash embeddings neu khong co |
+
+> **Luu y:** He thong chi chay tren Windows vi Revit la ung dung Windows-only.
+
 ## Quick Start
 
 ### 1. Build
@@ -110,19 +125,25 @@ powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\instal
 dotnet run --project src/BIM765T.Revit.WorkerHost -c Release
 ```
 
-### 5. Ket Noi Tu IDE
+### 5. Ket Noi Tu IDE (Claude Code / Cursor)
 
-Cau hinh MCP client cua IDE tro den `BIM765T.Revit.McpHost.exe`:
+Them vao MCP config cua IDE (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
     "revit-agent": {
-      "command": "path/to/BIM765T.Revit.McpHost.exe"
+      "command": "<REPO_ROOT>/src/BIM765T.Revit.McpHost/bin/Release/net8.0/BIM765T.Revit.McpHost.exe"
     }
   }
 }
 ```
+
+Thay `<REPO_ROOT>` bang duong dan thuc te den repo tren may cua ban.
+
+> **Thu tu khoi dong:** Revit (voi add-in) → WorkerHost → IDE MCP client.
+
+Xem huong dan chi tiet: [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md)
 
 ## Test
 

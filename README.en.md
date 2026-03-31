@@ -1,12 +1,14 @@
 # 765T Agentic BIM OS
 
-> An AI agent that operates directly inside Autodesk Revit through a guarded local architecture.
+**[Phien ban tieng Viet → README.md](README.md)**
+
+An AI agent that operates directly inside Autodesk Revit through a guarded local architecture.
 
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-250%20passed-brightgreen)
 ![.NET](https://img.shields.io/badge/.NET-4.8%20%7C%208.0-blue)
 ![Revit](https://img.shields.io/badge/Revit-2024%20%7C%202026-orange)
-![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Overview
 
@@ -80,6 +82,19 @@ This system lets you:
 
 The AI agent reads Revit context, plans the approach, requests approval (when needed), and executes — all from inside the IDE.
 
+## Prerequisites
+
+| Requirement | Version |
+| --- | --- |
+| **Windows** | 10 / 11 (64-bit) |
+| **.NET SDK** | 8.0+ |
+| **.NET Framework** | 4.8 (for Revit add-in) |
+| **Autodesk Revit** | 2024 or 2026 (licensed) |
+| Docker + Qdrant | Optional — falls back to lexical search if unavailable |
+| Ollama | Optional — falls back to hash embeddings if unavailable |
+
+> **Note:** This system is Windows-only because Revit is a Windows application.
+
 ## Quick Start
 
 ### 1. Build
@@ -110,19 +125,25 @@ powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\instal
 dotnet run --project src/BIM765T.Revit.WorkerHost -c Release
 ```
 
-### 5. Connect From IDE
+### 5. Connect From IDE (Claude Code / Cursor)
 
-Point your MCP client configuration at `BIM765T.Revit.McpHost.exe`:
+Add to your IDE's MCP config (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
     "revit-agent": {
-      "command": "path/to/BIM765T.Revit.McpHost.exe"
+      "command": "<REPO_ROOT>/src/BIM765T.Revit.McpHost/bin/Release/net8.0/BIM765T.Revit.McpHost.exe"
     }
   }
 }
 ```
+
+Replace `<REPO_ROOT>` with the actual path to the repo on your machine.
+
+> **Startup order:** Revit (with add-in loaded) → WorkerHost → IDE MCP client.
+
+See detailed guide: [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md)
 
 ## Testing
 

@@ -71,6 +71,14 @@ Project MMBS/
 CLAUDE.md
 AGENTS.md
 ASSISTANT.md
+README.BIM765T.Revit.Agent.md
+
+# Internal AI tooling config (user-specific agents, hooks, MCP)
+.claude/
+.assistant/
+
+# Internal audit output
+output/
 
 # OS/editor
 .DS_Store
