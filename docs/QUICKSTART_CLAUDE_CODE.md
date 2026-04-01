@@ -58,25 +58,52 @@ Provider priority: OpenRouter > MiniMax > OpenAI > Anthropic. The first key foun
 powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\install-addin.ps1
 ```
 
-Then restart Revit. On first load, Revit may ask you to trust the add-in — click "Always Load".
-
 ## Step 4: Start WorkerHost
 
-Open a **separate terminal** (keep it running):
+Open a separate terminal and keep it running:
 
 ```powershell
 cd src\BIM765T.Revit.WorkerHost
 dotnet run -c Release
 ```
 
-Verify it's running:
+Verify it is running:
 
 ```powershell
 curl http://localhost:50765/health
 # Expected: {"status":"ok", ...}
 ```
 
-## Step 5: Configure Your IDE
+## Step 5: Launch Revit Deterministically
+
+From the repo root, launch Revit with the target model through the helper script:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\restart_revit_and_trust_addin.ps1 `
+  -ModelPath "C:\path\to\YourModel.rvt" `
+  -AutoTrustUnsignedAddin
+```
+
+This script:
+
+- closes stray `Revit.exe` processes
+- opens the exact target model
+- trusts the unsigned add-in prompt when requested
+- waits until the bridge reports that exact model path as the active session
+
+Before opening the IDE, verify the live session:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\check_bridge_health.ps1 -AsJson
+```
+
+Minimum expected state:
+
+- `BridgeOnline = true`
+- `ActiveDocument = <your model title>`
+- `RevitSessionIsolated = true`
+
+## Step 6: Configure Your IDE
 
 ### Claude Code
 
@@ -112,11 +139,11 @@ Any client that supports MCP stdio transport can connect using the same `BIM765T
 
 > Replace `C:/path/to/765T-Development` with your actual repo path.
 
-## Step 6: Verify Connection
+## Step 7: Verify Connection
 
 In your IDE, ask the AI agent:
 
-```
+```text
 List all available Revit tools
 ```
 
@@ -128,35 +155,35 @@ Once connected, try these:
 
 ### Read-Only (Safe)
 
-```
-Show me the current Revit model info — document title, view, element counts.
+```text
+Show me the current Revit model info - document title, view, element counts.
 ```
 
-```
+```text
 List all walls in the current view with their types and lengths.
 ```
 
-```
+```text
 Get all warnings in the current model.
 ```
 
 ### Analysis
 
-```
-Analyze the current model structure — how many levels, views, sheets?
+```text
+Analyze the current model structure - how many levels, views, sheets?
 ```
 
-```
+```text
 Check all pipe penetrations and show which ones are missing fire-stop families.
 ```
 
 ### Mutations (Preview + Approval Flow)
 
-```
+```text
 Create a new floor plan view for Level 2.
 ```
 
-```
+```text
 Place a fire-stop family at all unmarked penetration points.
 ```
 
@@ -184,8 +211,9 @@ Total: 237 tools across 14 specialist packs.
 | --- | --- | --- |
 | "McpHost.exe not found" | Wrong path in MCP config | Use full absolute path to the built exe |
 | "Connection refused" on port 50765 | WorkerHost not running | Start WorkerHost: `cd src\BIM765T.Revit.WorkerHost && dotnet run -c Release` |
-| "Kernel pipe unavailable" | Revit not running or add-in not loaded | Open Revit, check that 765T AI tab appears in ribbon |
-| Tools return empty data | No model open in Revit | Open a `.rvt` file in Revit |
+| "Kernel pipe unavailable" | Revit not running, add-in not loaded, or the target model is not attached to the bridge yet | Run `.\tools\restart_revit_and_trust_addin.ps1 -ModelPath "C:\path\to\YourModel.rvt" -AutoTrustUnsignedAddin` |
+| Tools return empty data | No model open in Revit or the wrong Revit session is active | Run `.\tools\check_bridge_health.ps1 -AsJson` and confirm `ActiveDocument` is correct |
+| Reads/mutations attach to the wrong model | Multiple `Revit.exe` processes are open | Close extra Revit sessions or rerun `restart_revit_and_trust_addin.ps1`; verify `RevitSessionIsolated = true` |
 | LLM timeout or no response | API key not set or invalid | Run `.\tools\check_ai_readiness.ps1` to verify |
 | Build fails on RevitAPI.dll | Revit not installed at expected path | Edit `Directory.Build.props`, update `Revit2024InstallDir` |
 
@@ -193,14 +221,18 @@ Total: 237 tools across 14 specialist packs.
 
 Always start in this order:
 
-1. **Revit** (with a model open and add-in loaded)
-2. **WorkerHost** (`dotnet run` in separate terminal)
-3. **IDE** (with MCP config pointing to McpHost.exe)
+1. Install the add-in.
+2. Start WorkerHost in a separate terminal.
+3. Launch Revit through `restart_revit_and_trust_addin.ps1` with the exact model path.
+4. Verify `check_bridge_health.ps1 -AsJson` reports `RevitSessionIsolated = true`.
+5. Open the IDE with MCP config pointing to `BIM765T.Revit.McpHost.exe`.
+
+For live mutation/export work, keep exactly one `Revit.exe` open. Multiple Revit sessions can make bridge routing unsafe.
 
 ## Architecture
 
 For deeper understanding:
 
-- [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) — system boundaries and ownership model
-- [`docs/PATTERNS.md`](PATTERNS.md) — mutation flow and safety patterns
-- [`docs/QUICKSTART_AI_TESTING.md`](QUICKSTART_AI_TESTING.md) — HTTP API testing (without IDE)
+- [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) - system boundaries and ownership model
+- [`docs/PATTERNS.md`](PATTERNS.md) - mutation flow and safety patterns
+- [`docs/QUICKSTART_AI_TESTING.md`](QUICKSTART_AI_TESTING.md) - HTTP API testing without an IDE
