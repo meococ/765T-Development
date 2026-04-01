@@ -125,7 +125,17 @@ powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\instal
 dotnet run --project src/BIM765T.Revit.WorkerHost -c Release
 ```
 
-### 5. Connect From IDE (Claude Code / Cursor)
+### 5. Launch Revit Deterministically (Recommended)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\restart_revit_and_trust_addin.ps1 `
+  -ModelPath "C:\path\to\YourModel.rvt" `
+  -AutoTrustUnsignedAddin
+```
+
+This helper closes stray `Revit.exe` processes, opens the target model, auto-trusts the unsigned add-in prompt when requested, and waits until the bridge reports the exact model path as the active session.
+
+### 6. Connect From IDE (Claude Code / Cursor)
 
 Add to your IDE's MCP config (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
 
@@ -142,6 +152,8 @@ Add to your IDE's MCP config (Claude Code: `~/.claude.json`, Cursor: `.cursor/mc
 Replace `<REPO_ROOT>` with the actual path to the repo on your machine.
 
 > **Startup order:** Revit (with add-in loaded) → WorkerHost → IDE MCP client.
+
+> **Live-session rule:** Keep exactly one `Revit.exe` open for mutation/export work. If multiple Revit processes are running, bridge routing can attach to the wrong session. Verify with `.\tools\check_bridge_health.ps1 -AsJson` and confirm `RevitSessionIsolated = true`.
 
 See detailed guide: [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md)
 

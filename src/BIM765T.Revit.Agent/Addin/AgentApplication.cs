@@ -122,8 +122,20 @@ public sealed class AgentApplication : IExternalApplication
                 LargeImage = RibbonIconFactory.CreateSnapshotLarge()
             };
 
+            var filterAuditBtn = new PushButtonData(
+                "BIM765T.FilterAudit",
+                "Filter\nAudit",
+                assembly,
+                typeof(CmdExportFilterAudit).FullName)
+            {
+                ToolTip = "Export current document/view filter audit to JSON",
+                LongDescription = "Dump all ParameterFilterElements plus active-view/template usage to a JSON file for external analysis.",
+                Image = RibbonIconFactory.CreateContextSmall(),
+                LargeImage = RibbonIconFactory.CreateContextLarge()
+            };
+
             utilitiesPanel.AddItem(healthBtn);
-            utilitiesPanel.AddStackedItems(warningsBtn, snapshotBtn);
+            utilitiesPanel.AddStackedItems(warningsBtn, snapshotBtn, filterAuditBtn);
         }
     }
 

@@ -66,7 +66,13 @@ internal sealed class DocumentResolverService : IDocumentResolver
         {
             if (active == null)
             {
-                throw new RevitContextException("No active document.");
+                var inferred = TryResolveImplicitDocument(uiapp);
+                if (inferred != null)
+                {
+                    return inferred;
+                }
+
+                throw new RevitContextException("Không có active document và không suy ra được document đang mở duy nhất.");
             }
 
             return active;
@@ -82,7 +88,31 @@ internal sealed class DocumentResolverService : IDocumentResolver
             }
         }
 
-        throw new InvalidOperationException("Cannot resolve target document: " + requestedDocument);
+        throw new InvalidOperationException("Không resolve được target document: " + requestedDocument);
+    }
+
+    private static Document? TryResolveImplicitDocument(UIApplication uiapp)
+    {
+        var nonLinkedDocs = uiapp.Application.Documents
+            .Cast<Document>()
+            .Where(doc => !doc.IsLinked)
+            .ToList();
+
+        var projectDocs = nonLinkedDocs
+            .Where(doc => !doc.IsFamilyDocument)
+            .ToList();
+
+        if (projectDocs.Count == 1)
+        {
+            return projectDocs[0];
+        }
+
+        if (nonLinkedDocs.Count == 1)
+        {
+            return nonLinkedDocs[0];
+        }
+
+        return null;
     }
 
     public View ResolveView(UIApplication uiapp, Document doc, string requestedView, int? requestedViewId = null)
@@ -117,10 +147,10 @@ internal sealed class DocumentResolverService : IDocumentResolver
 
         if (string.IsNullOrWhiteSpace(requestedView) && !requestedViewId.HasValue)
         {
-            throw new RevitContextException("No active view.");
+            throw new RevitContextException("Không có active view.");
         }
 
-        throw new InvalidOperationException("Cannot resolve target view.");
+        throw new InvalidOperationException("Không resolve được target view.");
     }
 
     public ViewSheet ResolveSheet(Document doc, SheetSummaryRequest request)
@@ -155,7 +185,7 @@ internal sealed class DocumentResolverService : IDocumentResolver
             }
         }
 
-        throw new InvalidOperationException("Cannot resolve sheet by SheetId/SheetNumber/SheetName.");
+        throw new InvalidOperationException("Không resolve được sheet theo SheetId/SheetNumber/SheetName.");
     }
 
     private DocumentLookupIndex GetLookupIndex(Document doc)

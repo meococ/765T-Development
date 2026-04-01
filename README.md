@@ -125,7 +125,17 @@ powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\instal
 dotnet run --project src/BIM765T.Revit.WorkerHost -c Release
 ```
 
-### 5. Ket Noi Tu IDE (Claude Code / Cursor)
+### 5. Mo Revit Theo Dung Session (Khuyen Dung)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\restart_revit_and_trust_addin.ps1 `
+  -ModelPath "C:\path\to\YourModel.rvt" `
+  -AutoTrustUnsignedAddin
+```
+
+Script nay dong cac `Revit.exe` du, mo dung model muc tieu, auto-trust prompt unsigned add-in khi duoc yeu cau, va chi return khi bridge xac nhan dung path model dang la session active.
+
+### 6. Ket Noi Tu IDE (Claude Code / Cursor)
 
 Them vao MCP config cua IDE (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
 
@@ -142,6 +152,8 @@ Them vao MCP config cua IDE (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp
 Thay `<REPO_ROOT>` bang duong dan thuc te den repo tren may cua ban.
 
 > **Thu tu khoi dong:** Revit (voi add-in) → WorkerHost → IDE MCP client.
+
+> **Quy tac live session:** Khi mutate/export, chi nen de dung 1 `Revit.exe`. Neu mo nhieu process Revit, bridge co the route nham sang session khac. Kiem tra bang `.\tools\check_bridge_health.ps1 -AsJson` va xac nhan `RevitSessionIsolated = true`.
 
 Xem huong dan chi tiet: [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md)
 

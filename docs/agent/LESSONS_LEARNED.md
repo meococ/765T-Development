@@ -812,3 +812,17 @@
 - **Nguyen nhan:** consumer muon doc truc tiep JSON day du thay vi thong qua curated bundle.
 - **Cach fix:** surface summary, counts, strengths/weaknesses, pending unknowns, va top refs trong context bundle; de raw report o artifact path cho explorer khi can.
 - **Cach phong ngua:** bat ky surface chat/web moi nao cho Project Brain deu phai co summary contract rieng truoc khi mo raw artifact explorer.
+
+### 2026-04-02 - `document.get_active` khong duoc phu thuoc tuyet doi vao `ActiveUIDocument` trong startup window
+
+- Trieu chung: model da mo that, `session.list_open_documents` thay dung file, nhung `document.get_active` van fail "khong co active document" trong giai doan startup/chuyen session.
+- Nguyen nhan: `UIApplication.ActiveUIDocument` co the tam thoi `null` du chi co 1 project document hop le dang mo.
+- Cach fix: trong `DocumentResolverService`, khi request active document ma `ActiveUIDocument` null, fallback sang suy ra document dang mo duy nhat khong phai link.
+- Cach phong ngua: tool/session bootstrap nao can active document phai cho phep `sole-open-document fallback`, khong duoc assume `ActiveUIDocument` luon san sang.
+
+### 2026-04-02 - Startup helper phai doi dung model muc tieu len bridge, khong duoc doi moi "active document" mo ho
+
+- Trieu chung: script restart/open Revit co the return som khi bridge thay mot active doc khac, hoac pass health du model muc tieu chua len session.
+- Nguyen nhan: helper chi poll `document.get_active`, nen de bi false-pass trong case startup tre, route nham, hoac session con sot lai.
+- Cach fix: `restart_revit_and_trust_addin.ps1` gio doi `session.list_open_documents` va chi xac nhan khi `DocumentKey/PathName` match dung model duoc yeu cau.
+- Cach phong ngua: bat ky helper startup/open-model nao trong repo deu phai xac nhan bang exact model path, va khi lam live mutate/export thi chi giu 1 `Revit.exe`.

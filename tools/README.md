@@ -26,7 +26,7 @@ tools/
 
 | Script | Purpose |
 |--------|---------|
-| `check_bridge_health.ps1` | Validate bridge runtime and tool coverage |
+| `check_bridge_health.ps1` | Validate bridge runtime, tool coverage, and whether routing is safe for a single isolated Revit session |
 | `check_workerhost_health.ps1` | Validate WorkerHost health JSON |
 | `check_ai_readiness.ps1` | Check AI provider availability |
 | `check_tool_registry.ps1` | Audit tool manifests for missing metadata |
@@ -44,7 +44,7 @@ tools/
 | `install_qdrant_startup_task.ps1` | Scheduled task for local Qdrant |
 | `start_qdrant_local.ps1` | Start local Qdrant |
 | `setup_ai_providers.ps1` | Configure LLM provider env vars |
-| `restart_revit_and_trust_addin.ps1` | Restart Revit with trusted add-in |
+| `restart_revit_and_trust_addin.ps1` | Close stray Revit processes, open a target model, trust the add-in prompt, and wait for bridge confirmation on that exact model |
 | `package_revit_bridge_build.ps1` | Package bridge build for deployment |
 
 ### Testing (`testing/`)
@@ -69,3 +69,4 @@ Domain-specific scripts for round transition, penetration review, IFC export, an
 - Scripts should be idempotent where possible
 - JSON output and stable exit codes for automation
 - New scripts go in the appropriate subdirectory, not root
+- For live mutation/export work, prefer a single `Revit.exe` session and verify `check_bridge_health.ps1` reports `RevitSessionIsolated = true`

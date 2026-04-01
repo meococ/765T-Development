@@ -6,6 +6,42 @@
 
 ---
 
+## 2026-04-02 - Deterministic Revit startup + active-document fallback hardening
+
+**Module**: Agent document resolution, startup tooling, bridge health reporting
+
+**Files touched**:
+- MOD: `src/BIM765T.Revit.Agent/Services/Platform/PlatformAbstractions.cs`
+- MOD: `tools/restart_revit_and_trust_addin.ps1`
+- MOD: `tools/infra/restart_revit_and_trust_addin.ps1`
+- MOD: `tools/check_bridge_health.ps1`
+- MOD: `README.en.md`
+- MOD: `README.md`
+- MOD: `tools/README.md`
+- MOD: `docs/agent/LESSONS_LEARNED.md`
+
+**What was built**:
+- Hardened `document.get_active` so the runtime can infer the sole open project document when `ActiveUIDocument` is temporarily null.
+- Upgraded the restart helper to close stray Revit sessions, open the requested model, auto-trust the unsigned add-in prompt when requested, and wait until bridge confirms the exact model path.
+- Extended bridge health output to surface whether routing is safe (`RevitProcessCount`, `RevitSessionIsolated`, `UnsafeBridgeRouting`).
+- Updated operator-facing docs so the deterministic startup path is documented instead of tribal knowledge.
+
+**Problems hit & fixes**:
+- Problem: live session could list open documents correctly but still fail `document.get_active` during startup.
+  - Fix: added sole-open-document fallback in `DocumentResolverService`.
+  - Why it works: it removes a false dependency on `ActiveUIDocument` during transient startup windows.
+- Problem: startup helper could falsely pass on "some active document" instead of the requested model.
+  - Fix: helper now polls `session.list_open_documents` and matches exact model path/document key.
+  - Why it works: readiness is now tied to the requested model, not an ambiguous active-document snapshot.
+- Problem: multi-Revit routing was easy to miss unless someone manually inspected running processes.
+  - Fix: `check_bridge_health.ps1` now reports session isolation explicitly.
+  - Why it works: the unsafe condition is surfaced in the standard health command instead of ad-hoc debugging.
+
+**Reusable for**:
+- Any live Revit workflow that must open one exact model and prove the bridge is attached to that model before analysis or mutation.
+
+---
+
 ## Entry Format
 
 ```

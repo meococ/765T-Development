@@ -104,6 +104,22 @@ function Get-RevitProcesses {
     @(Get-Process Revit -ErrorAction SilentlyContinue)
 }
 
+function Invoke-BridgeTool {
+    param([string]$Tool)
+
+    try {
+        $raw = & $BridgeExe $Tool
+        if ($LASTEXITCODE -ne 0 -or -not $raw) {
+            return $null
+        }
+
+        return $raw | ConvertFrom-Json
+    }
+    catch {
+        return $null
+    }
+}
+
 function Stop-RevitProcesses {
     foreach ($proc in Get-RevitProcesses) {
         Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
@@ -143,28 +159,50 @@ function Invoke-TrustUnsignedAddinIfPrompted {
     return $false
 }
 
+function Get-ExpectedDocumentKey {
+    param([string]$ModelPath)
+
+    $resolvedPath = (Resolve-Path $ModelPath).Path
+    return "path:" + $resolvedPath.Trim().ToLowerInvariant()
+}
+
 function Wait-ForBridgeDocument {
-    param([int]$TimeoutSeconds = 180)
+    param(
+        [string]$ModelPath,
+        [int]$TimeoutSeconds = 180
+    )
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $expectedDocumentKey = Get-ExpectedDocumentKey -ModelPath $ModelPath
+    $resolvedModelPath = (Resolve-Path $ModelPath).Path
+
     while ((Get-Date) -lt $deadline) {
-        try {
-            $raw = & $BridgeExe document.get_active
-            if ($LASTEXITCODE -eq 0 -and $raw) {
-                $response = $raw | ConvertFrom-Json
-                if ($response.Succeeded) {
-                    return $response
+        $response = Invoke-BridgeTool -Tool 'session.list_open_documents'
+        if ($response -and $response.Succeeded) {
+            $payload = $null
+            if (-not [string]::IsNullOrWhiteSpace([string]$response.PayloadJson)) {
+                try {
+                    $payload = $response.PayloadJson | ConvertFrom-Json
+                }
+                catch {
+                    $payload = $null
                 }
             }
-        }
-        catch {
-            # keep waiting
+
+            $document = @($payload.Documents) | Where-Object {
+                [string]::Equals([string]$_.DocumentKey, $expectedDocumentKey, [System.StringComparison]::OrdinalIgnoreCase) -or
+                [string]::Equals([string]$_.PathName, $resolvedModelPath, [System.StringComparison]::OrdinalIgnoreCase)
+            } | Select-Object -First 1
+
+            if ($document) {
+                return $document
+            }
         }
 
         Start-Sleep -Seconds 2
     }
 
-    throw "Bridge did not come online with an active document after $TimeoutSeconds seconds."
+    throw "Bridge did not report target model '$resolvedModelPath' after $TimeoutSeconds seconds."
 }
 
 Stop-RevitProcesses
@@ -172,8 +210,7 @@ Start-Sleep -Seconds 3
 Start-Process -FilePath $RevitExe -ArgumentList ('"' + $ModelPath + '"')
 
 $trusted = Invoke-TrustUnsignedAddinIfPrompted -TimeoutSeconds $LaunchTimeoutSeconds -AllowAutoTrust:$AutoTrustUnsignedAddin
-$documentResponse = Wait-ForBridgeDocument -TimeoutSeconds $BridgeTimeoutSeconds
-$document = $documentResponse.PayloadJson | ConvertFrom-Json
+$document = Wait-ForBridgeDocument -ModelPath $ModelPath -TimeoutSeconds $BridgeTimeoutSeconds
 
 [pscustomobject]@{
     RevitExe = $RevitExe
@@ -181,5 +218,6 @@ $document = $documentResponse.PayloadJson | ConvertFrom-Json
     TrustedUnsignedAddinPrompt = [bool]$trusted
     DocumentTitle = [string]$document.Title
     DocumentKey = [string]$document.DocumentKey
+    IsActive = [bool]$document.IsActive
     BridgeOnline = $true
 } | ConvertTo-Json -Depth 8

@@ -140,6 +140,9 @@ $toolCatalog = ConvertFrom-PayloadJson -Response $toolsResponse
 $capPayload = ConvertFrom-PayloadJson -Response $capResponse
 $docPayload = ConvertFrom-PayloadJson -Response $docResponse
 $viewPayload = ConvertFrom-PayloadJson -Response $viewResponse
+$revitProcesses = @(Get-Process Revit -ErrorAction SilentlyContinue)
+$revitProcessCount = $revitProcesses.Count
+$unsafeMultiProcessBridgeRouting = $revitProcessCount -gt 1
 
 $toolNames = @()
 if ($toolCatalog -and $toolCatalog.Tools) {
@@ -204,6 +207,9 @@ $result = [ordered]@{
     WriteEnabled           = if ($capPayload) { $capPayload.AllowWriteTools } else { $false }
     SaveEnabled            = if ($capPayload) { $capPayload.AllowSaveTools } else { $false }
     SyncEnabled            = if ($capPayload) { $capPayload.AllowSyncTools } else { $false }
+    RevitProcessCount      = $revitProcessCount
+    RevitSessionIsolated   = (-not $unsafeMultiProcessBridgeRouting)
+    UnsafeBridgeRouting    = $unsafeMultiProcessBridgeRouting
     DocumentStatus         = if ($docResponse) { $docResponse.StatusCode } else { '<no-response>' }
     ActiveDocument         = if ($docPayload) { $docPayload.Title } else { '<none>' }
     ViewStatus             = if ($viewResponse) { $viewResponse.StatusCode } else { '<no-response>' }
