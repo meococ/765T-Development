@@ -389,7 +389,7 @@ internal sealed class FamilyAuthoringToolModule : IToolModule
 
                     // No active document — build minimal preview without context fingerprint
                     previewResult.PreviewRunId = Guid.NewGuid().ToString("N");
-                    previewResult.ApprovalToken = "no_context_" + previewResult.PreviewRunId;
+                    previewResult.ApprovalToken = BuildNoContextApprovalToken(previewResult.PreviewRunId);
                     return ToolResponses.ConfirmationRequired(request, previewResult);
                 }
 
@@ -401,7 +401,7 @@ internal sealed class FamilyAuthoringToolModule : IToolModule
                         return ToolResponses.Failure(request, approval);
                     }
                 }
-                else if (string.IsNullOrWhiteSpace(request.ApprovalToken))
+                else if (!IsValidNoContextApproval(request.PreviewRunId, request.ApprovalToken))
                 {
                     return ToolResponses.Failure(request, StatusCodes.ApprovalInvalid);
                 }
@@ -409,5 +409,16 @@ internal sealed class FamilyAuthoringToolModule : IToolModule
                 return ToolResponses.FromExecutionResult(request, _authoring.ExecuteCreateDocument(uiapp, payload));
             },
             "{\"TemplateCategory\":\"generic_model\",\"SaveAsPath\":\"C:\\\\Families\\\\MyFamily.rfa\",\"ActivateInUI\":true,\"UnitSystem\":\"metric\"}");
+    }
+
+    private static string BuildNoContextApprovalToken(string previewRunId)
+    {
+        return "family_create_document:" + (previewRunId ?? string.Empty);
+    }
+
+    private static bool IsValidNoContextApproval(string previewRunId, string approvalToken)
+    {
+        return !string.IsNullOrWhiteSpace(previewRunId)
+            && string.Equals(approvalToken, BuildNoContextApprovalToken(previewRunId), StringComparison.Ordinal);
     }
 }

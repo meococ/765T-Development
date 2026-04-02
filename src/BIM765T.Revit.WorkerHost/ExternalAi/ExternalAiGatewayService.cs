@@ -508,7 +508,7 @@ internal sealed class ExternalAiMissionCommandRequest
     [DataMember(Order = 10)]
     public string ExpectedContextJson { get; set; } = string.Empty;
     [DataMember(Order = 11)]
-    public bool AllowMutations { get; set; } = true;
+    public bool AllowMutations { get; set; }
     [DataMember(Order = 12)]
     public string RecoveryBranchId { get; set; } = string.Empty;
 }

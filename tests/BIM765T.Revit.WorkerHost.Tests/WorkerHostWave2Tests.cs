@@ -155,6 +155,14 @@ public sealed class WorkerHostWave2Tests
     }
 
     [Fact]
+    public void WorkerHostSettings_Disables_DirectCommandExecuteHttp_By_Default()
+    {
+        var settings = new WorkerHostSettings();
+
+        Assert.False(settings.EnableDirectCommandExecuteHttp);
+    }
+
+    [Fact]
     public async Task RuntimeHealthService_ReportsDegraded_WhenQdrantUnavailable()
     {
         var root = CreateTempDirectory();

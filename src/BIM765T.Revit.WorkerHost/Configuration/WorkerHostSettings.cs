@@ -82,6 +82,8 @@ internal sealed class WorkerHostSettings
 
     public int HttpApiPort { get; set; } = 50765;
 
+    public bool EnableDirectCommandExecuteHttp { get; set; }
+
     public string AutonomyMode { get; set; } = WorkerAutonomyModes.Ship;
 
     public double BoundedPlannerConfidenceThreshold { get; set; } = 0.45d;

@@ -1,7 +1,9 @@
 using System;
 using BIM765T.Revit.Contracts.Platform;
+using BIM765T.Revit.WorkerHost.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 
 namespace BIM765T.Revit.WorkerHost.Capabilities;
@@ -10,6 +12,8 @@ internal static class CapabilityHttpEndpoints
 {
     public static void MapCapabilityEndpoints(this WebApplication app)
     {
+        var settings = app.Services.GetRequiredService<WorkerHostSettings>();
+
         app.MapPost("/api/capabilities/policy/resolve", (PolicyResolutionRequest request, CapabilityHostService service) =>
         {
             try
@@ -106,17 +110,20 @@ internal static class CapabilityHttpEndpoints
             }
         });
 
-        app.MapPost("/api/commands/execute", async (CommandExecuteRequest request, CapabilityHostService service, CancellationToken cancellationToken) =>
+        if (settings.EnableDirectCommandExecuteHttp)
         {
-            try
+            app.MapPost("/api/commands/execute", async (CommandExecuteRequest request, CapabilityHostService service, CancellationToken cancellationToken) =>
             {
-                return Results.Ok(await service.ExecuteCommandAsync(request, cancellationToken).ConfigureAwait(false));
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { statusCode = ex.Message, message = ex.Message });
-            }
-        });
+                try
+                {
+                    return Results.Ok(await service.ExecuteCommandAsync(request, cancellationToken).ConfigureAwait(false));
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { statusCode = ex.Message, message = ex.Message });
+                }
+            });
+        }
 
         app.MapPost("/api/scripts/verify-source", (ScriptSourceVerifyRequest request, CapabilityHostService service) =>
         {

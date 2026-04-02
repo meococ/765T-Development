@@ -26,6 +26,9 @@ public sealed class BridgeTopologyMessagingTests
         Assert.Contains("BRIDGE_TOPOLOGY_LEGACY", content, StringComparison.Ordinal);
         Assert.Contains("private Revit kernel pipe", content, StringComparison.Ordinal);
         Assert.Contains("legacy and should be considered sunset-bound", content, StringComparison.Ordinal);
+        Assert.Contains("--allow-kernel-fallback", content, StringComparison.Ordinal);
+        Assert.Contains("--allow-legacy-fallback", content, StringComparison.Ordinal);
+        Assert.Contains("--allow-transitional-fallback", content, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -313,6 +313,12 @@ public sealed class WorkerHostRuntimeTests
                         Messages = new List<WorkerChatMessage>
                         {
                             new WorkerChatMessage { Content = "Executed safely." }
+                        },
+                        PendingApproval = new PendingApprovalRef
+                        {
+                            PendingActionId = "pending-01",
+                            ToolName = ToolNames.CommandExecuteSafe,
+                            ExpectedContextJson = """{"doc":"doc-01","view":"view-01"}"""
                         }
                     }),
                     ProtocolVersion = BridgeProtocol.PipeV1
@@ -350,6 +356,8 @@ public sealed class WorkerHostRuntimeTests
                 CorrelationId = "corr-01",
                 ActorId = "tester",
                 DocumentKey = "doc-01",
+                TargetDocument = "model-A.rvt",
+                TargetView = "view-01",
                 RequestedAtUtc = DateTime.UtcNow.ToString("O")
             };
 
@@ -366,6 +374,7 @@ public sealed class WorkerHostRuntimeTests
             Assert.Equal(WorkerMissionStates.AwaitingApproval, submit.Snapshot.State);
             Assert.False(submit.Snapshot.Terminal);
             Assert.Equal("approval-01", submit.Snapshot.ApprovalToken);
+            Assert.Equal("""{"doc":"doc-01","view":"view-01"}""", submit.Snapshot.ExpectedContextJson);
             Assert.Contains(submit.Events, x => x.EventType == "IntentClassified");
             Assert.Contains(submit.Events, x => x.EventType == "ContextResolved");
             Assert.Contains(submit.Events, x => x.EventType == "PreviewGenerated");
@@ -373,11 +382,22 @@ public sealed class WorkerHostRuntimeTests
 
             var approve = await orchestrator.ApproveMissionAsync(new MissionCommandInput
             {
-                Meta = meta,
+                Meta = new EnvelopeMetadata
+                {
+                    MissionId = "mission-01",
+                    SessionId = "session-other",
+                    CorrelationId = "corr-02",
+                    ActorId = "approver",
+                    DocumentKey = "doc-other",
+                    TargetDocument = "model-B.rvt",
+                    TargetView = "view-other",
+                    RequestedAtUtc = DateTime.UtcNow.ToString("O")
+                },
                 MissionId = "mission-01",
                 CommandName = "approval",
                 ApprovalToken = "approval-01",
                 PreviewRunId = "preview-01",
+                ExpectedContextJson = """{"doc":"doc-01","view":"view-01"}""",
                 AllowMutations = true
             }, CancellationToken.None);
 
@@ -387,6 +407,11 @@ public sealed class WorkerHostRuntimeTests
             Assert.Contains(approve.Events, x => x.EventType == "UserApproved");
             Assert.Contains("approval", kernel.Requests[1].PayloadJson, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(2, kernel.Requests.Count);
+            Assert.Equal("session-01", kernel.Requests[1].SessionId);
+            Assert.Equal("doc-01", kernel.Requests[1].DocumentKey);
+            Assert.Equal("model-A.rvt", kernel.Requests[1].TargetDocument);
+            Assert.Equal("view-01", kernel.Requests[1].TargetView);
+            Assert.Equal("""{"doc":"doc-01","view":"view-01"}""", kernel.Requests[1].ExpectedContextJson);
         }
         finally
         {

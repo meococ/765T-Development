@@ -13,6 +13,12 @@ internal sealed class MissionSnapshot
 
     public string SessionId { get; set; } = string.Empty;
 
+    public string DocumentKey { get; set; } = string.Empty;
+
+    public string TargetDocument { get; set; } = string.Empty;
+
+    public string TargetView { get; set; } = string.Empty;
+
     public string Intent { get; set; } = string.Empty;
 
     public string RequestJson { get; set; } = "{}";

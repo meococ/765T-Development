@@ -66,7 +66,8 @@ public sealed class WorkerRuntimeDtoTests
                 ExpiresUtc = new DateTime(2026, 3, 20, 10, 0, 0, DateTimeKind.Utc),
                 ExecutionTier = WorkerExecutionTiers.Tier2,
                 RecoveryHint = "Preview lai neu can.",
-                AutoExecutionEligible = false
+                AutoExecutionEligible = false,
+                ExpectedContextJson = """{"doc":"Model.rvt","view":"Level 1"}"""
             },
             ToolCards = new List<WorkerToolCard>
             {
@@ -303,6 +304,7 @@ public sealed class WorkerRuntimeDtoTests
         Assert.Equal(2, restored.Messages.Count);
         Assert.Single(restored.ActionCards);
         Assert.Equal("pending-1", restored.PendingApproval.PendingActionId);
+        Assert.Equal("""{"doc":"Model.rvt","view":"Level 1"}""", restored.PendingApproval.ExpectedContextJson);
         Assert.Single(restored.ToolCards);
         Assert.Single(restored.ArtifactRefs);
         Assert.Equal("Model.rvt", restored.ContextSummary.DocumentTitle);

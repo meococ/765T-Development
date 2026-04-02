@@ -31,6 +31,8 @@ internal static class Program
         var workerHostPipeName = GetOption(args, "--pipe") ?? BridgeConstants.DefaultWorkerHostPipeName;
         var kernelPipeName = GetOption(args, "--kernel-pipe") ?? BridgeConstants.DefaultKernelPipeName;
         var legacyPipeName = GetOption(args, "--legacy-pipe") ?? BridgeConstants.DefaultPipeName;
+        var allowKernelFallback = HasArg(args, "--allow-kernel-fallback") || HasArg(args, "--allow-transitional-fallback");
+        var allowLegacyFallback = HasArg(args, "--allow-legacy-fallback") || HasArg(args, "--allow-transitional-fallback");
         var payloadArg = GetOption(args, "--payload");
         var payloadJson = ResolvePayload(toolName, payloadArg);
         var targetDocument = GetOption(args, "--target-document") ?? string.Empty;
@@ -71,13 +73,29 @@ internal static class Program
             }
             catch (Exception ex) when (ex is TimeoutException || ex is IOException || ex is SocketException || ex is OperationCanceledException || ex is Grpc.Core.RpcException)
             {
-                try
+                if (allowKernelFallback)
                 {
-                    response = await InvokeViaKernelPipeAsync(request, kernelPipeName, ex).ConfigureAwait(false);
+                    try
+                    {
+                        response = await InvokeViaKernelPipeAsync(request, kernelPipeName, ex).ConfigureAwait(false);
+                    }
+                    catch (Exception kernelEx) when (kernelEx is TimeoutException || kernelEx is IOException || kernelEx is SocketException || kernelEx is OperationCanceledException || kernelEx is InvalidProtocolBufferException)
+                    {
+                        if (!allowLegacyFallback)
+                        {
+                            throw;
+                        }
+
+                        response = await InvokeViaLegacyPipeAsync(request, legacyPipeName, kernelEx).ConfigureAwait(false);
+                    }
                 }
-                catch (Exception kernelEx) when (kernelEx is TimeoutException || kernelEx is IOException || kernelEx is SocketException || kernelEx is OperationCanceledException || kernelEx is InvalidProtocolBufferException)
+                else if (allowLegacyFallback)
                 {
-                    response = await InvokeViaLegacyPipeAsync(request, legacyPipeName, kernelEx).ConfigureAwait(false);
+                    response = await InvokeViaLegacyPipeAsync(request, legacyPipeName, ex).ConfigureAwait(false);
+                }
+                else
+                {
+                    throw;
                 }
             }
 
@@ -359,6 +377,11 @@ internal static class Program
         }
 
         return null;
+    }
+
+    private static bool HasArg(string[] args, string key)
+    {
+        return Array.Exists(args, x => string.Equals(x, key, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string ResolvePayload(string toolName, string? payloadArg)

@@ -5,6 +5,7 @@ using BIM765T.Revit.Contracts.Common;
 using BIM765T.Revit.Contracts.Platform;
 using BIM765T.Revit.Copilot.Core;
 using BIM765T.Revit.Contracts.Serialization;
+using BIM765T.Revit.WorkerHost.Configuration;
 using BIM765T.Revit.WorkerHost.Kernel;
 using BIM765T.Revit.WorkerHost.Memory;
 using ContractStatusCodes = BIM765T.Revit.Contracts.Common.StatusCodes;
@@ -21,6 +22,7 @@ internal sealed class CapabilityHostService
     private readonly CuratedScriptRegistryService _curatedScripts;
     private readonly MemorySearchService _memorySearch;
     private readonly IKernelClient _kernel;
+    private readonly WorkerHostSettings _settings;
     private readonly IReadOnlyList<ToolManifest> _catalog;
 
     public CapabilityHostService(
@@ -30,7 +32,8 @@ internal sealed class CapabilityHostService
         CommandAtlasService commandAtlas,
         CuratedScriptRegistryService curatedScripts,
         MemorySearchService memorySearch,
-        IKernelClient kernel)
+        IKernelClient kernel,
+        WorkerHostSettings settings)
     {
         _policies = policies ?? throw new ArgumentNullException(nameof(policies));
         _specialists = specialists ?? throw new ArgumentNullException(nameof(specialists));
@@ -39,6 +42,7 @@ internal sealed class CapabilityHostService
         _curatedScripts = curatedScripts ?? throw new ArgumentNullException(nameof(curatedScripts));
         _memorySearch = memorySearch ?? throw new ArgumentNullException(nameof(memorySearch));
         _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _catalog = BuildCatalog();
     }
 
@@ -197,6 +201,15 @@ internal sealed class CapabilityHostService
     public async System.Threading.Tasks.Task<CommandExecuteResponse> ExecuteCommandAsync(CommandExecuteRequest request, System.Threading.CancellationToken cancellationToken)
     {
         request ??= new CommandExecuteRequest();
+        if (!_settings.EnableDirectCommandExecuteHttp)
+        {
+            return new CommandExecuteResponse
+            {
+                StatusCode = ContractStatusCodes.CommandExecutionBlocked,
+                Summary = "Direct HTTP command execution is disabled. Use the mission or external-ai flow instead."
+            };
+        }
+
         if (string.IsNullOrWhiteSpace(request.WorkspaceId))
         {
             request.WorkspaceId = "default";

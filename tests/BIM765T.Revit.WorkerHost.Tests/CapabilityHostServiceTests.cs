@@ -9,6 +9,7 @@ using BIM765T.Revit.Contracts.Platform;
 using BIM765T.Revit.Contracts.Serialization;
 using BIM765T.Revit.Copilot.Core;
 using BIM765T.Revit.WorkerHost.Capabilities;
+using BIM765T.Revit.WorkerHost.Configuration;
 using BIM765T.Revit.WorkerHost.Eventing;
 using BIM765T.Revit.WorkerHost.Kernel;
 using BIM765T.Revit.WorkerHost.Memory;
@@ -53,7 +54,7 @@ public sealed class CapabilityHostServiceTests : IDisposable
     public async Task ExecuteCommandAsync_Keeps_Mutation_DryRun_For_Previewable_Mvp_Commands(string commandId)
     {
         var kernel = new CapturingKernelClient();
-        var service = CreateHostService(kernel);
+        var service = CreateHostService(kernel, enableDirectCommandExecute: true);
 
         var response = await service.ExecuteCommandAsync(new CommandExecuteRequest
         {
@@ -67,6 +68,25 @@ public sealed class CapabilityHostServiceTests : IDisposable
         Assert.Equal(StatusCodes.Ok, response.StatusCode);
         var request = Assert.Single(kernel.Requests);
         Assert.True(request.DryRun);
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_IsBlocked_WhenDirectHttpExecute_IsDisabled()
+    {
+        var kernel = new CapturingKernelClient();
+        var service = CreateHostService(kernel, enableDirectCommandExecute: false);
+
+        var response = await service.ExecuteCommandAsync(new CommandExecuteRequest
+        {
+            WorkspaceId = "default",
+            CommandId = "revit.sheet.create",
+            Query = "revit.sheet.create",
+            PayloadJson = BuildExplicitPayload("revit.sheet.create"),
+            AllowAutoExecute = true
+        }, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.CommandExecutionBlocked, response.StatusCode);
+        Assert.Empty(kernel.Requests);
     }
 
     [Fact]
@@ -103,9 +123,16 @@ public sealed class CapabilityHostServiceTests : IDisposable
         Assert.Equal("artifacts/openings/packet-001.json", hit.SourceRef);
     }
 
-    private CapabilityHostService CreateHostService(IKernelClient? kernel = null, MemorySearchService? memorySearch = null)
+    private CapabilityHostService CreateHostService(IKernelClient? kernel = null, MemorySearchService? memorySearch = null, bool enableDirectCommandExecute = false)
     {
         Directory.CreateDirectory(_root);
+        var settings = new WorkerHostSettings
+        {
+            StateRootPath = Path.Combine(_root, "state"),
+            LegacyStateRootPath = Path.Combine(_root, "legacy"),
+            EnableDirectCommandExecuteHttp = enableDirectCommandExecute
+        };
+        settings.EnsureCreated();
         var packs = new PackCatalogService();
         var workspaces = new WorkspaceCatalogService();
         var standards = new StandardsCatalogService(packs, workspaces);
@@ -131,7 +158,8 @@ public sealed class CapabilityHostServiceTests : IDisposable
             new CommandAtlasService(packs, workspaces, curated),
             curated,
             memory,
-            kernel ?? new StubKernelClient());
+            kernel ?? new StubKernelClient(),
+            settings);
     }
 
     private static string BuildExplicitPayload(string commandId)

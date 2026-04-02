@@ -3389,7 +3389,8 @@ internal sealed class WorkerService
             ExpiresUtc = pending.ExpiresUtc,
             ExecutionTier = InferExecutionTier(pending.ToolName),
             RecoveryHint = "Neu context drift hoac token het han, hay preview lai truoc khi execute.",
-            AutoExecutionEligible = pending.AutoExecutionEligible
+            AutoExecutionEligible = pending.AutoExecutionEligible,
+            ExpectedContextJson = pending.ExpectedContextJson
         };
     }
 

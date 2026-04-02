@@ -429,6 +429,9 @@ public sealed class PendingApprovalRef
 
     [DataMember(Order = 7)]
     public bool AutoExecutionEligible { get; set; }
+
+    [DataMember(Order = 8)]
+    public string ExpectedContextJson { get; set; } = string.Empty;
 }
 
 [DataContract]

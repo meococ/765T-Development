@@ -56,6 +56,9 @@ internal sealed class MissionOrchestrator
             MissionId = streamId,
             State = "Running",
             SessionId = kernelRequest.SessionId,
+            DocumentKey = kernelRequest.DocumentKey,
+            TargetDocument = kernelRequest.TargetDocument,
+            TargetView = kernelRequest.TargetView,
             RequestJson = requestJson
         };
 
@@ -138,7 +141,7 @@ internal sealed class MissionOrchestrator
         CancellationToken cancellationToken)
     {
         var normalizedMissionId = string.IsNullOrWhiteSpace(missionId) ? Guid.NewGuid().ToString("N") : missionId;
-        var snapshot = CreateMissionSnapshot(normalizedMissionId, meta.SessionId ?? string.Empty, requestJson, plan);
+        var snapshot = CreateMissionSnapshot(normalizedMissionId, requestJson, meta, plan);
         var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerResponse), dryRun: true);
         kernelRequest.MissionId = normalizedMissionId;
 
@@ -218,7 +221,7 @@ internal sealed class MissionOrchestrator
             EvidenceRefs = plan.EvidenceRefs?.ToList() ?? new List<string>()
         };
 
-        var snapshot = CreateMissionSnapshot(missionId, workerRequest.SessionId, requestJson, plan);
+        var snapshot = CreateMissionSnapshot(missionId, requestJson, meta, plan);
         var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
         kernelRequest.MissionId = missionId;
 
@@ -233,12 +236,15 @@ internal sealed class MissionOrchestrator
         return (snapshot, events, result);
     }
 
-    private MissionSnapshot CreateMissionSnapshot(string missionId, string sessionId, string requestJson, MissionPlan plan)
+    private MissionSnapshot CreateMissionSnapshot(string missionId, string requestJson, EnvelopeMetadata meta, MissionPlan plan)
     {
         return new MissionSnapshot
         {
             MissionId = missionId,
-            SessionId = sessionId,
+            SessionId = meta.SessionId ?? string.Empty,
+            DocumentKey = meta.DocumentKey ?? string.Empty,
+            TargetDocument = meta.TargetDocument ?? string.Empty,
+            TargetView = meta.TargetView ?? string.Empty,
             Intent = plan.Intent,
             RequestJson = requestJson,
             State = WorkerMissionStates.Understanding,
@@ -353,7 +359,7 @@ internal sealed class MissionOrchestrator
 
         var workerRequest = new WorkerMessageRequest
         {
-            SessionId = string.IsNullOrWhiteSpace(input.Meta.SessionId) ? snapshot.SessionId : input.Meta.SessionId,
+            SessionId = snapshot.SessionId,
             Message = safety.ResolvedCommandText,
             ContinueMission = true,
             ClientSurface = WorkerClientSurfaces.Mcp,
@@ -374,11 +380,11 @@ internal sealed class MissionOrchestrator
         snapshot.EvidenceRefs = plan.EvidenceRefs;
         snapshot.AutonomyMode = plan.AutonomyMode;
 
-        var kernelRequest = CreateKernelRequest(input.Meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
+        var kernelRequest = CreateKernelRequest(BuildCommandMeta(snapshot, input.Meta), ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
         kernelRequest.MissionId = input.MissionId;
-        kernelRequest.ApprovalToken = input.ApprovalToken ?? string.Empty;
-        kernelRequest.PreviewRunId = input.PreviewRunId ?? string.Empty;
-        kernelRequest.ExpectedContextJson = input.ExpectedContextJson ?? string.Empty;
+        kernelRequest.ApprovalToken = snapshot.ApprovalToken ?? string.Empty;
+        kernelRequest.PreviewRunId = snapshot.PreviewRunId ?? string.Empty;
+        kernelRequest.ExpectedContextJson = snapshot.ExpectedContextJson ?? string.Empty;
 
         await AppendAsync(input.MissionId, eventType, new
         {
@@ -443,6 +449,25 @@ internal sealed class MissionOrchestrator
         };
     }
 
+    private static EnvelopeMetadata BuildCommandMeta(MissionSnapshot snapshot, EnvelopeMetadata? meta)
+    {
+        meta ??= new EnvelopeMetadata();
+        return new EnvelopeMetadata
+        {
+            MissionId = snapshot.MissionId,
+            CorrelationId = string.IsNullOrWhiteSpace(meta.CorrelationId) ? Guid.NewGuid().ToString("N") : meta.CorrelationId,
+            CausationId = meta.CausationId ?? string.Empty,
+            ActorId = meta.ActorId ?? string.Empty,
+            DocumentKey = snapshot.DocumentKey ?? string.Empty,
+            RequestedAtUtc = string.IsNullOrWhiteSpace(meta.RequestedAtUtc) ? DateTime.UtcNow.ToString("O") : meta.RequestedAtUtc,
+            TimeoutMs = meta.TimeoutMs > 0 ? meta.TimeoutMs : 120_000,
+            CancellationTokenId = meta.CancellationTokenId ?? string.Empty,
+            SessionId = snapshot.SessionId ?? string.Empty,
+            TargetDocument = snapshot.TargetDocument ?? string.Empty,
+            TargetView = snapshot.TargetView ?? string.Empty
+        };
+    }
+
     private static void ApplyResult(MissionSnapshot snapshot, KernelInvocationResult result, KernelToolRequest kernelRequest, VerificationResult verification)
     {
         snapshot.ResponseJson = result.PayloadJson ?? string.Empty;
@@ -450,9 +475,32 @@ internal sealed class MissionOrchestrator
         snapshot.LastStatusCode = result.StatusCode;
         snapshot.ApprovalToken = result.ApprovalToken;
         snapshot.PreviewRunId = result.PreviewRunId;
-        snapshot.ExpectedContextJson = kernelRequest.ExpectedContextJson;
+        snapshot.ExpectedContextJson = ResolveExpectedContextJson(result, kernelRequest);
         snapshot.State = verification.State;
         snapshot.Terminal = verification.Terminal;
+    }
+
+    private static string ResolveExpectedContextJson(KernelInvocationResult result, KernelToolRequest kernelRequest)
+    {
+        if (!string.IsNullOrWhiteSpace(kernelRequest.ExpectedContextJson))
+        {
+            return kernelRequest.ExpectedContextJson;
+        }
+
+        if (string.IsNullOrWhiteSpace(result.PayloadJson))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var response = JsonUtil.Deserialize<WorkerResponse>(result.PayloadJson);
+            return response.PendingApproval?.ExpectedContextJson ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private static string ResolveWorkspaceId(string? documentKey)
@@ -499,7 +547,8 @@ internal sealed class MissionOrchestrator
             safety.Diagnostics
         });
 
-        var kernelRequest = CreateKernelRequest(meta, ToolNames.WorkerMessage, snapshot.RequestJson, dryRun: true);
+        var kernelMeta = existingSnapshot == null ? meta : BuildCommandMeta(snapshot, meta);
+        var kernelRequest = CreateKernelRequest(kernelMeta, ToolNames.WorkerMessage, snapshot.RequestJson, dryRun: true);
         kernelRequest.MissionId = missionId;
         await AppendAsync(missionId, "TaskBlocked", new { safety.StatusCode, safety.Diagnostics }, snapshot, kernelRequest, cancellationToken, terminalOverride: true).ConfigureAwait(false);
 

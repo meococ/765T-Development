@@ -236,7 +236,8 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
         {
             SessionId = "session-01",
             ApprovalToken = "approval-01",
-            PreviewRunId = "preview-01"
+            PreviewRunId = "preview-01",
+            AllowMutations = true
         }, CancellationToken.None);
 
         Assert.Equal(WorkerMissionStates.Completed, approve.State);
@@ -244,6 +245,51 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
         Assert.False(approve.HasPendingApproval);
         Assert.Equal(WorkerSurfaceIds.Evidence, approve.SuggestedSurface);
         Assert.Contains("artifacts/run-01.json", approve.ArtifactRefs);
+    }
+
+    [Fact]
+    public async Task ApproveAsync_Blocks_WhenAllowMutations_IsOmitted()
+    {
+        var gateway = CreateGateway(
+            new QueueKernelClient(
+                new KernelInvocationResult
+                {
+                    Succeeded = true,
+                    ConfirmationRequired = true,
+                    StatusCode = StatusCodes.TaskApprovalRequired,
+                    ApprovalToken = "approval-01",
+                    PreviewRunId = "preview-01",
+                    PayloadJson = JsonUtil.Serialize(new WorkerResponse
+                    {
+                        MissionId = "mission-allow",
+                        MissionStatus = WorkerMissionStates.AwaitingApproval,
+                        PendingApproval = new PendingApprovalRef
+                        {
+                            PendingActionId = "pending-allow",
+                            ToolName = ToolNames.CommandExecuteSafe,
+                            ExpectedContextJson = """{"doc":"A"}"""
+                        }
+                    })
+                }));
+
+        await gateway.SubmitChatAsync(new ExternalAiChatRequest
+        {
+            MissionId = "mission-allow",
+            SessionId = "session-allow",
+            Message = "create sheet moi"
+        }, CancellationToken.None);
+
+        var approve = await gateway.ApproveAsync("mission-allow", new ExternalAiMissionCommandRequest
+        {
+            SessionId = "session-allow",
+            ApprovalToken = "approval-01",
+            PreviewRunId = "preview-01",
+            ExpectedContextJson = """{"doc":"A"}"""
+        }, CancellationToken.None);
+
+        Assert.Equal(WorkerMissionStates.Blocked, approve.State);
+        Assert.False(approve.Succeeded);
+        Assert.Equal(StatusCodes.PolicyBlocked, approve.StatusCode);
     }
 
     [Fact]
@@ -522,7 +568,8 @@ public sealed class ExternalAiGatewayServiceTests : IDisposable
             new CommandAtlasService(packs, workspaces, curated),
             curated,
             memory,
-            kernelClient);
+            kernelClient,
+            settings);
 
         var runtimeHealth = new RuntimeHealthService(settings, store, kernelClient, new StubHttpClientFactory());
         var eventBus = new InMemoryMissionEventBus();
