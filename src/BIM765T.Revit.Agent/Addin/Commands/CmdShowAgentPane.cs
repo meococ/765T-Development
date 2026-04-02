@@ -10,8 +10,16 @@ public sealed class CmdShowAgentPane : IExternalCommand
 {
     public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
     {
-        var pane = commandData.Application.GetDockablePane(new DockablePaneId(AgentHost.DockPaneGuid));
-        pane?.Show();
-        return Result.Succeeded;
+        try
+        {
+            var pane = commandData.Application.GetDockablePane(new DockablePaneId(AgentHost.DockPaneGuid));
+            pane?.Show();
+            return Result.Succeeded;
+        }
+        catch
+        {
+            TaskDialog.Show("765T Assistant", "The dockable pane is not registered. EnableUiPane must be true in the local settings for the in-Revit shell.");
+            return Result.Cancelled;
+        }
     }
 }

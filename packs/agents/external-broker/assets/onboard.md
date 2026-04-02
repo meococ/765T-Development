@@ -1,3 +1,3 @@
-# External broker onboard
+# External Broker Onboard
 
-??c `README.md`, `AGENTS.md`, `ASSISTANT.md`, `docs/ARCHITECTURE.md`, `docs/PATTERNS.md`, r?i m?i delegate.
+Read `README.md`, `docs/README.md`, `docs/integration/quickstart-claude-code.md`, and `docs/reference/mcphost.md` before delegating or routing tool work.

@@ -302,6 +302,7 @@ internal sealed class ToolRegistry
         {
             "\"target_document\":{\"type\":\"string\"}",
             "\"target_view\":{\"type\":\"string\"}",
+            "\"correlation_id\":{\"type\":\"string\"}",
             "\"payload\":{\"type\":\"object\"}"
         };
 
@@ -311,6 +312,7 @@ internal sealed class ToolRegistry
             properties.Add("\"approval_token\":{\"type\":\"string\"}");
             properties.Add("\"preview_run_id\":{\"type\":\"string\"}");
             properties.Add("\"expected_context\":{\"type\":\"object\"}");
+            properties.Add("\"scope_descriptor\":{\"type\":\"object\"}");
         }
 
         if (toolName.StartsWith("workflow.", StringComparison.OrdinalIgnoreCase))

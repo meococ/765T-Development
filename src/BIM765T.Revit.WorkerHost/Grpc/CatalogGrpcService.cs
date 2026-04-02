@@ -30,16 +30,13 @@ internal sealed class CatalogGrpcService : CatalogService.CatalogServiceBase
         {
             Meta = request.Meta ?? new EnvelopeMetadata { CorrelationId = Guid.NewGuid().ToString("N") },
             ToolName = ToolNames.SessionListTools,
-            PayloadJson = "{}",
+            PayloadJson = JsonUtil.Serialize(new ToolCatalogRequest { Audience = ToolCatalogAudiences.Mcp }),
             DryRun = true
         }, context).ConfigureAwait(false);
 
         var catalog = JsonUtil.Deserialize<ToolCatalogResponse>(invoke.PayloadJson);
         catalog.Tools = catalog.Tools
             .Where(tool => tool != null)
-            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.Hidden, StringComparison.OrdinalIgnoreCase))
-            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.BetaInternal, StringComparison.OrdinalIgnoreCase))
-            .Where(tool => string.Equals(tool.Audience, WorkerAudience.Commercial, StringComparison.OrdinalIgnoreCase))
             .OrderBy(tool => tool.ToolName, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -116,7 +113,7 @@ internal sealed class CatalogGrpcService : CatalogService.CatalogServiceBase
         {
             Meta = request.Meta ?? new EnvelopeMetadata { CorrelationId = Guid.NewGuid().ToString("N") },
             ToolName = toolName,
-            PayloadJson = "{}",
+            PayloadJson = JsonUtil.Serialize(new ToolCatalogRequest { Audience = ToolCatalogAudiences.Mcp }),
             DryRun = true
         }, context).ConfigureAwait(false);
 

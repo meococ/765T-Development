@@ -4,7 +4,7 @@
   "Description": "Benchmark deterministic cho family authoring backend: document -> params -> planes -> forms -> visibility/material -> type catalog -> verify.",
   "Lane": "B",
   "RequiredContext": "family_document",
-  "PresetRef": "docs/agent/presets/family_benchmark_servicebox.v1.json",
+  "PresetRef": "packs/playbooks/core/assets/family_benchmark_servicebox.v1.json",
   "DecisionGate": {
     "Use_When": [
       "muon harden backend family authoring bang benchmark deterministic",

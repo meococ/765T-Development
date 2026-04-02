@@ -376,9 +376,9 @@ internal sealed class MissionOrchestrator
 
         var kernelRequest = CreateKernelRequest(input.Meta, ToolNames.WorkerMessage, JsonUtil.Serialize(workerRequest), dryRun: true);
         kernelRequest.MissionId = input.MissionId;
-        kernelRequest.ApprovalToken = string.IsNullOrWhiteSpace(input.ApprovalToken) ? snapshot.ApprovalToken : input.ApprovalToken;
-        kernelRequest.PreviewRunId = string.IsNullOrWhiteSpace(input.PreviewRunId) ? snapshot.PreviewRunId : input.PreviewRunId;
-        kernelRequest.ExpectedContextJson = string.IsNullOrWhiteSpace(input.ExpectedContextJson) ? snapshot.ExpectedContextJson : input.ExpectedContextJson;
+        kernelRequest.ApprovalToken = input.ApprovalToken ?? string.Empty;
+        kernelRequest.PreviewRunId = input.PreviewRunId ?? string.Empty;
+        kernelRequest.ExpectedContextJson = input.ExpectedContextJson ?? string.Empty;
 
         await AppendAsync(input.MissionId, eventType, new
         {

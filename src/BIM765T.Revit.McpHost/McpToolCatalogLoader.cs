@@ -38,17 +38,12 @@ internal static class McpToolCatalogLoader
 
         catalog.Tools = catalog.Tools
             .Where(tool => tool != null)
-            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.Hidden, StringComparison.OrdinalIgnoreCase))
-            .Where(tool => !string.Equals(tool.Visibility, WorkerVisibility.BetaInternal, StringComparison.OrdinalIgnoreCase))
-            .Where(tool => string.Equals(tool.Audience, WorkerAudience.Commercial, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(tool.Audience, WorkerAudience.Connector, StringComparison.OrdinalIgnoreCase))
-            .Where(tool => !string.Equals(tool.PrimaryPersona, ToolPrimaryPersonas.PlatformAuthor, StringComparison.OrdinalIgnoreCase))
             .OrderBy(tool => tool.ToolName, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         if (catalog.Tools.Count == 0)
         {
-            throw new InvalidOperationException("Bridge returned no MCP-visible tools after filtering. Start Revit and make sure a non-internal tool catalog is available before calling tools/list.");
+            throw new InvalidOperationException("Bridge returned an empty MCP catalog. Start Revit and make sure WorkerHost can resolve the product tool catalog before calling tools/list.");
         }
 
         return catalog;

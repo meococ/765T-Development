@@ -103,7 +103,7 @@ public sealed class WorkerHostRuntimeTests
                     Kind = "lesson",
                     Title = "Checkpoint recovery",
                     Snippet = "Replay event stream after crash.",
-                    SourceRef = "docs/agent/LESSONS_LEARNED.md",
+                    SourceRef = "docs/troubleshooting/revit-agent-debug.md",
                     DocumentKey = "doc-01",
                     EventType = "MemoryPromoted",
                     RunId = "run-01",
@@ -120,7 +120,7 @@ public sealed class WorkerHostRuntimeTests
                     Kind = "lesson",
                     Title = "Other document",
                     Snippet = "Should not appear for doc-01.",
-                    SourceRef = "docs/agent/LESSONS_LEARNED.md",
+                    SourceRef = "docs/troubleshooting/revit-agent-debug.md",
                     DocumentKey = "doc-02",
                     EventType = "MemoryPromoted",
                     RunId = "run-02",
@@ -135,7 +135,7 @@ public sealed class WorkerHostRuntimeTests
             var hit = Assert.Single(hits);
             Assert.Equal("mem-01", hit.Id);
             Assert.Equal("Checkpoint recovery", hit.Title);
-            Assert.Equal("docs/agent/LESSONS_LEARNED.md", hit.SourceRef);
+            Assert.Equal("docs/troubleshooting/revit-agent-debug.md", hit.SourceRef);
         }
         finally
         {
@@ -160,7 +160,7 @@ public sealed class WorkerHostRuntimeTests
                     Kind = "lesson",
                     Title = "Checkpoint recovery",
                     Snippet = "Replay event stream after crash.",
-                    SourceRef = "docs/agent/LESSONS_LEARNED.md",
+                    SourceRef = "docs/troubleshooting/revit-agent-debug.md",
                     DocumentKey = "doc-log-01",
                     EventType = "MemoryPromoted",
                     RunId = "run-log-01",
@@ -288,7 +288,7 @@ public sealed class WorkerHostRuntimeTests
                     Kind = "lesson",
                     Title = "Approval flow",
                     Snippet = "Always preview before execute.",
-                    SourceRef = "docs/agent/PROJECT_MEMORY.md",
+                    SourceRef = "docs/reference/mcphost.md",
                     DocumentKey = string.Empty,
                     EventType = "MemoryPromoted",
                     RunId = string.Empty,

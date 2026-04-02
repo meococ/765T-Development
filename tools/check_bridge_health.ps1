@@ -2,6 +2,8 @@ param(
     [string]$BridgeExe = "",
     [ValidateSet('none', 'round', 'phase23', 'copilot')]
     [string]$Profile = 'none',
+    [ValidateSet('worker_ui', 'mcp', 'public_catalog')]
+    [string]$Audience = 'worker_ui',
     [string[]]$RequireTool = @(),
     [switch]$AsJson
 )
@@ -11,14 +13,34 @@ $ErrorActionPreference = 'Stop'
 $BridgeExe = Resolve-BridgeExe -RequestedPath $BridgeExe
 $projectRoot = Resolve-ProjectRoot -StartPath (Split-Path $PSScriptRoot -Parent)
 
-function Invoke-Bridge([string]$tool) {
-    $raw = & $BridgeExe $tool 2>$null
-    if (-not $raw) { return $null }
+function Invoke-Bridge {
+    param(
+        [Parameter(Mandatory = $true)][string]$Tool,
+        [string]$PayloadJson = ''
+    )
+
+    $tempPayload = $null
     try {
-        return $raw | ConvertFrom-Json
+        $args = @($Tool)
+        if (-not [string]::IsNullOrWhiteSpace($PayloadJson)) {
+            $tempPayload = Join-Path $env:TEMP ("bim765t_check_bridge_health_{0}.json" -f ([Guid]::NewGuid().ToString('N')))
+            Set-Content -Path $tempPayload -Value $PayloadJson -Encoding UTF8
+            $args += @('--payload', $tempPayload)
+        }
+
+        $raw = & $BridgeExe @args 2>$null
+        if (-not $raw) { return $null }
+        try {
+            return $raw | ConvertFrom-Json
+        }
+        catch {
+            throw "Bridge tra ve non-JSON cho tool $Tool.`nRaw: $raw"
+        }
     }
-    catch {
-        throw "Bridge tra ve non-JSON cho tool $tool.`nRaw: $raw"
+    finally {
+        if ($tempPayload -and (Test-Path $tempPayload)) {
+            Remove-Item -Path $tempPayload -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -131,8 +153,9 @@ function Get-SourceToolNames {
     return @($matches | ForEach-Object { $_.Groups[1].Value } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
 }
 
-$toolsResponse = Invoke-Bridge 'session.list_tools'
-$capResponse = Invoke-Bridge 'session.get_capabilities'
+$catalogPayload = @{ Audience = $Audience } | ConvertTo-Json -Compress
+$toolsResponse = Invoke-Bridge -Tool 'session.list_tools' -PayloadJson $catalogPayload
+$capResponse = Invoke-Bridge -Tool 'session.get_capabilities' -PayloadJson $catalogPayload
 $docResponse = Invoke-Bridge 'document.get_active'
 $viewResponse = Invoke-Bridge 'view.get_active_context'
 
@@ -162,8 +185,8 @@ else {
     @($requiredTools)
 }
 
-$sourceToolCount = Get-SourceToolCount -ProjectRoot $projectRoot
-$sourceToolNames = @(Get-SourceToolNames -ProjectRoot $projectRoot)
+$sourceToolCount = if ($Audience -eq 'worker_ui') { Get-SourceToolCount -ProjectRoot $projectRoot } else { $null }
+$sourceToolNames = if ($Audience -eq 'worker_ui') { @(Get-SourceToolNames -ProjectRoot $projectRoot) } else { @() }
 $runtimeLooksStale = $false
 $staleReasons = @()
 $missingSourceTools = @()
@@ -192,6 +215,7 @@ if (($toolsResponse -and $toolsResponse.Succeeded) -and @($requiredTools).Count 
 $result = [ordered]@{
     BridgeExe              = $BridgeExe
     BridgeOnline           = ($toolsResponse -and $toolsResponse.Succeeded)
+    Audience               = $Audience
     ListToolsStatus        = if ($toolsResponse) { $toolsResponse.StatusCode } else { '<no-response>' }
     RuntimeToolCount       = $toolNames.Count
     SourceToolCount        = $sourceToolCount

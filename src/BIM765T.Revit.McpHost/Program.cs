@@ -353,6 +353,7 @@ internal static class Program
             {
                 RequestId = Guid.NewGuid().ToString("N"),
                 ToolName = ToolNames.SessionListTools,
+                PayloadJson = JsonUtil.Serialize(new ToolCatalogRequest { Audience = ToolCatalogAudiences.Mcp }),
                 Caller = "BIM765T.Revit.McpHost",
                 SessionId = "mcp-session",
                 DryRun = true,

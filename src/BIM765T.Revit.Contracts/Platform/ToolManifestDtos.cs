@@ -60,6 +60,13 @@ public static class ToolQueuePriorities
     public const string Low = "low";
 }
 
+public static class ToolCatalogAudiences
+{
+    public const string WorkerUi = "worker_ui";
+    public const string Mcp = "mcp";
+    public const string PublicCatalog = "public_catalog";
+}
+
 [DataContract]
 public sealed class ToolManifest
 {
@@ -234,6 +241,13 @@ public sealed class ToolCatalogResponse
 {
     [DataMember(Order = 1)]
     public List<ToolManifest> Tools { get; set; } = new List<ToolManifest>();
+}
+
+[DataContract]
+public sealed class ToolCatalogRequest
+{
+    [DataMember(Order = 1)]
+    public string Audience { get; set; } = ToolCatalogAudiences.WorkerUi;
 }
 
 [DataContract]

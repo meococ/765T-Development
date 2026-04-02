@@ -1,5 +1,7 @@
 param(
     [string]$BridgeExe = "",
+    [ValidateSet('worker_ui', 'mcp', 'public_catalog')]
+    [string]$Audience = 'worker_ui',
     [switch]$AsJson
 )
 
@@ -11,19 +13,35 @@ $projectRoot = Resolve-ProjectRoot -StartPath (Split-Path $PSScriptRoot -Parent)
 
 function Invoke-BridgeTool {
     param(
-        [Parameter(Mandatory = $true)][string]$Tool
+        [Parameter(Mandatory = $true)][string]$Tool,
+        [string]$PayloadJson = ''
     )
 
-    $raw = & $BridgeExe $Tool 2>$null
-    if (-not $raw) {
-        throw "Bridge khong tra du lieu cho tool $Tool."
-    }
-
+    $tempPayload = $null
     try {
-        return $raw | ConvertFrom-Json
+        $args = @($Tool)
+        if (-not [string]::IsNullOrWhiteSpace($PayloadJson)) {
+            $tempPayload = Join-Path $env:TEMP ("bim765t_check_tool_registry_{0}.json" -f ([Guid]::NewGuid().ToString('N')))
+            Set-Content -Path $tempPayload -Value $PayloadJson -Encoding UTF8
+            $args += @('--payload', $tempPayload)
+        }
+
+        $raw = & $BridgeExe @args 2>$null
+        if (-not $raw) {
+            throw "Bridge khong tra du lieu cho tool $Tool."
+        }
+
+        try {
+            return $raw | ConvertFrom-Json
+        }
+        catch {
+            throw "Bridge tra ve non-JSON cho tool $Tool.`nRaw: $raw"
+        }
     }
-    catch {
-        throw "Bridge tra ve non-JSON cho tool $Tool.`nRaw: $raw"
+    finally {
+        if ($tempPayload -and (Test-Path $tempPayload)) {
+            Remove-Item -Path $tempPayload -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -56,13 +74,14 @@ function Get-SourceToolCount {
     return ([regex]::Matches($content, 'public const string\s+\w+\s*=')).Count
 }
 
-$toolsResponse = Invoke-BridgeTool -Tool 'session.list_tools'
+$catalogPayload = @{ Audience = $Audience } | ConvertTo-Json -Compress
+$toolsResponse = Invoke-BridgeTool -Tool 'session.list_tools' -PayloadJson $catalogPayload
 if (-not $toolsResponse.Succeeded) {
     throw "session.list_tools failed: $($toolsResponse.StatusCode)"
 }
 
-$capResponse = Invoke-BridgeTool -Tool 'session.get_capabilities'
-$sourceToolCount = Get-SourceToolCount -ProjectRoot $projectRoot
+$capResponse = Invoke-BridgeTool -Tool 'session.get_capabilities' -PayloadJson $catalogPayload
+$sourceToolCount = if ($Audience -eq 'worker_ui') { Get-SourceToolCount -ProjectRoot $projectRoot } else { $null }
 $toolCatalog = if ([string]::IsNullOrWhiteSpace([string]$toolsResponse.PayloadJson)) {
     $null
 }
@@ -171,6 +190,7 @@ $sourceKinds = @(
 
 $summary = @{
     BridgeOnline     = [bool]$toolsResponse.Succeeded
+    Audience         = $Audience
     CapabilityStatus  = [string]$capResponse.StatusCode
     TotalTools        = $tools.Count
     SourceToolCount   = $sourceToolCount

@@ -1,199 +1,78 @@
-# 765T Agentic BIM OS
+# 765T Revit Agent
 
-**[English version → README.en.md](README.en.md)**
+**[English -> README.en.md](README.en.md)**
 
-AI agent van hanh truc tiep ben trong Autodesk Revit thong qua kien truc local an toan.
+Repo nay la product repo cho `765T Revit Agent`.
+No chi ship source code runtime, manifests, scripts van hanh, va tai lieu su dung san pham.
+Roadmap, build notes, agent charters, architecture debate, va tai lieu dinh huong noi bo khong duoc ship trong repo nay.
 
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Tests](https://img.shields.io/badge/tests-250%20passed-brightgreen)
-![.NET](https://img.shields.io/badge/.NET-4.8%20%7C%208.0-blue)
-![Revit](https://img.shields.io/badge/Revit-2024%20%7C%202026-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
-
-## Tong Quan
-
-`765T Agentic BIM OS` la mot he thong AI agent chay trong Autodesk Revit, cho phep AI assistant tuong tac truc tiep voi mo hinh BIM thong qua cac cong cu co kiem soat. He thong hoat dong hoan toan local — khong gui du lieu mo hinh len cloud.
-
-**Demo use-case chinh:** Mot AI agent (Claude Code, Cursor, hoac bat ky MCP client nao) ket noi vao Revit 2026 qua named pipes va MCP protocol, doc mo hinh, phan tich, va thuc hien tac vu BIM — tat ca dieu khien tu IDE.
-
-## Kien Truc
+## Product Topology
 
 ```text
-IDE (Claude Code / Cursor / VS Code)
-          |
-          v
-    MCP Protocol (stdio)
-          |
-          v
-    BIM765T.Revit.McpHost ─── JSON-RPC bridge
-          |
-          v
-    BIM765T.Revit.WorkerHost ─── Control plane (net8.0)
-    - AI orchestration          - HTTP / gRPC / SSE
-    - Memory projection         - SQLite + Qdrant
-    - External AI gateway       - LLM routing
-          |
-          v
-    Named-pipe kernel channel
-          |
-          v
-    BIM765T.Revit.Agent ─── Execution kernel (net48)
-    - Revit API boundary        - 237 guarded tools
-    - ExternalEvent scheduler   - Preview/Approve/Execute flow
-    - WPF dockable pane         - Operation journal
+IDE / MCP client
+    -> BIM765T.Revit.McpHost
+    -> BIM765T.Revit.WorkerHost
+    -> BIM765T.Revit.Agent
+    -> Revit API
 ```
 
-**Ranh gioi quan trong:** Chi duy nhat `BIM765T.Revit.Agent` duoc phep goi Revit API. Rang buoc nay duoc kiem tra tu dong boi Architecture Tests.
+`BIM765T.Revit.Agent` la boundary duy nhat duoc goi Revit API.
 
-## Projects
+## Trong Repo Nay Co Gi
 
-| Project | Framework | Vai Tro |
-| --- | --- | --- |
-| `BIM765T.Revit.Agent` | net48 / WPF | Revit add-in, execution kernel, 237 guarded tools |
-| `BIM765T.Revit.WorkerHost` | net8.0 | Control plane, AI orchestration, memory, external AI gateway |
-| `BIM765T.Revit.Bridge` | net8.0 | CLI bridge qua named pipes |
-| `BIM765T.Revit.McpHost` | net8.0 | MCP stdio adapter — cho phep IDE ket noi vao Revit |
-| `BIM765T.Revit.Copilot.Core` | netstandard2.0 | AI services, LLM routing, pack management |
-| `BIM765T.Revit.Contracts` | netstandard2.0 | Shared DTOs va contracts |
-| `BIM765T.Revit.Agent.Core` | netstandard2.0 | Core logic tach khoi Revit API dependency |
+- `src/`: runtime va add-in
+- `tests/`: unit tests va repo validation
+- `tools/`: scripts install, start, verify, smoke
+- `catalog/`, `packs/`, `workspaces/default/`: machine-readable runtime assets
+- `docs/`: tai lieu user-facing cho install, integration, reference, troubleshooting, release checks
 
-## Tinh Nang Chinh
+## Yeu Cau Van Hanh
 
-- **237 guarded tools** across 14 specialist packs — doc, sua, phan tich mo hinh BIM
-- **Mutation safety flow:** Preview -> Approval -> Execute -> Verify cho moi thao tac nguy hiem
-- **LLM provider cascade:** OpenRouter -> MiniMax -> OpenAI -> Anthropic (first-found-wins)
-- **Conversational fast-path:** 7 intent categories tra loi trong 1-3 giay thay vi 5-18 giay
-- **Semantic memory:** SQLite (durable) + Qdrant (vector search) + Ollama fallback
-- **MCP integration:** Bat ky AI IDE nao ho tro MCP deu ket noi duoc vao Revit
-- **Centralized timeout config:** `LlmTimeoutProfile` thong nhat timeout/token across toan bo codebase
+- Windows 10/11
+- Autodesk Revit 2024 hoac 2026
+- Revit add-in da duoc install
+- WorkerHost dang chay
+- Chi nen de mot `Revit.exe` khi lam mutation/export live
 
-## Demo: AI Agent Tuong Tac Voi Revit 2026
+## Cach Su Dung Product Path
 
-He thong nay cho phep ban:
+1. Install add-in tu build/package ma team cua anh dang ship.
+2. Start `BIM765T.Revit.WorkerHost`.
+3. Mo model bang `tools/restart_revit_and_trust_addin.ps1`.
+4. Verify stack bang `tools/check_bridge_health.ps1 -AsJson`.
+5. Cau hinh IDE MCP tro vao `BIM765T.Revit.McpHost.exe`.
 
-1. **Mo Revit 2026** voi mo hinh BIM bat ky
-2. **Mo IDE** (VS Code + Claude Code extension, Cursor, hoac terminal)
-3. **Ket noi qua MCP** — IDE tu dong nhan dien Revit context
-4. **Ra lenh bang ngon ngu tu nhien:**
-   - "Liet ke tat ca cac Wall trong view hien tai"
-   - "Kiem tra model co warning nao khong"
-   - "Tao mot Floor Plan moi cho tang 2"
-   - "Phan tich thong ke vat lieu"
+Muc tieu product path la:
 
-AI agent doc Revit context, lap ke hoach, xin duyet (neu can), va thuc thi — tat ca trong IDE.
-
-## Yeu Cau He Thong
-
-| Yeu cau | Phien ban |
-| --- | --- |
-| **Windows** | 10 / 11 (64-bit) |
-| **.NET SDK** | 8.0+ |
-| **.NET Framework** | 4.8 (cho Revit add-in) |
-| **Autodesk Revit** | 2024 hoac 2026 (ban quyen) |
-| Docker + Qdrant | Tuy chon — fallback sang lexical search neu khong co |
-| Ollama | Tuy chon — fallback sang hash embeddings neu khong co |
-
-> **Luu y:** He thong chi chay tren Windows vi Revit la ung dung Windows-only.
-
-## Quick Start
-
-### 1. Build
-
-```powershell
-dotnet build BIM765T.Revit.Agent.sln -c Release
+```text
+IDE/MCP -> McpHost -> WorkerHost -> kernel
 ```
 
-### 2. Setup AI Provider
+`BIM765T.Revit.Bridge` va cac lane transitional chi la helper/diagnostics, khong phai canonical IDE path.
 
-```powershell
-# Script tuong tac (khuyen dung)
-.\tools\infra\setup_ai_providers.ps1
+## Tai Lieu Product
 
-# Hoac truyen key truc tiep
-.\tools\infra\setup_ai_providers.ps1 -Provider openrouter -OpenRouterKey "sk-or-..."
-```
+- [docs/README.md](docs/README.md)
+- [docs/integration/quickstart-claude-code.md](docs/integration/quickstart-claude-code.md)
+- [docs/integration/quickstart-ai-testing.md](docs/integration/quickstart-ai-testing.md)
+- [docs/reference/mcphost.md](docs/reference/mcphost.md)
+- [docs/reference/snapshot-strategy.md](docs/reference/snapshot-strategy.md)
+- [docs/troubleshooting/revit-agent-debug.md](docs/troubleshooting/revit-agent-debug.md)
+- [docs/release/mvp-manual-smoke.md](docs/release/mvp-manual-smoke.md)
+- [tools/README.md](tools/README.md)
 
-### 3. Deploy Revit Add-in
+## Boundary Note
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\install-addin.ps1
-```
+Neu anh dang tim:
 
-### 4. Start WorkerHost
+- roadmap
+- build/developer workflow
+- internal architecture redlines
+- agent operating model
+- research packs
 
-```powershell
-dotnet run --project src/BIM765T.Revit.WorkerHost -c Release
-```
-
-### 5. Mo Revit Theo Dung Session (Khuyen Dung)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\restart_revit_and_trust_addin.ps1 `
-  -ModelPath "C:\path\to\YourModel.rvt" `
-  -AutoTrustUnsignedAddin
-```
-
-Script nay dong cac `Revit.exe` du, mo dung model muc tieu, auto-trust prompt unsigned add-in khi duoc yeu cau, va chi return khi bridge xac nhan dung path model dang la session active.
-
-### 6. Ket Noi Tu IDE (Claude Code / Cursor)
-
-Them vao MCP config cua IDE (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "revit-agent": {
-      "command": "<REPO_ROOT>/src/BIM765T.Revit.McpHost/bin/Release/net8.0/BIM765T.Revit.McpHost.exe"
-    }
-  }
-}
-```
-
-Thay `<REPO_ROOT>` bang duong dan thuc te den repo tren may cua ban.
-
-> **Thu tu khoi dong:** Revit (voi add-in) → WorkerHost → IDE MCP client.
-
-> **Quy tac live session:** Khi mutate/export, chi nen de dung 1 `Revit.exe`. Neu mo nhieu process Revit, bridge co the route nham sang session khac. Kiem tra bang `.\tools\check_bridge_health.ps1 -AsJson` va xac nhan `RevitSessionIsolated = true`.
-
-Xem huong dan chi tiet: [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md)
-
-## Test
-
-```powershell
-# Chay tat ca tests
-dotnet test BIM765T.Revit.Agent.sln -c Release
-
-# Ket qua: 250 passed, 0 failed
-```
-
-## Trang Thai Hien Tai
-
-| Component | Status |
-| --- | --- |
-| Kernel + 237 tools | Production-ready |
-| Named pipe IPC | Production-ready |
-| WorkerHost (HTTP/gRPC/SSE) | Production-ready |
-| MCP bridge | Production-ready |
-| CLI bridge | Production-ready |
-| Conversational fast-path | Shipped |
-| Semantic memory (Qdrant) | Shipped |
-| Centralized config | Shipped |
-| WPF chat pane | Alpha (disabled by default — `EnableUiPane = false`) |
-| Standalone chat (no Revit) | In progress |
-| Role-based tool filtering | Planned |
-
-## Tai Lieu
-
-| Tai lieu | Noi dung |
-| --- | --- |
-| [`docs/QUICKSTART_CLAUDE_CODE.md`](docs/QUICKSTART_CLAUDE_CODE.md) | Ket noi Claude Code / Cursor vao Revit |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Kien truc he thong va ranh gioi |
-| [`docs/PATTERNS.md`](docs/PATTERNS.md) | Patterns va mutation safety flow |
-| [`docs/QUICKSTART_AI_TESTING.md`](docs/QUICKSTART_AI_TESTING.md) | Test AI qua HTTP API |
-| [`docs/assistant/BASELINE.md`](docs/assistant/BASELINE.md) | Runtime truth hien tai |
-| [`docs/assistant/CONFIG_MATRIX.md`](docs/assistant/CONFIG_MATRIX.md) | Config ownership matrix |
-| [`docs/INDEX.md`](docs/INDEX.md) | Navigator toan bo tai lieu |
+thi nhung tai lieu do thuoc `Control Tower`, khong thuoc product repo nay.
 
 ## License
 
-MIT License. Copyright (c) 2026 Meo Coc (meococ). See [LICENSE](LICENSE) for details.
+MIT. Xem [LICENSE](LICENSE).

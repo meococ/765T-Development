@@ -5,9 +5,18 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$AgentCoreCoveragePath,
 
+    [string]$BridgeCoveragePath = "",
+
+    [string]$McpHostCoveragePath = "",
+
+    [string]$WorkerHostCoveragePath = "",
+
     [double]$ContractsLineRate = 0.55,
     [double]$CopilotCoreLineRate = 0.68,
-    [double]$AgentCoreLineRate = 0.85
+    [double]$AgentCoreLineRate = 0.85,
+    [double]$BridgeLineRate = 0.45,
+    [double]$McpHostLineRate = 0.45,
+    [double]$WorkerHostLineRate = 0.35
 )
 
 Set-StrictMode -Version Latest
@@ -63,3 +72,18 @@ $agentCoreRate = Get-PackageLineRate -CoveragePath $AgentCoreCoveragePath -Packa
 Assert-Threshold -Label "Contracts" -Actual $contractsRate -Minimum $ContractsLineRate
 Assert-Threshold -Label "Copilot.Core" -Actual $copilotCoreRate -Minimum $CopilotCoreLineRate
 Assert-Threshold -Label "Agent.Core" -Actual $agentCoreRate -Minimum $AgentCoreLineRate
+
+if (-not [string]::IsNullOrWhiteSpace($WorkerHostCoveragePath)) {
+    $workerHostRate = Get-PackageLineRate -CoveragePath $WorkerHostCoveragePath -PackageName "BIM765T.Revit.WorkerHost"
+    Assert-Threshold -Label "WorkerHost" -Actual $workerHostRate -Minimum $WorkerHostLineRate
+}
+
+if (-not [string]::IsNullOrWhiteSpace($BridgeCoveragePath)) {
+    $bridgeRate = Get-PackageLineRate -CoveragePath $BridgeCoveragePath -PackageName "BIM765T.Revit.Bridge"
+    Assert-Threshold -Label "Bridge" -Actual $bridgeRate -Minimum $BridgeLineRate
+}
+
+if (-not [string]::IsNullOrWhiteSpace($McpHostCoveragePath)) {
+    $mcpHostRate = Get-PackageLineRate -CoveragePath $McpHostCoveragePath -PackageName "BIM765T.Revit.McpHost"
+    Assert-Threshold -Label "McpHost" -Actual $mcpHostRate -Minimum $McpHostLineRate
+}

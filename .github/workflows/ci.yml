@@ -22,6 +22,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Validate Product Repo Boundary
+        shell: pwsh
+        run: ./tools/validate_product_repo_boundary.ps1
+
       - name: Restore Contracts
         run: dotnet restore src/BIM765T.Revit.Contracts/BIM765T.Revit.Contracts.csproj
 
@@ -64,6 +68,18 @@ jobs:
       - name: Build WorkerHost Tests
         run: dotnet build tests/BIM765T.Revit.WorkerHost.Tests/BIM765T.Revit.WorkerHost.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
 
+      - name: Restore Bridge Tests
+        run: dotnet restore tests/BIM765T.Revit.Bridge.Tests/BIM765T.Revit.Bridge.Tests.csproj
+
+      - name: Build Bridge Tests
+        run: dotnet build tests/BIM765T.Revit.Bridge.Tests/BIM765T.Revit.Bridge.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
+      - name: Restore McpHost Tests
+        run: dotnet restore tests/BIM765T.Revit.McpHost.Tests/BIM765T.Revit.McpHost.Tests.csproj
+
+      - name: Build McpHost Tests
+        run: dotnet build tests/BIM765T.Revit.McpHost.Tests/BIM765T.Revit.McpHost.Tests.csproj -c ${{ matrix.configuration }} --no-restore -warnaserror
+
       - name: Restore Contracts Tests
         run: dotnet restore tests/BIM765T.Revit.Contracts.Tests/BIM765T.Revit.Contracts.Tests.csproj
 
@@ -94,12 +110,21 @@ jobs:
       - name: Run WorkerHost Tests
         run: dotnet test tests/BIM765T.Revit.WorkerHost.Tests/BIM765T.Revit.WorkerHost.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=workerhost-tests.trx" --collect:"XPlat Code Coverage"
 
+      - name: Run Bridge Tests
+        run: dotnet test tests/BIM765T.Revit.Bridge.Tests/BIM765T.Revit.Bridge.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=bridge-tests.trx" --collect:"XPlat Code Coverage"
+
+      - name: Run McpHost Tests
+        run: dotnet test tests/BIM765T.Revit.McpHost.Tests/BIM765T.Revit.McpHost.Tests.csproj -c ${{ matrix.configuration }} --no-build --verbosity normal --logger "trx;LogFileName=mcphost-tests.trx" --collect:"XPlat Code Coverage"
+
       - name: Enforce Coverage Thresholds
         shell: pwsh
         run: |
           $contractsCoverage = Get-ChildItem tests/BIM765T.Revit.Contracts.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
           $agentCoreCoverage = Get-ChildItem tests/BIM765T.Revit.Agent.Core.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
-          ./tools/check_coverage_thresholds.ps1 -ContractsCoveragePath $contractsCoverage -AgentCoreCoveragePath $agentCoreCoverage
+          $bridgeCoverage = Get-ChildItem tests/BIM765T.Revit.Bridge.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
+          $mcpHostCoverage = Get-ChildItem tests/BIM765T.Revit.McpHost.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
+          $workerHostCoverage = Get-ChildItem tests/BIM765T.Revit.WorkerHost.Tests/TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1 -ExpandProperty FullName
+          ./tools/check_coverage_thresholds.ps1 -ContractsCoveragePath $contractsCoverage -AgentCoreCoveragePath $agentCoreCoverage -BridgeCoveragePath $bridgeCoverage -McpHostCoveragePath $mcpHostCoverage -WorkerHostCoveragePath $workerHostCoverage
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4

@@ -18,7 +18,7 @@ internal sealed class MissionCommandInput
 
     public string ExpectedContextJson { get; set; } = string.Empty;
 
-    public bool AllowMutations { get; set; } = true;
+    public bool AllowMutations { get; set; }
 
     public string RecoveryBranchId { get; set; } = string.Empty;
 }

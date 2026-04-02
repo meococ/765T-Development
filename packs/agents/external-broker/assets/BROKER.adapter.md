@@ -1,8 +1,11 @@
 # External Broker Adapter
 
-Adapter mỏng cho lane external AI. Canonical truth nằm ở:
+Thin adapter for the external AI broker lane.
 
-- `AGENTS.md`
-- `ASSISTANT.md`
-- `docs/ARCHITECTURE.md`
-- `docs/PATTERNS.md`
+Product-facing source of truth for this repo:
+
+- `README.md`
+- `README.en.md`
+- `docs/README.md`
+- `docs/integration/quickstart-claude-code.md`
+- `docs/reference/mcphost.md`

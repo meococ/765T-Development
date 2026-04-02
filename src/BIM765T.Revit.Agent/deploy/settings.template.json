@@ -14,5 +14,6 @@
   "AllowSyncTools": true,
   "AllowBackgroundOpenRead": false,
   "KernelPipeName": "BIM765T.Revit.Agent.Kernel",
-  "EnableKernelPipeServer": true
+  "EnableKernelPipeServer": true,
+  "EnableUiPane": true
 }

@@ -155,7 +155,7 @@ $paths = [ordered]@{
     SettingsPath = Join-Path $appDataRoot 'settings.json'
     PolicyPath = Join-Path $appDataRoot 'policy.json'
     RepoWorkspaceSeed = Join-Path $projectRoot 'workspaces\default\workspace.json'
-    CanonicalDoc = Join-Path $projectRoot 'docs\assistant\MVP_SMOKE_CHECKLIST.md'
+    CanonicalDoc = Join-Path $projectRoot 'docs\release\mvp-manual-smoke.md'
 }
 
 $resolvedBridgeExe = Try-ResolveBridgeExe -RequestedPath $BridgeExe

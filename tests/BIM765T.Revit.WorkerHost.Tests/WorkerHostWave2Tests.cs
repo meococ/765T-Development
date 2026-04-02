@@ -101,6 +101,60 @@ public sealed class WorkerHostWave2Tests
     }
 
     [Fact]
+    public void SafetyAgent_BlocksApproval_WhenPreviewRunIdMissing()
+    {
+        var agent = new SafetyAgent();
+        var snapshot = new MissionSnapshot
+        {
+            MissionId = "mission-01",
+            State = WorkerMissionStates.AwaitingApproval,
+            ApprovalToken = "approval-expected",
+            PreviewRunId = "preview-01",
+            ExpectedContextJson = """{"doc":"A"}"""
+        };
+
+        var assessment = agent.EvaluateCommand(new MissionCommandInput
+        {
+            MissionId = "mission-01",
+            CommandName = "approval",
+            AllowMutations = true,
+            ApprovalToken = "approval-expected",
+            PreviewRunId = string.Empty,
+            ExpectedContextJson = """{"doc":"A"}"""
+        }, snapshot);
+
+        Assert.False(assessment.Allowed);
+        Assert.Equal(StatusCodes.PreviewRunRequired, assessment.StatusCode);
+    }
+
+    [Fact]
+    public void SafetyAgent_BlocksApproval_WhenExpectedContextMissing()
+    {
+        var agent = new SafetyAgent();
+        var snapshot = new MissionSnapshot
+        {
+            MissionId = "mission-02",
+            State = WorkerMissionStates.AwaitingApproval,
+            ApprovalToken = "approval-expected",
+            PreviewRunId = "preview-01",
+            ExpectedContextJson = """{"doc":"A"}"""
+        };
+
+        var assessment = agent.EvaluateCommand(new MissionCommandInput
+        {
+            MissionId = "mission-02",
+            CommandName = "approval",
+            AllowMutations = true,
+            ApprovalToken = "approval-expected",
+            PreviewRunId = "preview-01",
+            ExpectedContextJson = string.Empty
+        }, snapshot);
+
+        Assert.False(assessment.Allowed);
+        Assert.Equal(StatusCodes.ContextMismatch, assessment.StatusCode);
+    }
+
+    [Fact]
     public async Task RuntimeHealthService_ReportsDegraded_WhenQdrantUnavailable()
     {
         var root = CreateTempDirectory();

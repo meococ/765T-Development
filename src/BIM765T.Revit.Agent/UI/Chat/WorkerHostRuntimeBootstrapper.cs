@@ -302,7 +302,9 @@ internal static class WorkerHostRuntimeBootstrapper
         while (directory != null)
         {
             if (File.Exists(Path.Combine(directory.FullName, "BIM765T.Revit.Agent.sln"))
-                || File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+                || (Directory.Exists(Path.Combine(directory.FullName, "src", "BIM765T.Revit.WorkerHost"))
+                    && Directory.Exists(Path.Combine(directory.FullName, "tools"))
+                    && File.Exists(Path.Combine(directory.FullName, "README.md"))))
             {
                 return directory.FullName;
             }

@@ -23,14 +23,14 @@ function Resolve-ProjectRoot {
     $fallback = $null
     while ($currentPath) {
         $candidateSln = Join-Path $currentPath 'BIM765T.Revit.Agent.sln'
-        $candidateAssistant = Join-Path $currentPath 'ASSISTANT.md'
         $candidateSrc = Join-Path $currentPath 'src\BIM765T.Revit.Agent'
         $candidateTools = Join-Path $currentPath 'tools'
+        $candidateReadme = Join-Path $currentPath 'README.md'
 
         if (Test-Path $candidateSln) {
             return $currentPath
         }
-        if ((Test-Path $candidateAssistant) -and (Test-Path $candidateSrc) -and (Test-Path $candidateTools)) {
+        if ((Test-Path $candidateSrc) -and (Test-Path $candidateTools) -and (Test-Path $candidateReadme)) {
             $fallback = $currentPath
         }
 
@@ -337,7 +337,7 @@ function New-RunDirectory {
         $safeSlug = 'run'
     }
 
-    $runsRoot = Join-Path $ProjectRoot '.assistant\runs'
+    $runsRoot = Join-Path $ProjectRoot 'artifacts\tool-runs'
     New-Item -ItemType Directory -Force -Path $runsRoot | Out-Null
     $dirName = "{0}_{1}" -f ([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')), $safeSlug.ToLowerInvariant()
     $runDir = Join-Path $runsRoot $dirName
@@ -373,7 +373,7 @@ function Get-RunDirectories {
         [string[]]$RequiredFiles = @()
     )
 
-    $runsRoot = Join-Path $ProjectRoot '.assistant\runs'
+    $runsRoot = Join-Path $ProjectRoot 'artifacts\tool-runs'
     if (-not (Test-Path $runsRoot)) {
         return @()
     }
@@ -440,7 +440,7 @@ function Resolve-RunDirectory {
     $matches = @(Get-RunDirectories -ProjectRoot $ProjectRoot -NamePrefix $NamePrefix -RequiredFiles $RequiredFiles)
     if ($matches.Count -eq 0) {
         $suffix = if ([string]::IsNullOrWhiteSpace($NamePrefix)) { '' } else { " voi prefix '$NamePrefix'" }
-        throw "Khong tim thay run nao$suffix trong $(Join-Path $ProjectRoot '.assistant\runs')"
+        throw "Khong tim thay run nao$suffix trong $(Join-Path $ProjectRoot 'artifacts\tool-runs')"
     }
 
     return $matches[0].FullName

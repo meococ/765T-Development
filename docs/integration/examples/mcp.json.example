@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "revit-agent": {
+      "type": "stdio",
+      "command": "%REPO_ROOT%/src/BIM765T.Revit.McpHost/bin/Release/net8.0/BIM765T.Revit.McpHost.exe",
+      "args": [],
+      "description": "765T Revit Agent MCP entrypoint. Requires WorkerHost, Revit, and the add-in to be running."
+    }
+  }
+}

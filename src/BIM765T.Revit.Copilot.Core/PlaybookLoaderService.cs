@@ -9,9 +9,9 @@ using BIM765T.Revit.Contracts.Serialization;
 namespace BIM765T.Revit.Copilot.Core;
 
 /// <summary>
-/// Loads playbook JSON files using 3-tier resolution:
+/// Loads playbook JSON files using product-owned resolution:
 /// 1. %APPDATA%\BIM765T.Revit.Agent\playbooks\
-/// 2. docs/agent/playbooks/ (repo)
+/// 2. packs/playbooks/*/assets/ (repo)
 /// 3. Built-in defaults (empty)
 /// </summary>
 public sealed class PlaybookLoaderService
@@ -262,7 +262,7 @@ public sealed class PlaybookLoaderService
             "playbooks");
         AddDistinct(dirs, appData);
 
-        // Tier 2: repo docs
+        // Tier 2: repo packs
         var repoRoot = FindRepoRoot(baseDirectory ?? AppContext.BaseDirectory);
         if (!string.IsNullOrWhiteSpace(repoRoot))
         {
@@ -274,8 +274,6 @@ public sealed class PlaybookLoaderService
                     AddDistinct(dirs, assetDir);
                 }
             }
-
-            AddDistinct(dirs, Path.Combine(repoRoot, "docs", "agent", "playbooks"));
         }
 
         return dirs;

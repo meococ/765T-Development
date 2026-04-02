@@ -24,9 +24,17 @@ internal sealed class SessionDocumentToolModule : IToolModule
         var fileLifecycleDocument = ToolManifestPresets.FileLifecycle("document");
 
         registry.Register(ToolNames.SessionListTools, "List tool manifests/capabilities.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
-            (uiapp, request) => ToolResponses.Success(request, new ToolCatalogResponse { Tools = registry.GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi) }));
+            (uiapp, request) =>
+            {
+                var audience = ResolveCatalogAudience(request);
+                return ToolResponses.Success(request, new ToolCatalogResponse { Tools = registry.GetToolCatalog(audience) });
+            });
         registry.Register(ToolNames.SessionGetCapabilities, "Get bridge runtime capabilities.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
-            (uiapp, request) => ToolResponses.Success(request, platform.GetCapabilities(registry.GetToolCatalog(ToolCatalogFilter.ToolCatalogAudience.WorkerUi))));
+            (uiapp, request) =>
+            {
+                var audience = ResolveCatalogAudience(request);
+                return ToolResponses.Success(request, platform.GetCapabilities(registry.GetToolCatalog(audience)));
+            });
         registry.Register(ToolNames.SessionListOpenDocuments, "List all open Revit documents.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
             (uiapp, request) => ToolResponses.Success(request, platform.ListOpenDocuments(uiapp)));
         registry.Register(ToolNames.SessionGetRecentEvents, "Get recent tracked Revit events.", PermissionLevel.Read, ApprovalRequirement.None, false, sessionRead,
@@ -103,5 +111,17 @@ internal sealed class SessionDocumentToolModule : IToolModule
             (uiapp, request) => ToolResponses.Success(request, platform.GetActiveViewContext(uiapp)));
         registry.Register(ToolNames.SelectionGet, "Get current selection summary.", PermissionLevel.Read, ApprovalRequirement.None, false, documentViewRead,
             (uiapp, request) => ToolResponses.Success(request, platform.GetSelection(uiapp)));
+    }
+
+    private static ToolCatalogFilter.ToolCatalogAudience ResolveCatalogAudience(ToolRequestEnvelope request)
+    {
+        var payload = ToolPayloads.Read<ToolCatalogRequest>(request);
+        var audience = payload.Audience ?? string.Empty;
+        return audience.ToLowerInvariant() switch
+        {
+            ToolCatalogAudiences.Mcp => ToolCatalogFilter.ToolCatalogAudience.Mcp,
+            ToolCatalogAudiences.PublicCatalog => ToolCatalogFilter.ToolCatalogAudience.PublicCatalog,
+            _ => ToolCatalogFilter.ToolCatalogAudience.WorkerUi
+        };
     }
 }

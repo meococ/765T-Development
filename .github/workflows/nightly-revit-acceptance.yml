@@ -1,0 +1,86 @@
+name: Nightly Revit Acceptance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * *'
+
+jobs:
+  revit-acceptance:
+    runs-on: [self-hosted, windows, revit]
+    env:
+      BIM765T_REVIT_TEST_MODEL_PATH: ${{ vars.BIM765T_REVIT_TEST_MODEL_PATH }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Validate Product Repo Boundary
+        shell: pwsh
+        run: ./tools/validate_product_repo_boundary.ps1
+
+      - name: Ensure Test Model Path Exists
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:BIM765T_REVIT_TEST_MODEL_PATH)) {
+            throw "Repository variable BIM765T_REVIT_TEST_MODEL_PATH is not configured."
+          }
+          if (-not (Test-Path -LiteralPath $env:BIM765T_REVIT_TEST_MODEL_PATH)) {
+            throw "Test model not found: $env:BIM765T_REVIT_TEST_MODEL_PATH"
+          }
+
+      - name: Build Runtime
+        shell: pwsh
+        run: |
+          dotnet build src/BIM765T.Revit.Bridge/BIM765T.Revit.Bridge.csproj -c Release
+          dotnet build src/BIM765T.Revit.McpHost/BIM765T.Revit.McpHost.csproj -c Release
+          dotnet build src/BIM765T.Revit.WorkerHost/BIM765T.Revit.WorkerHost.csproj -c Release
+          dotnet build src/BIM765T.Revit.Agent/BIM765T.Revit.Agent.csproj -c Release
+
+      - name: Install Revit Add-In
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\src\BIM765T.Revit.Agent\deploy\install-addin.ps1
+
+      - name: Start WorkerHost
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\tools\start_workerhost.ps1
+
+      - name: Launch Revit Deterministically
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\tools\restart_revit_and_trust_addin.ps1 `
+            -ModelPath $env:BIM765T_REVIT_TEST_MODEL_PATH `
+            -AutoTrustUnsignedAddin
+
+      - name: Check Bridge Health
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\tools\check_bridge_health.ps1 -Audience mcp -AsJson
+
+      - name: MCP Smoke
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\tools\test_mcp_smoke.ps1
+
+      - name: Live Runtime Verification
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\tools\verify_copilot_runtime_live.ps1
+
+      - name: Generate Manual Smoke Bundle
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\tools\run_revit_mvp_manual_smoke.ps1 `
+            -TargetDocument $env:BIM765T_REVIT_TEST_MODEL_PATH
+
+      - name: Upload Acceptance Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-revit-acceptance
+          path: |
+            artifacts/**
+            ${{ github.workspace }}\artifacts\**
+          retention-days: 14

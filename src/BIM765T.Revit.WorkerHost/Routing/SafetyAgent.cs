@@ -140,7 +140,7 @@ internal sealed partial class SafetyAgent
                     return assessment;
                 }
 
-                if (!MatchesOrEmpty(input.ApprovalToken, snapshot.ApprovalToken))
+                if (!MatchesRequired(input.ApprovalToken, snapshot.ApprovalToken))
                 {
                     assessment.Allowed = false;
                     assessment.StatusCode = StatusCodes.ApprovalMismatch;
@@ -148,7 +148,7 @@ internal sealed partial class SafetyAgent
                     return assessment;
                 }
 
-                if (!MatchesOrEmpty(input.PreviewRunId, snapshot.PreviewRunId))
+                if (!MatchesRequired(input.PreviewRunId, snapshot.PreviewRunId))
                 {
                     assessment.Allowed = false;
                     assessment.StatusCode = StatusCodes.PreviewRunRequired;
@@ -156,7 +156,8 @@ internal sealed partial class SafetyAgent
                     return assessment;
                 }
 
-                if (!MatchesOrEmpty(input.ExpectedContextJson, snapshot.ExpectedContextJson))
+                if (!string.IsNullOrWhiteSpace(snapshot.ExpectedContextJson)
+                    && !MatchesRequired(input.ExpectedContextJson, snapshot.ExpectedContextJson))
                 {
                     assessment.Allowed = false;
                     assessment.StatusCode = StatusCodes.ContextMismatch;
@@ -189,9 +190,10 @@ internal sealed partial class SafetyAgent
         return assessment;
     }
 
-    private static bool MatchesOrEmpty(string incoming, string snapshotValue)
+    private static bool MatchesRequired(string incoming, string snapshotValue)
     {
-        return string.IsNullOrWhiteSpace(incoming)
-            || string.Equals(incoming, snapshotValue ?? string.Empty, StringComparison.Ordinal);
+        return !string.IsNullOrWhiteSpace(incoming)
+            && !string.IsNullOrWhiteSpace(snapshotValue)
+            && string.Equals(incoming, snapshotValue, StringComparison.Ordinal);
     }
 }

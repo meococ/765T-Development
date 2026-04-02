@@ -1,72 +1,50 @@
 # 765T Revit Tooling
 
-PowerShell automation scripts for development, testing, and operations.
+Product-facing PowerShell helpers for install, startup, verification, and smoke testing.
 
-## Directory Structure
+## Categories
 
-```text
-tools/
-  *.ps1                   # Core operational scripts (health, relay, catalog, audit)
-  Assistant.Common.ps1    # Shared helpers — path discovery, bridge resolution
-  infra/                  # Install, start, setup scripts (WorkerHost, Qdrant, add-in)
-  testing/                # Test, verify, smoke, benchmark scripts
-  round/                  # Round/penetration workflow scripts (domain-specific)
-  health/                 # Health check scripts (agent stack, pack/workspace)
-  dev/                    # Development utilities
-    scratch/              # Temporary investigation scripts (underscore-prefixed originals)
-    export-pack-catalog.ps1
-  workflows/              # Workflow documentation
-  archive/                # Legacy/superseded scripts
-    legacy-assistant/     # Old assistant-era automation
-```
+- `tools/`: health, catalog, and operational helpers
+- `tools/infra/`: install, startup, service, and packaging helpers
+- `tools/testing/`: smoke and verification helpers
+- `tools/round/`: domain-specific round/penetration workflows
+- `tools/dev/`: local utilities that do not define product behavior
 
-## Quick Reference
+Internal workflow orchestration and planning helpers are intentionally excluded from this repo.
 
-### Operations (root level)
+## Core Scripts
 
 | Script | Purpose |
-|--------|---------|
-| `check_bridge_health.ps1` | Validate bridge runtime, tool coverage, and whether routing is safe for a single isolated Revit session |
-| `check_workerhost_health.ps1` | Validate WorkerHost health JSON |
-| `check_ai_readiness.ps1` | Check AI provider availability |
-| `check_tool_registry.ps1` | Audit tool manifests for missing metadata |
-| `generate_tool_catalog.ps1` | Export live tool catalog to JSON/Markdown |
-| `audit_agent_stack.ps1` | Repo/environment audit for stale docs, config drift |
-| `invoke_external_ai_agent.ps1` | Call external AI broker through WorkerHost |
-| `relay_*.ps1` | Relay send/receive/reply/status |
+| --- | --- |
+| `check_bridge_health.ps1` | Verify bridge/runtime health, active document, and single-session safety |
+| `check_workerhost_health.ps1` | Verify WorkerHost health and degraded mode |
+| `check_ai_readiness.ps1` | Verify provider configuration for AI-backed flows |
+| `check_tool_registry.ps1` | Audit live tool manifests for missing metadata |
+| `generate_tool_catalog.ps1` | Export the live tool catalog |
+| `run_revit_mvp_manual_smoke.ps1` | Create a manual smoke bundle for the current machine/runtime |
 
-### Infrastructure (`infra/`)
+## Infrastructure
 
 | Script | Purpose |
-|--------|---------|
-| `install_workerhost_service.ps1` | Install WorkerHost as Windows service |
-| `start_workerhost.ps1` | Start WorkerHost interactively |
-| `install_qdrant_startup_task.ps1` | Scheduled task for local Qdrant |
-| `start_qdrant_local.ps1` | Start local Qdrant |
-| `setup_ai_providers.ps1` | Configure LLM provider env vars |
-| `restart_revit_and_trust_addin.ps1` | Close stray Revit processes, open a target model, trust the add-in prompt, and wait for bridge confirmation on that exact model |
-| `package_revit_bridge_build.ps1` | Package bridge build for deployment |
+| --- | --- |
+| `infra/setup_ai_providers.ps1` | Configure provider environment variables |
+| `infra/start_workerhost.ps1` | Start WorkerHost and capture logs |
+| `infra/restart_revit_and_trust_addin.ps1` | Launch a target model deterministically and wait for bridge confirmation |
+| `infra/install_workerhost_service.ps1` | Install WorkerHost as a Windows service |
+| `infra/package_revit_bridge_build.ps1` | Package a deployment build |
 
-### Testing (`testing/`)
+## Testing
 
 | Script | Purpose |
-|--------|---------|
-| `test_bridge_smoke.ps1` | Bridge smoke test |
-| `test_mcp_smoke.ps1` | MCP smoke test |
-| `test_ai_chat_e2e.ps1` | End-to-end AI chat test |
-| `run_revit_mvp_manual_smoke.ps1` | Generate MVP manual smoke bundle |
-| `run_family_authoring_benchmark.ps1` | Family authoring benchmark |
-| `verify_copilot_runtime_live.ps1` | End-to-end runtime smoke |
-| `check_coverage_thresholds.ps1` | Test coverage thresholds |
+| --- | --- |
+| `testing/test_bridge_smoke.ps1` | Bridge smoke test |
+| `testing/test_mcp_smoke.ps1` | MCP smoke test |
+| `testing/test_ai_chat_e2e.ps1` | End-to-end AI chat smoke |
+| `testing/verify_copilot_runtime_live.ps1` | Live runtime verification |
+| `testing/run_revit_mvp_manual_smoke.ps1` | Generate the manual smoke checklist bundle |
 
-### Round/Penetration Workflows (`round/`)
+## Operational Rules
 
-Domain-specific scripts for round transition, penetration review, IFC export, and related workflows. See individual scripts for usage.
-
-## Conventions
-
-- Use `Assistant.Common.ps1` for path discovery and shared helpers
-- Scripts should be idempotent where possible
-- JSON output and stable exit codes for automation
-- New scripts go in the appropriate subdirectory, not root
-- For live mutation/export work, prefer a single `Revit.exe` session and verify `check_bridge_health.ps1` reports `RevitSessionIsolated = true`
+- Prefer one `Revit.exe` for live mutation/export work.
+- Verify `RevitSessionIsolated = true` before mutating a live model.
+- Treat `McpHost -> WorkerHost -> kernel` as the canonical IDE path.

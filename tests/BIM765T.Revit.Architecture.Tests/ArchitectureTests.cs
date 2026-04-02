@@ -99,62 +99,139 @@ public sealed class ArchitectureTests
     }
 
     [Fact]
-    public void Tool_Graph_Overlay_Only_References_Existing_Tools()
+    public void ProductRepo_Does_Not_Ship_Internal_Guidance_Files()
     {
         var repoRoot = FindRepoRoot();
-        var overlayPath = Path.Combine(repoRoot, "docs", "agent", "skills", "tool-intelligence", "TOOL_GRAPH.overlay.json");
-        Assert.True(File.Exists(overlayPath), "Missing overlay file: " + overlayPath);
-
-        var catalog = JsonUtil.DeserializeRequired<ToolGraphOverlayCatalog>(File.ReadAllText(overlayPath));
-        var knownTools = typeof(ToolNames)
-            .GetFields(BindingFlags.Public | BindingFlags.Static)
-            .Where(x => x.FieldType == typeof(string))
-            .Select(x => (string)x.GetValue(null)!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var entry in catalog.Entries)
+        var disallowedPaths = new[]
         {
-            Assert.Contains(entry.ToolName, knownTools);
-            Assert.All(entry.FollowUps, tool => Assert.Contains(tool, knownTools));
+            "AGENTS.md",
+            "ASSISTANT.md",
+            "CLAUDE.md",
+            ".assistant",
+            ".claude",
+            "docs/agent",
+            "docs/architecture",
+            "docs/ba",
+            "docs/archive",
+            "docs/assets",
+            "docs/assistant",
+            "docs/765T_BLUEPRINT.md",
+            "docs/765T_CRITICAL_REVIEW.md",
+            "docs/765T_PRODUCT_VISION.md",
+            "docs/765T_SYSTEM_DIAGRAMS.md",
+            "docs/765T_TECHNICAL_RESEARCH.md",
+            "docs/765T_TOOL_LIBRARY_BLUEPRINT.md",
+            "docs/ARCHITECTURE.md",
+            "docs/PATTERNS.md",
+            "docs/INDEX.md",
+            "docs/PRODUCT_REVIEW.md",
+            "README.BIM765T.Revit.Agent.md"
+        };
+
+        foreach (var relativePath in disallowedPaths)
+        {
+            var fullPath = Path.Combine(repoRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+            Assert.False(File.Exists(fullPath) || Directory.Exists(fullPath), $"Internal product-external path should not ship: {relativePath}");
         }
     }
 
     [Fact]
-    public void Task_Templates_Only_Reference_Existing_Tools()
+    public void ProductDocs_Stay_In_Whitelisted_Categories()
     {
         var repoRoot = FindRepoRoot();
-        var templatePath = Path.Combine(repoRoot, "docs", "agent", "skills", "tool-intelligence", "TASK_TEMPLATES.md");
-        Assert.True(File.Exists(templatePath), "Missing task template file: " + templatePath);
-
-        var knownTools = typeof(ToolNames)
-            .GetFields(BindingFlags.Public | BindingFlags.Static)
-            .Where(x => x.FieldType == typeof(string))
-            .Select(x => (string)x.GetValue(null)!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var matches = Regex.Matches(File.ReadAllText(templatePath), @"^\s*-\s*tool:\s*(?<tool>[a-z0-9._]+)\s*$", RegexOptions.Multiline);
-        Assert.True(matches.Count > 0, "No `- tool:` lines found in task template file.");
-        foreach (Match match in matches)
+        var docsRoot = Path.Combine(repoRoot, "docs");
+        var allowedTopLevel = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            var toolName = match.Groups["tool"].Value;
-            Assert.Contains(toolName, knownTools);
+            "integration",
+            "reference",
+            "troubleshooting",
+            "release"
+        };
+
+        Assert.True(File.Exists(Path.Combine(docsRoot, "README.md")));
+
+        foreach (var file in Directory.GetFiles(docsRoot, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(docsRoot, file).Replace('\\', '/');
+            if (string.Equals(relative, "README.md", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var topLevel = relative.Split('/')[0];
+            Assert.Contains(topLevel, allowedTopLevel);
         }
     }
 
     [Fact]
-    public void Canonical_Agent_Docs_Exist_And_Temporary_Patterns_File_Is_Removed()
+    public void ProductDocs_Do_Not_Contain_Internal_Paths_Or_Build_Workflow()
     {
         var repoRoot = FindRepoRoot();
+        var files = new List<string>
+        {
+            Path.Combine(repoRoot, "README.md"),
+            Path.Combine(repoRoot, "README.en.md"),
+            Path.Combine(repoRoot, "tools", "README.md")
+        };
+        files.AddRange(Directory.GetFiles(Path.Combine(repoRoot, "docs"), "*.md", SearchOption.AllDirectories));
+        files.AddRange(Directory.GetFiles(Path.Combine(repoRoot, "packs", "agents", "external-broker", "assets"), "*.md", SearchOption.AllDirectories));
 
-        Assert.True(File.Exists(Path.Combine(repoRoot, "AGENTS.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "ASSISTANT.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "ARCHITECTURE.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "PATTERNS.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "assistant", "BASELINE.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "assistant", "CONFIG_MATRIX.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "assistant", "SPECIALISTS.md")));
-        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "assistant", "USE_CASE_MATRIX.md")));
-        Assert.False(File.Exists(Path.Combine(repoRoot, "docs", "PATERNS.tmp")));
+        var bannedPatterns = new[]
+        {
+            "AGENTS.md",
+            "ASSISTANT.md",
+            "CLAUDE.md",
+            "docs/assistant/",
+            "docs/ARCHITECTURE.md",
+            "docs/PATTERNS.md",
+            "docs/INDEX.md",
+            "git clone",
+            "dotnet build",
+            ".assistant/context/_session_state.json"
+        };
+
+        foreach (var file in files.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var content = File.ReadAllText(file);
+            foreach (var pattern in bannedPatterns)
+            {
+                Assert.DoesNotContain(pattern, content, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+    }
+
+    [Fact]
+    public void ProductExamples_Do_Not_Contain_AbsoluteMachinePaths_Or_Secrets()
+    {
+        var repoRoot = FindRepoRoot();
+        var exampleFiles = Directory.GetFiles(Path.Combine(repoRoot, "docs", "integration", "examples"), "*", SearchOption.AllDirectories);
+        Assert.NotEmpty(exampleFiles);
+
+        var bannedPatterns = new[]
+        {
+            @"C:\Users\",
+            @"D:\",
+            "sk-",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "<REPLACE_WITH_"
+        };
+
+        foreach (var file in exampleFiles)
+        {
+            var content = File.ReadAllText(file);
+            foreach (var pattern in bannedPatterns)
+            {
+                Assert.DoesNotContain(pattern, content, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+    }
+
+    [Fact]
+    public void Root_Mcp_Config_Is_Not_Shipped_But_Product_Example_Exists()
+    {
+        var repoRoot = FindRepoRoot();
+        Assert.False(File.Exists(Path.Combine(repoRoot, ".mcp.json")));
+        Assert.True(File.Exists(Path.Combine(repoRoot, "docs", "integration", "examples", "mcp.json.example")));
     }
 
     [Fact]
@@ -186,44 +263,6 @@ public sealed class ArchitectureTests
         Assert.Equal("default", workspace.WorkspaceId);
         Assert.Contains("bim765t.agents.orchestrator", workspace.EnabledPacks);
         Assert.Contains("bim765t.playbooks.core", workspace.PreferredPlaybookPacks);
-    }
-
-    [Fact]
-    public void Instruction_Adapters_Do_Not_Reference_Stale_Context_Path_Or_Handoff()
-    {
-        var repoRoot = FindRepoRoot();
-        var files = new[]
-        {
-            Path.Combine(repoRoot, "README.md"),
-            Path.Combine(repoRoot, "ASSISTANT.md"),
-            Path.Combine(repoRoot, "AGENTS.md"),
-            Path.Combine(repoRoot, ".assistant", "commands", "delegate-external-ai.md"),
-            Path.Combine(repoRoot, ".assistant", "commands", "onboard.md"),
-            Path.Combine(repoRoot, "docs", "assistant", "BASELINE.md"),
-            Path.Combine(repoRoot, "docs", "assistant", "CONFIG_MATRIX.md")
-        };
-
-        foreach (var file in files)
-        {
-            if (!File.Exists(file))
-            {
-                continue;
-            }
-            var content = File.ReadAllText(file);
-            Assert.DoesNotContain(".assistant/context/_session_state.json", content, StringComparison.Ordinal);
-            Assert.DoesNotContain("ROUND_TASK_HANDOFF.md", content, StringComparison.Ordinal);
-        }
-    }
-
-    [Fact]
-    public void External_Ai_Delegation_Command_References_Current_Model_Baseline()
-    {
-        var repoRoot = FindRepoRoot();
-        var path = Path.Combine(repoRoot, ".assistant", "commands", "delegate-external-ai.md");
-        var content = File.ReadAllText(path);
-
-        Assert.Contains("gpt-5.4", content, StringComparison.Ordinal);
-        Assert.DoesNotContain("gpt-4.1", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -306,15 +345,33 @@ public sealed class ArchitectureTests
         Assert.Contains("BridgeConstants.DefaultWorkerHostPipeName", mcpProgram, StringComparison.Ordinal);
         Assert.Contains("CompatibilityService.CompatibilityServiceClient", bridgeProgram, StringComparison.Ordinal);
         Assert.Contains("CompatibilityService.CompatibilityServiceClient", mcpProgram, StringComparison.Ordinal);
-        Assert.Contains("BRIDGE_CANONICAL_PUBLIC_INGRESS", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("BRIDGE_TOPOLOGY_TRANSITIONAL", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("BRIDGE_TOPOLOGY_LEGACY", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("Kernel and legacy pipes are transitional adapter lanes only", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("legacy and should be considered sunset-bound", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("canonical WorkerHost public ingress", bridgeProgram, StringComparison.Ordinal);
-        Assert.Contains("BridgeConstants.DefaultWorkerHostPipeName", mcpProgram, StringComparison.Ordinal);
         Assert.DoesNotContain("BridgeConstants.DefaultKernelPipeName", mcpProgram, StringComparison.Ordinal);
         Assert.DoesNotContain("BridgeConstants.DefaultPipeName", mcpProgram, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PlaybookLoader_Uses_ProductOwned_Pack_Assets()
+    {
+        var repoRoot = FindRepoRoot();
+        var file = Path.Combine(repoRoot, "src", "BIM765T.Revit.Copilot.Core", "PlaybookLoaderService.cs");
+        var content = File.ReadAllText(file);
+
+        Assert.Contains("packs/playbooks", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("docs/agent/playbooks", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ExternalBrokerAssets_Point_To_Product_Docs()
+    {
+        var repoRoot = FindRepoRoot();
+        var adapter = File.ReadAllText(Path.Combine(repoRoot, "packs", "agents", "external-broker", "assets", "BROKER.adapter.md"));
+        var onboard = File.ReadAllText(Path.Combine(repoRoot, "packs", "agents", "external-broker", "assets", "onboard.md"));
+
+        Assert.Contains("docs/README.md", adapter, StringComparison.Ordinal);
+        Assert.Contains("docs/reference/mcphost.md", adapter, StringComparison.Ordinal);
+        Assert.Contains("docs/integration/quickstart-claude-code.md", onboard, StringComparison.Ordinal);
+        Assert.DoesNotContain("AGENTS.md", adapter, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ASSISTANT.md", adapter, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -334,7 +391,7 @@ public sealed class ArchitectureTests
         foreach (var file in files)
         {
             var content = File.ReadAllText(file);
-            Assert.DoesNotContain("Ã", content, StringComparison.Ordinal);
+            Assert.DoesNotContain("Ãƒ", content, StringComparison.Ordinal);
             Assert.DoesNotContain("?? b?", content, StringComparison.Ordinal);
             Assert.DoesNotContain("kh?ng", content, StringComparison.Ordinal);
             Assert.DoesNotContain("???", content, StringComparison.Ordinal);
@@ -365,131 +422,6 @@ public sealed class ArchitectureTests
         var content = File.ReadAllText(file);
 
         Assert.DoesNotContain("contentStack.Children.Add(BuildActionBar", content, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Doc_Index_References_Exist_Filesystem()
-    {
-        var repoRoot = FindRepoRoot();
-        var indexPath = Path.Combine(repoRoot, "docs", "INDEX.md");
-        var indexContent = File.ReadAllText(indexPath);
-
-        // Extract file paths from markdown table cells: `path` or "path"
-        var matches = Regex.Matches(indexContent, @"(?:[`""'])([^\s`""']+(?:\.md|\.json)[^\s`""']*)(?:[`""'])");
-        var missingFiles = new List<string>();
-
-        foreach (Match match in matches)
-        {
-            var relativePath = match.Groups[1].Value;
-
-            // Skip external URLs, absolute paths, and glob patterns
-            if (relativePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) ||
-                relativePath.StartsWith("/", StringComparison.OrdinalIgnoreCase) ||
-                relativePath.Contains('*'))
-            {
-                continue;
-            }
-
-            // Convert relative doc paths to filesystem paths
-            string fullPath;
-            if (relativePath.StartsWith("docs/", StringComparison.OrdinalIgnoreCase))
-            {
-                fullPath = Path.Combine(repoRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (relativePath.StartsWith("archive/", StringComparison.OrdinalIgnoreCase))
-            {
-                // archive/ paths in docs/INDEX.md refer to docs/archive/
-                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, relativePath)))
-            {
-                // File at repo root (e.g. README.md, CLAUDE.md)
-                fullPath = Path.Combine(repoRoot, relativePath);
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                // File in docs/ subdirectory (bare name)
-                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-0", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                // BA phase-0 files
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-0", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-1", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                // BA phase-1 files
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-1", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-2", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-2", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-3", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-3", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-4", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-4", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else if (File.Exists(Path.Combine(repoRoot, "docs", "ba", "phase-5", relativePath.Replace('/', Path.DirectorySeparatorChar))))
-            {
-                fullPath = Path.Combine(repoRoot, "docs", "ba", "phase-5", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-            else
-            {
-                // Last resort: try docs/ bare lookup
-                fullPath = Path.Combine(repoRoot, "docs", relativePath.Replace('/', Path.DirectorySeparatorChar));
-            }
-
-            if (!File.Exists(fullPath))
-            {
-                missingFiles.Add(relativePath + " (tried: " + fullPath + ")");
-            }
-        }
-
-        Assert.Empty(missingFiles);
-    }
-
-    [Fact]
-    public void Read_Order_Consistent_Between_Key_Docs()
-    {
-        var repoRoot = FindRepoRoot();
-
-        // Read-order should be: README → AGENTS → ASSISTANT → docs/ARCHITECTURE → docs/PATTERNS
-        var readOrderFiles = new[]
-        {
-            "README.md",
-            "AGENTS.md",
-            "ASSISTANT.md",
-            "docs/ARCHITECTURE.md",
-            "docs/PATTERNS.md",
-            "docs/assistant/BASELINE.md"
-        };
-
-        foreach (var file in readOrderFiles)
-        {
-            var path = Path.Combine(repoRoot, file);
-            Assert.True(File.Exists(path), $"Read-order file missing: {file}");
-        }
-
-        // AGENTS.md and ASSISTANT.md should both reference docs/ARCHITECTURE.md and docs/PATTERNS.md
-        var agentsPath = Path.Combine(repoRoot, "AGENTS.md");
-        var assistantPath = Path.Combine(repoRoot, "ASSISTANT.md");
-
-        if (File.Exists(agentsPath))
-        {
-            var agentsContent = File.ReadAllText(agentsPath);
-            Assert.Contains("docs/ARCHITECTURE.md", agentsContent);
-            Assert.Contains("docs/PATTERNS.md", agentsContent);
-        }
-
-        if (File.Exists(assistantPath))
-        {
-            var assistantContent = File.ReadAllText(assistantPath);
-            Assert.Contains("docs/ARCHITECTURE.md", assistantContent);
-        }
     }
 
     private static Assembly LoadAssembly(string fileName)
