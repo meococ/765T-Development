@@ -1,0 +1,222 @@
+765T DOCUMENTATION ACCURACY AUDIT RESULTS
+==========================================
+
+Date: 2026-03-27
+Scope: Complete documentation review
+Objective: Identify overclaims vs actual runtime truth
+
+QUICK RESULTS
+=============
+
+Overclaims Found: 3 CRITICAL + 2 MEDIUM
+Archive Status: PROPERLY MAINTAINED
+Canonical Truth: ACCURATE and DEFENSIVE
+Cleanup Backlog: AUTHORITATIVE PROBLEM STATEMENT
+
+CRITICAL OVERCLAIMS
+===================
+
+1. "4 TABS" UI SHAPE CLAIM
+   Location: docs/765T_PRODUCT_VISION.md lines 340-351
+   Overclaim: "Chat + Activity + Evidence + Quick Tools" as 4 working components
+   Reality: Single worker shell (not 4 tabs)
+   Authority: BASELINE.md lines 17-20 explicitly reject this
+   Backlog: P1-1 - Fix shell-shape wording
+
+2. SEMANTIC MEMORY CAPABILITY
+   Location: docs/765T_PRODUCT_VISION.md FINDING 2-3 (lines 97-154)
+   Overclaim: Token cost model, tiered analysis, semantic memory capability
+   Reality: Hash embeddings with lexical fallback (explicitly NOT semantic)
+   Authority: BASELINE.md line 32 distinguishes "vector_available_non_semantic"
+   Backlog: P1-2 - Fix memory wording
+
+3. PROVIDER HARDCODED DEFAULTS
+   Location: docs/765T_PRODUCT_VISION.md FINDING 2 uses specific models
+   Overclaim: Models presented as feature defaults
+   Reality: Environment-driven provider selection
+   Authority: README.md line 76, BASELINE.md line 38
+   Backlog: P1-3 - Fix provider-default wording
+
+MEDIUM ISSUES
+=============
+
+4. "5-LAYER ARCHITECTURE" VAGUE
+   Location: docs/ARCHITECTURE.md
+   Issue: Undefined reference to architectural layers
+   Backlog: P1-4 - Remove or clarify
+
+5. PRODUCT_VISION.md PURPOSE CONFUSION
+   Location: Entire file mixes vision/research/claims as current
+   Issue: Readers can't distinguish implemented vs planned
+   Backlog: P0-7 - Re-scope as vision-only
+
+CANONICAL TRUTH VERIFIED ACCURATE
+==================================
+
+✓ docs/assistant/BASELINE.md - GROUND TRUTH
+  - Line 5: "Single worker shell" (correctly rejects 4 tabs)
+  - Lines 17-20: Explicitly says "Don't claim 4 tabs"
+  - Line 32: "vectors are NOT semantic"
+  - Line 38: Environment-driven provider selection
+
+✓ docs/assistant/CONFIG_MATRIX.md - ACCURATE
+  - Config ownership boundaries clear
+  - Machine-local vs repo-canonical properly distinguished
+
+✓ docs/PATTERNS.md - ACCURATE and DEFENSIVE
+  - Line 67 explicitly prevents overclaiming
+  - All implementation patterns correctly stated
+
+✓ README.md - MOSTLY ACCURATE
+  - Line 13: Properly qualifies "not true semantic memory yet"
+  - Line 72-78: Memory description accurate
+  - Line 76: Provider selection is environment-driven
+
+✓ README.en.md - MOSTLY ACCURATE
+  - Same content as README.md
+  - No additional overclaims
+
+FILES REVIEWED
+==============
+
+Canonical Files (9):
+  1. README.md (114 lines) - Mostly accurate
+  2. README.en.md (114 lines) - Mostly accurate
+  3. docs/765T_PRODUCT_VISION.md (503 lines) - Overclaiming
+  4. docs/ARCHITECTURE.md (141 lines) - Mostly accurate
+  5. docs/PATTERNS.md (75 lines) - Accurate
+  6. docs/assistant/BASELINE.md (41 lines) - Authoritative
+  7. docs/assistant/CONFIG_MATRIX.md (44 lines) - Accurate
+  8. docs/INDEX.md (180 lines) - Good, minor issues
+  
+Backlog Files (1):
+  9. output/REPO_AUDIT_CLEANUP_BACKLOG.md (91 lines) - Authoritative
+
+Archive Files (16):
+  docs/archive/legacy-agent/ (5 files)
+  docs/archive/legacy-assistant/ (5 files)
+  docs/archive/legacy-vision/ (6 files)
+  Status: Properly maintained and marked non-authoritative
+
+Total: 26 files reviewed = Comprehensive audit
+
+VALIDATION CHECKS
+=================
+
+Three grep commands provided in backlog (lines 75-90):
+
+Check 1: "4 tabs" wording
+  rg -n "Chat \+ Activity \+ Evidence \+ Quick Tools|4 tabs|single worker shell"
+  Expected: Only "single worker shell" should appear
+
+Check 2: Semantic memory claims
+  rg -n "semantic memory|Qdrant semantic|hash embeddings|non-semantic"
+  Expected: Only "not true semantic yet" or "hash embeddings" should appear
+
+Check 3: Provider defaults
+  rg -n "GPT-5\.2 planner|GPT-5-mini|MiniMax-M2\.7-highspeed|MiniMax-M2\.7"
+  Expected: No hardcoded defaults; env-driven examples only
+
+Use these after fixes to validate corrections.
+
+CLEANUP EXECUTION ORDER
+=======================
+
+The repo's own cleanup backlog provides Wave 1-3 execution order:
+
+WAVE 1 (P0 - Critical):
+  1. Restore AGENTS.md and ASSISTANT.md to repo root
+  2. Rewrite README.md (match BASELINE.md truth)
+  3. Mirror cleanup to README.en.md
+  4. Validate with Check #1
+
+WAVE 2 (P0-P1 - High-Value):
+  1. Fix docs/INDEX.md (stop over-centralizing authority)
+  2. Re-scope PRODUCT_VISION.md (vision-only, not runtime)
+  3. Clarify "5-layer architecture"
+  4. Reconcile PROJECT_MEMORY.md with BASELINE.md
+  5. Validate with Check #2-3
+
+WAVE 3 (P1-P2 - Long-Tail):
+  1. Reclassify TECHNICAL_RESEARCH.md as evidence log
+  2. Repair pack asset onboarding docs
+  3. Dedup repeated facts across files
+  4. Add doc-governance check to tests
+  5. Run full validation suite
+
+AUTHORITY HIERARCHY
+===================
+
+Level 1 - GROUND TRUTH (must match these):
+  docs/assistant/BASELINE.md
+  docs/assistant/CONFIG_MATRIX.md
+
+Level 2 - PATTERNS:
+  docs/PATTERNS.md
+
+Level 3 - ARCHITECTURE:
+  docs/ARCHITECTURE.md
+
+Level 4 - VISION (currently conflated with Level 1-3):
+  docs/765T_PRODUCT_VISION.md <- PROBLEM: needs separation
+
+Level 5 - NAVIGATION:
+  docs/INDEX.md
+
+Level 6 - USER-FACING:
+  README.md, README.en.md
+
+PROBLEM: Level 4 treats vision as having same authority as ground truth.
+SOLUTION: P0-7 in backlog - Re-scope PRODUCT_VISION.md to vision-only
+
+KEY FINDINGS
+============
+
+1. Canonical truth files are ACCURATE and DEFENSIVE
+   These can be trusted as authoritative:
+   - BASELINE.md
+   - CONFIG_MATRIX.md
+   - PATTERNS.md
+
+2. Front-door docs have NOT been updated
+   These need attention:
+   - README.md (minor, mostly OK)
+   - README.en.md (minor, mostly OK)
+   - INDEX.md (governance issue)
+   - PRODUCT_VISION.md (major - conflates vision/current)
+
+3. Archive is properly maintained
+   16 files in docs/archive/ correctly marked as non-authoritative
+
+4. Cleanup backlog is authoritative
+   output/REPO_AUDIT_CLEANUP_BACKLOG.md is the source for all problems
+   Includes P0-7 tasks, P1-8 tasks, P2-5 tasks
+   Provides exact grep validation commands
+   Specifies Wave 1-3 execution order
+
+5. Three specific overclaims confirmed
+   - "4 tabs" UI shape (P1-1)
+   - Semantic memory (P1-2)
+   - Provider defaults (P1-3)
+
+NEXT STEPS
+==========
+
+1. Read this summary
+2. Read output/REPO_AUDIT_CLEANUP_BACKLOG.md (source authority)
+3. Follow Wave 1-3 execution order from backlog
+4. Use provided grep validation checks after each wave
+5. Target: docs/assistant/BASELINE.md as canonical truth
+
+STATUS
+======
+
+Documentation drift: CONFIRMED
+Overclaims: IDENTIFIED (3 critical)
+Authority structure: MAPPED
+Cleanup plan: PROVIDED (Wave 1-3)
+Validation checks: INCLUDED
+
+Audit Complete: 2026-03-27
+
+Reference: output/REPO_AUDIT_CLEANUP_BACKLOG.md (authoritative source)

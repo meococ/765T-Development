@@ -1,0 +1,253 @@
+DIRECTORY TREE - COMPLETE (3 LEVELS)
+Generated: 2026-03-27
+================================================================================
+
+d:\Development\765T Development/
+│
+├── .assistant/                     (Assistant framework - 302 KB)
+│   ├── agents/
+│   ├── commands/
+│   ├── config/
+│   ├── docs/
+│   ├── examples/
+│   ├── schemas/
+│   └── souls/
+│
+├── .claude/                        (Claude Code setup - 92 KB)
+│   ├── agents/                     (6 personas)
+│   ├── hooks/                      (4 quality/security hooks)
+│   ├── mcp/                        (Memory server)
+│   ├── rules/                      (project-rules.md, safety-rules.md)
+│   ├── skills/                     (3 domain skills)
+│   └── settings.json               ⚠️ UNCOMMITTED
+│
+├── .git/                           (Git repository metadata)
+│   ├── hooks/
+│   ├── info/
+│   ├── logs/
+│   ├── objects/
+│   └── refs/
+│
+├── .github/                        (GitHub CI/CD)
+│   └── workflows/
+│
+├── catalog/                        (Package catalog)
+│
+├── dist/                           (Distribution artifacts)
+│
+├── docs/                           (Documentation - 1.5 MB)
+│   ├── agent/                      (Agent config, personas, playbooks)
+│   │   ├── personas/
+│   │   ├── playbooks/
+│   │   ├── presets/
+│   │   ├── prompts/
+│   │   ├── skills/
+│   │   └── templates/
+│   ├── architecture/               (Architecture Decision Records)
+│   │   └── adr/
+│   ├── assistant/                  (Assistant docs)
+│   ├── ba/                         (Business Analysis)
+│   │   ├── phase-0/
+│   │   ├── phase-1/
+│   │   ├── phase-2/
+│   │   ├── phase-3/
+│   │   ├── phase-4/
+│   │   └── phase-5/
+│   ├── archive/                    (Legacy documentation)
+│   │   ├── legacy-agent/
+│   │   ├── legacy-assistant/
+│   │   └── legacy-vision/
+│   ├── assets/                     (Documentation assets)
+│   ├── 765T_BLUEPRINT.md
+│   ├── 765T_CRITICAL_REVIEW.md
+│   ├── 765T_PRODUCT_VISION.md
+│   ├── 765T_SYSTEM_DIAGRAMS.md
+│   ├── 765T_TECHNICAL_RESEARCH.md
+│   ├── 765T_TOOL_LIBRARY_BLUEPRINT.md
+│   ├── ARCHITECTURE.md
+│   ├── BIM765T.Revit.Agent-Architecture.md
+│   ├── BIM765T.Revit.Agent-Debug.md
+│   ├── BIM765T.Revit.McpHost.md
+│   ├── BIM765T.Revit.Snapshot-Strategy.md
+│   ├── INDEX.md
+│   ├── PATTERNS.md
+│   ├── PRODUCT_REVIEW.md
+│   └── QUICKSTART_AI_TESTING.md
+│
+├── image/                          (Image resources)
+│   └── ASSISTANT/
+│
+├── output/                         (Generated reports & audits)
+│   ├── dynamo/                     📁 UNTRACKED
+│   ├── REPO_AUDIT_ARCHIVE_CANDIDATES.md
+│   ├── REPO_AUDIT_CLEANUP_BACKLOG.md
+│   ├── REPO_AUDIT_DRIFT_MATRIX.md
+│   └── REPO_AUDIT_TRUTH_MAP.md
+│
+├── packs/                          (Agent packs - 340 KB)
+│   ├── agents/                     (Specialists, orchestrator, shared)
+│   │   ├── external-broker/
+│   │   ├── internal-assistant/
+│   │   ├── orchestrator/
+│   │   ├── shared/
+│   │   └── specialists/
+│   ├── commands/                   (Revit commands)
+│   │   └── revit-core/
+│   ├── connectors/                 (Local connectors)
+│   │   └── local/
+│   ├── playbooks/                  (Automation workflows)
+│   │   ├── annotation/
+│   │   ├── coordination/
+│   │   ├── core/
+│   │   ├── family-qa/
+│   │   ├── governance/
+│   │   ├── intent/
+│   │   └── systems/
+│   ├── plugins/                    (Local plugins)
+│   │   └── local/
+│   ├── scripts/                    (Curated scripts)
+│   │   └── curated-internal/
+│   ├── skills/                     (Domain skills)
+│   │   ├── annotation/
+│   │   ├── coordination/
+│   │   ├── core/
+│   │   ├── family-qa/
+│   │   ├── governance/
+│   │   ├── integration/
+│   │   ├── intent/
+│   │   └── systems/
+│   └── standards/                  (Standards & specs)
+│       ├── bep-core/
+│       ├── core/
+│       ├── costtime-mapping/
+│       ├── iso19650/
+│       ├── mep-clearance/
+│       ├── mep-lodloi/
+│       └── routing-rules/
+│
+├── rulesets/                       (Rule definitions)
+│
+├── src/                            (SOURCE CODE - 101 MB, 384 .cs files)
+│   ├── BIM765T.Revit.Agent/        (net48 - Revit Addin)
+│   │   ├── Addin/
+│   │   ├── Config/
+│   │   ├── Infrastructure/
+│   │   ├── Services/
+│   │   ├── UI/
+│   │   ├── Workflow/
+│   │   ├── bin/
+│   │   ├── deploy/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Agent.Core/   (net8.0 - Core logic)
+│   │   ├── Execution/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Bridge/       (Bridge layer)
+│   │   ├── Properties/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Contracts/    (netstandard2.0 - DTOs)
+│   │   ├── Bridge/
+│   │   ├── Common/
+│   │   ├── Context/
+│   │   ├── Hull/
+│   │   ├── Platform/
+│   │   ├── Serialization/
+│   │   ├── Validation/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Contracts.Proto/ (Protocol buffers)
+│   │   ├── Protos/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Copilot.Core/ (netstandard2.0 - AI/Packs)
+│   │   ├── Brain/
+│   │   ├── Memory/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.McpHost/      (net8.0 - JSON-RPC Bridge)
+│   │   ├── Properties/
+│   │   ├── bin/
+│   │   └── obj/
+│   └── BIM765T.Revit.WorkerHost/   (net8.0 - Orchestration)
+│       ├── Capabilities/
+│       ├── Configuration/
+│       ├── Eventing/
+│       ├── ExternalAi/
+│       ├── Grpc/
+│       ├── Health/
+│       ├── Kernel/
+│       ├── Memory/
+│       ├── Migration/
+│       ├── Projects/
+│       ├── Properties/
+│       ├── Routing/
+│       ├── bin/
+│       └── obj/
+│
+├── tests/                          (TEST CODE - 143 MB, 85 .cs files)
+│   ├── BIM765T.Revit.Agent.Core.Tests/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Architecture.Tests/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Bridge.Tests/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.Contracts.Tests/
+│   │   ├── bin/
+│   │   └── obj/
+│   ├── BIM765T.Revit.McpHost.Tests/
+│   │   ├── bin/
+│   │   └── obj/
+│   └── BIM765T.Revit.WorkerHost.Tests/
+│       ├── bin/
+│       └── obj/
+│
+├── tools/                          (Development tools)
+│   ├── archive/                    (Legacy tools)
+│   │   └── legacy-assistant/
+│   ├── dev/                        (Development tools)
+│   │   └── scratch/
+│   ├── health/                     (Health checks)
+│   ├── infra/                      (Infrastructure)
+│   ├── round/                      (Round-trip tools)
+│   ├── testing/                    (Testing utilities)
+│   └── workflows/                  (Workflow tools)
+│       └── documentation/
+│
+├── workspaces/                     (Runtime workspaces)
+│   ├── default/                    (Default workspace)
+│   │   ├── indexes/
+│   │   ├── locks/
+│   │   ├── runs/
+│   │   ├── scratch/
+│   │   └── state/
+│   └── runtime-smoke/              (Smoke test workspace)
+│       ├── memory/
+│       ├── reports/
+│       └── scratch/
+│
+└── ROOT CONFIGURATION FILES
+    ├── .editorconfig               (Editor config)
+    ├── .gitattributes              (Git attributes)
+    ├── .gitignore                  (Git ignore rules)
+    ├── AGENTS.md                   ✅ (3.3 KB)
+    ├── ASSISTANT.md                ✅ (3.0 KB)
+    ├── BIM765T.Revit.Agent.sln     ✅ (18 KB)
+    ├── CLAUDE.md                   ✅ (16 KB)
+    ├── Directory.Build.props       (MSBuild props)
+    ├── README.BIM765T.Revit.Agent.md ✅ (1.2 KB)
+    ├── README.en.md                ✅ (4.2 KB)
+    └── README.md                   ✅ (4.1 KB)
+
+================================================================================
+
+STATISTICS:
+- Total Size: 250 MB
+- Total Directories: 71 (excluding .git/objects)
+- Root-level files: 10 config + 6 documentation
+- .cs Files: 384 (src) + 85 (tests) = 469 total
+- Projects: 8 source + 6 test = 14 total
+

@@ -1,0 +1,89 @@
+765T DOCUMENTATION ACCURACY AUDIT - QUICK REFERENCE
+====================================================
+
+OVERCLAIMS FOUND
+================
+
+CRITICAL #1: "4 TABS" UI SHAPE
+  Location: docs/765T_PRODUCT_VISION.md:340-351
+  Overclaims: "Chat + Activity + Evidence + Quick Tools" as 4 tabs
+  Reality: Single worker shell (no 4 tabs)
+  Fix: P1-1 in cleanup backlog
+  Grep: "Chat \+ Activity \+ Evidence \+ Quick Tools|4 tabs"
+
+CRITICAL #2: SEMANTIC MEMORY
+  Location: docs/765T_PRODUCT_VISION.md:97-154
+  Overclaims: Token cost model, tiered analysis, semantic memory
+  Reality: Hash embeddings (explicitly NOT semantic)
+  Fix: P1-2 in cleanup backlog
+  Grep: "semantic memory|Qdrant semantic"
+
+CRITICAL #3: PROVIDER DEFAULTS
+  Location: docs/765T_PRODUCT_VISION.md:97-132
+  Overclaims: Hardcoded model defaults
+  Reality: Environment-driven selection
+  Fix: P1-3 in cleanup backlog
+  Grep: "GPT-5\.2|MiniMax-M2\.7"
+
+MEDIUM #4: "5-LAYER ARCHITECTURE"
+  Location: docs/ARCHITECTURE.md
+  Overclaim: Undefined reference
+  Fix: P1-4 in cleanup backlog
+
+MEDIUM #5: PRODUCT_VISION PURPOSE
+  Location: docs/765T_PRODUCT_VISION.md (entire)
+  Overclaim: Mixes vision/research/current as if same
+  Fix: P0-7 in cleanup backlog (re-scope)
+
+AUTHORITATIVE DOCS
+==================
+
+✓ docs/assistant/BASELINE.md - GROUND TRUTH
+  - Explicitly rejects "4 tabs" (lines 17-20)
+  - Says vectors NOT semantic (line 32)
+  - Confirms env-driven providers (line 38)
+
+✓ docs/assistant/CONFIG_MATRIX.md - CONFIG TRUTH
+
+✓ docs/PATTERNS.md - PATTERNS (defensive)
+
+✓ README.md - MOSTLY OK (qualifies claims)
+
+✓ README.en.md - MOSTLY OK (same as README)
+
+CLEANUP PLAN
+============
+
+WAVE 1 (P0):
+  1. Restore AGENTS.md, ASSISTANT.md
+  2. Rewrite README.md
+  3. Mirror to README.en.md
+  Check: grep "4 tabs"
+
+WAVE 2 (P0-P1):
+  1. Fix INDEX.md
+  2. Re-scope PRODUCT_VISION.md
+  3. Clarify 5-layer
+  4. Reconcile PROJECT_MEMORY.md
+  Check: grep "semantic memory" + "provider"
+
+WAVE 3 (P1-P2):
+  1. Reclassify TECHNICAL_RESEARCH.md
+  2. Repair pack docs
+  3. Dedup facts
+  4. Add governance check
+  Check: Full validation
+
+FILES REVIEWED: 26 total
+  9 canonical
+  1 backlog (authoritative)
+  16 archive (properly maintained)
+
+NEXT ACTION
+===========
+Read: output/REPO_AUDIT_CLEANUP_BACKLOG.md
+Follow: Wave 1-3 order from backlog
+Validate: Using provided grep commands
+Target: docs/assistant/BASELINE.md as truth
+
+Date: 2026-03-27

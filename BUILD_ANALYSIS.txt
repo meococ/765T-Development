@@ -1,0 +1,7 @@
+# BUILD AND TEST INFRASTRUCTURE ANALYSIS
+# Repository: d:/Development/765T Development
+
+## Summary
+
+This is a .NET 8.0 monorepo with strict architectural constraints enforced by tests.
+

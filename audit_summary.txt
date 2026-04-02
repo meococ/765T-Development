@@ -1,0 +1,76 @@
+765T DOCUMENTATION ACCURACY AUDIT - EXECUTIVE SUMMARY
+=====================================================
+
+Reviewed: 2026-03-27
+
+THREE MAIN OVERCLAIMS FOUND:
+
+1. "4 TABS" CLAIM
+   Found in: docs/765T_PRODUCT_VISION.md lines 340-351 
+   Says: "WPF dockable pane | Chat + Activity + Evidence + Quick Tools | Working"
+   Reality: Single worker shell (no 4 separate tabs)
+   Authority: docs/assistant/BASELINE.md lines 17-20 explicitly rejects this
+   Status: P1-1 in cleanup backlog - NEEDS EDITING
+
+2. SEMANTIC MEMORY 
+   Found in: docs/765T_PRODUCT_VISION.md (FINDING 2, FINDING 3)
+   Says: Semantic/intelligent memory model with token cost $0.27/month
+   Reality: Hash embeddings with lexical fallback (explicitly NOT semantic)
+   Authority: docs/assistant/BASELINE.md line 32, README line 13
+   Status: P1-2 in cleanup backlog - CHECK AND FIX
+
+3. PROVIDER DEFAULTS
+   Found in: docs/765T_PRODUCT_VISION.md FINDING 2 uses specific model names
+   Says: Models presented as feature defaults
+   Reality: Environment-driven provider selection (examples show MiniMax)
+   Authority: README.md line 76, BASELINE.md line 38
+   Status: P1-3 in cleanup backlog - CHECK AND FIX
+
+ADDITIONAL ISSUES:
+
+4. "5-LAYER ARCHITECTURE" vague reference in ARCHITECTURE.md
+   Status: P1-4 in cleanup backlog
+
+5. PRODUCT_VISION.md mixes vision/research/current state together
+   Status: P0-7 in cleanup backlog - RE-SCOPE NEEDED
+
+CANONICAL TRUTH VERIFIED:
+
+✓ docs/assistant/BASELINE.md - ACCURATE and AUTHORITATIVE
+✓ docs/assistant/CONFIG_MATRIX.md - ACCURATE
+✓ docs/PATTERNS.md - ACCURATE and DEFENSIVE
+✓ README.md - MOSTLY ACCURATE (properly qualifies claims)
+✓ README.en.md - MOSTLY ACCURATE (same as README.md)
+
+ARCHIVE FILES:
+
+✓ docs/archive/ (16 files) - PROPERLY MAINTAINED and marked non-authoritative
+
+CLEANUP BACKLOG:
+
+✓ output/REPO_AUDIT_CLEANUP_BACKLOG.md (91 lines) 
+  - IS the authoritative source for all problems
+  - Includes exact grep validation commands
+  - Provides Wave 1-3 execution order
+
+RECOMMENDED ACTION:
+
+Follow cleanup backlog Wave 1-3 execution order:
+  Wave 1: Restore root files, rewrite README files (P0 tasks)
+  Wave 2: Fix high-value drift in INDEX.md, PRODUCT_VISION.md, ARCHITECTURE.md
+  Wave 3: Long-tail cleanup - dedup, governance checks
+
+Use provided grep commands to validate fixes:
+  Check 1: "Chat \+ Activity \+ Evidence \+ Quick Tools|4 tabs|single worker shell"
+  Check 2: "semantic memory|Qdrant semantic|hash embeddings|non-semantic"
+  Check 3: "GPT-5\.2 planner|GPT-5-mini|MiniMax-M2\.7-highspeed|MiniMax-M2\.7"
+
+TARGET AUTHORITY:
+  docs/assistant/BASELINE.md - All other docs should match this
+
+FILES REVIEWED:
+  9 canonical files reviewed
+  1 backlog file verified as authoritative
+  16 archive files confirmed as properly maintained
+  
+  Total: Comprehensive audit completed

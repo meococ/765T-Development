@@ -1,0 +1,269 @@
+{
+  "Uuid": "fd9f09c1-5413-4522-9306-5fe5a19a7f38",
+  "IsCustomNode": false,
+  "Description": "So sánh shape Generic Model Family (scope = Family + Type của instance đã chọn) với file IFC chỉ định. Output Watch trả về trạng thái TRUNG_100 / CHUA_TRUNG + chi tiết mismatch / vật thể lạ.",
+  "Name": "Compare_GenericModel_Family_vs_IFC",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "57ccce56187843aeadd0e4fc017d04d4",
+      "Name": "Select Model Element",
+      "Type": "selection",
+      "Type2": "hostSelection",
+      "Value": "",
+      "Description": "Select a model element from the document.",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "653ae2aafe6c4456bc85e9041b4bf538",
+      "Name": "File Path",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "No file selected.",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "SelectedIndex": 0
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "8b9ade891c9640e1ab149116ea9e3976",
+      "Name": "Watch",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualizes a node's output"
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Nodes.DSModelElementSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [],
+      "Id": "57ccce56187843aeadd0e4fc017d04d4",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c096c2d990b1465a95c40581f5af9d79",
+          "Name": "Element",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Select a model element from the document."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "Id": "653ae2aafe6c4456bc85e9041b4bf538",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f63edd299f10415f8b61c9deadf8b741",
+          "Name": "",
+          "Description": "File Path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "HintPath": "",
+      "InputValue": "No file selected."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "\r\n\r\nimport clr\r\n\r\nimport os\r\n\r\nimport math\r\n\r\nimport time\r\n\r\n\r\n\r\nclr.AddReference(\"RevitAPI\")\r\n\r\nclr.AddReference(\"RevitAPIIFC\")\r\n\r\nfrom Autodesk.Revit.DB import *\r\n\r\nfrom Autodesk.Revit.DB.IFC import IFCImportOptions, IFCImportIntent, IFCImportAction\r\n\r\n\r\n\r\nclr.AddReference(\"RevitServices\")\r\n\r\nfrom RevitServices.Persistence import DocumentManager\r\n\r\n\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\n\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\n\r\napp = uiapp.Application\r\n\r\n\r\n\r\nFT_TO_MM = 304.8\r\n\r\nEPS = 1e-9\r\n\r\nMAX_SMART_LINES = 12\r\n\r\nHIST_BINS_RADIAL = 16\r\n\r\nHIST_BINS_AXIS = 8\r\n\r\n\r\n\r\n\r\n\r\ndef as_string(value):\r\n\r\n    if value is None:\r\n\r\n        return \"\"\r\n\r\n    try:\r\n\r\n        return str(value)\r\n\r\n    except Exception:\r\n\r\n        return \"\"\r\n\r\n\r\n\r\n\r\n\r\ndef round_mm(feet_value):\r\n\r\n    return round(float(feet_value) * FT_TO_MM, 3)\r\n\r\n\r\n\r\n\r\n\r\ndef round_pct01(score):\r\n\r\n    return round(max(0.0, min(1.0, float(score))) * 100.0, 2)\r\n\r\n\r\n\r\n\r\n\r\ndef delta_pct(a, b):\r\n\r\n    a = float(a or 0.0)\r\n\r\n    b = float(b or 0.0)\r\n\r\n    denom = max(abs(a), abs(b), EPS)\r\n\r\n    return round(abs(a - b) / denom * 100.0, 2)\r\n\r\n\r\n\r\n\r\n\r\ndef safe_name(elem):\r\n\r\n    try:\r\n\r\n        name = as_string(elem.Name).strip()\r\n\r\n        if name:\r\n\r\n            return name\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        return as_string(elem.GetType().Name)\r\n\r\n    except Exception:\r\n\r\n        return \"<unknown>\"\r\n\r\n\r\n\r\n\r\n\r\ndef safe_category(elem):\r\n\r\n    try:\r\n\r\n        if elem.Category:\r\n\r\n            return as_string(elem.Category.Name)\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    return \"<no-category>\"\r\n\r\n\r\n\r\n\r\n\r\ndef to_xyz_tuple(value):\r\n\r\n    if value is None:\r\n\r\n        return None\r\n\r\n    try:\r\n\r\n        x = float(value.X)\r\n\r\n        y = float(value.Y)\r\n\r\n        z = float(value.Z)\r\n\r\n        return (x, y, z)\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        if hasattr(value, \"__getitem__\") and len(value) >= 3:\r\n\r\n            return (float(value[0]), float(value[1]), float(value[2]))\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    return None\r\n\r\n\r\n\r\n\r\n\r\ndef clone_xyz(value):\r\n\r\n    coords = to_xyz_tuple(value)\r\n\r\n    if coords is None:\r\n\r\n        return None\r\n\r\n    return XYZ(coords[0], coords[1], coords[2])\r\n\r\n\r\n\r\n\r\n\r\ndef read_parameter_value(param):\r\n\r\n    if param is None:\r\n\r\n        return \"\"\r\n\r\n    try:\r\n\r\n        if not param.HasValue:\r\n\r\n            return \"\"\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        storage = param.StorageType\r\n\r\n        if storage == StorageType.String:\r\n\r\n            return as_string(param.AsString()).strip()\r\n\r\n        if storage == StorageType.Integer:\r\n\r\n            return as_string(param.AsInteger()).strip()\r\n\r\n        if storage == StorageType.Double:\r\n\r\n            return as_string(param.AsDouble()).strip()\r\n\r\n        if storage == StorageType.ElementId:\r\n\r\n            return as_string(param.AsElementId().IntegerValue).strip()\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        return as_string(param.AsValueString()).strip()\r\n\r\n    except Exception:\r\n\r\n        return \"\"\r\n\r\n\r\n\r\n\r\n\r\ndef get_param_string(elem, bip=None, names=None, include_type=False):\r\n\r\n    names = names or []\r\n\r\n    if elem is None:\r\n\r\n        return \"\"\r\n\r\n    targets = [elem]\r\n\r\n    if include_type:\r\n\r\n        try:\r\n\r\n            type_id = elem.GetTypeId()\r\n\r\n            if type_id and type_id.IntegerValue > 0:\r\n\r\n                targets.append(elem.Document.GetElement(type_id))\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n    for target in targets:\r\n\r\n        if target is None:\r\n\r\n            continue\r\n\r\n        if bip is not None:\r\n\r\n            try:\r\n\r\n                value = read_parameter_value(target.get_Parameter(bip))\r\n\r\n                if value:\r\n\r\n                    return value\r\n\r\n            except Exception:\r\n\r\n                pass\r\n\r\n        for name in names:\r\n\r\n            try:\r\n\r\n                value = read_parameter_value(target.LookupParameter(name))\r\n\r\n                if value:\r\n\r\n                    return value\r\n\r\n            except Exception:\r\n\r\n                pass\r\n\r\n    return \"\"\r\n\r\n\r\n\r\n\r\n\r\ndef bbox_from_points(points):\r\n\r\n    if not points:\r\n\r\n        return None\r\n\r\n    coords = [to_xyz_tuple(p) for p in points]\r\n\r\n    coords = [c for c in coords if c is not None]\r\n\r\n    if not coords:\r\n\r\n        return None\r\n\r\n    min_x = min(c[0] for c in coords)\r\n\r\n    min_y = min(c[1] for c in coords)\r\n\r\n    min_z = min(c[2] for c in coords)\r\n\r\n    max_x = max(c[0] for c in coords)\r\n\r\n    max_y = max(c[1] for c in coords)\r\n\r\n    max_z = max(c[2] for c in coords)\r\n\r\n    bbox = BoundingBoxXYZ()\r\n\r\n    bbox.Min = XYZ(min_x, min_y, min_z)\r\n\r\n    bbox.Max = XYZ(max_x, max_y, max_z)\r\n\r\n    return bbox\r\n\r\n\r\n\r\n\r\n\r\ndef bbox_center(bbox):\r\n\r\n    return XYZ(\r\n\r\n        (bbox.Min.X + bbox.Max.X) * 0.5,\r\n\r\n        (bbox.Min.Y + bbox.Max.Y) * 0.5,\r\n\r\n        (bbox.Min.Z + bbox.Max.Z) * 0.5,\r\n\r\n    )\r\n\r\n\r\n\r\n\r\n\r\ndef bbox_sizes(bbox):\r\n\r\n    return [\r\n\r\n        abs(bbox.Max.X - bbox.Min.X),\r\n\r\n        abs(bbox.Max.Y - bbox.Min.Y),\r\n\r\n        abs(bbox.Max.Z - bbox.Min.Z),\r\n\r\n    ]\r\n\r\n\r\n\r\n\r\n\r\ndef bbox_diag(bbox):\r\n\r\n    dx, dy, dz = bbox_sizes(bbox)\r\n\r\n    return math.sqrt(dx * dx + dy * dy + dz * dz)\r\n\r\n\r\n\r\n\r\n\r\ndef list_similarity(a, b):\r\n\r\n    if not a or not b or len(a) != len(b):\r\n\r\n        return 0.0\r\n\r\n    scores = []\r\n\r\n    for va, vb in zip(a, b):\r\n\r\n        denom = max(abs(float(va)), abs(float(vb)), EPS)\r\n\r\n        scores.append(max(0.0, 1.0 - abs(float(va) - float(vb)) / denom))\r\n\r\n    return sum(scores) / float(len(scores))\r\n\r\n\r\n\r\n\r\n\r\ndef cosine_similarity(a, b):\r\n\r\n    if not a or not b or len(a) != len(b):\r\n\r\n        return 0.0\r\n\r\n    dot = sum(float(x) * float(y) for x, y in zip(a, b))\r\n\r\n    norm_a = math.sqrt(sum(float(x) * float(x) for x in a))\r\n\r\n    norm_b = math.sqrt(sum(float(y) * float(y) for y in b))\r\n\r\n    if norm_a <= EPS or norm_b <= EPS:\r\n\r\n        return 0.0\r\n\r\n    return max(0.0, min(1.0, dot / (norm_a * norm_b)))\r\n\r\n\r\n\r\n\r\n\r\ndef triangle_area(a, b, c):\r\n\r\n    a_xyz = to_xyz_tuple(a)\r\n\r\n    b_xyz = to_xyz_tuple(b)\r\n\r\n    c_xyz = to_xyz_tuple(c)\r\n\r\n    if a_xyz is None or b_xyz is None or c_xyz is None:\r\n\r\n        return 0.0\r\n\r\n    ab = XYZ(b_xyz[0] - a_xyz[0], b_xyz[1] - a_xyz[1], b_xyz[2] - a_xyz[2])\r\n\r\n    ac = XYZ(c_xyz[0] - a_xyz[0], c_xyz[1] - a_xyz[1], c_xyz[2] - a_xyz[2])\r\n\r\n    cross = ab.CrossProduct(ac)\r\n\r\n    return 0.5 * cross.GetLength()\r\n\r\n\r\n\r\n\r\n\r\ndef reduce_points(points, max_points=2500):\r\n\r\n    if len(points) <= max_points:\r\n\r\n        return points\r\n\r\n    step = int(math.ceil(len(points) / float(max_points)))\r\n\r\n    return points[::step]\r\n\r\n\r\n\r\n\r\n\r\ndef collect_geometry(elem):\r\n\r\n    solids = []\r\n\r\n    meshes = []\r\n\r\n    options = Options()\r\n\r\n    options.DetailLevel = ViewDetailLevel.Fine\r\n\r\n    options.IncludeNonVisibleObjects = False\r\n\r\n    try:\r\n\r\n        options.ComputeReferences = False\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        geom = elem.get_Geometry(options)\r\n\r\n    except Exception:\r\n\r\n        geom = None\r\n\r\n    if geom is None:\r\n\r\n        return solids, meshes\r\n\r\n    stack = [geom]\r\n\r\n    while stack:\r\n\r\n        current = stack.pop()\r\n\r\n        for obj in current:\r\n\r\n            if obj is None:\r\n\r\n                continue\r\n\r\n            if isinstance(obj, Solid):\r\n\r\n                try:\r\n\r\n                    if obj.Volume > EPS or obj.Faces.Size > 0:\r\n\r\n                        solids.append(obj)\r\n\r\n                except Exception:\r\n\r\n                    try:\r\n\r\n                        if obj.Faces.Size > 0:\r\n\r\n                            solids.append(obj)\r\n\r\n                    except Exception:\r\n\r\n                        pass\r\n\r\n            elif isinstance(obj, Mesh):\r\n\r\n                try:\r\n\r\n                    if obj.NumTriangles > 0:\r\n\r\n                        meshes.append(obj)\r\n\r\n                except Exception:\r\n\r\n                    pass\r\n\r\n            elif isinstance(obj, GeometryInstance):\r\n\r\n                try:\r\n\r\n                    stack.append(obj.GetInstanceGeometry())\r\n\r\n                except Exception:\r\n\r\n                    try:\r\n\r\n                        stack.append(obj.GetSymbolGeometry())\r\n\r\n                    except Exception:\r\n\r\n                        pass\r\n\r\n    return solids, meshes\r\n\r\n\r\n\r\n\r\n\r\ndef collect_points_and_area_from_mesh(mesh):\r\n\r\n    pts = []\r\n\r\n    area = 0.0\r\n\r\n    try:\r\n\r\n        triangle_count = mesh.NumTriangles\r\n\r\n    except Exception:\r\n\r\n        triangle_count = 0\r\n\r\n    for i in range(triangle_count):\r\n\r\n        tri = mesh.get_Triangle(i)\r\n\r\n        a = clone_xyz(tri.get_Vertex(0))\r\n\r\n        b = clone_xyz(tri.get_Vertex(1))\r\n\r\n        c = clone_xyz(tri.get_Vertex(2))\r\n\r\n        if a is None or b is None or c is None:\r\n\r\n            continue\r\n\r\n        pts.extend([a, b, c])\r\n\r\n        area += triangle_area(a, b, c)\r\n\r\n    return pts, area\r\n\r\n\r\n\r\n\r\n\r\ndef collect_points_and_area_from_solids(solids):\r\n\r\n    pts = []\r\n\r\n    area = 0.0\r\n\r\n    for solid in solids:\r\n\r\n        try:\r\n\r\n            area += float(solid.SurfaceArea)\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n        try:\r\n\r\n            face_count = solid.Faces.Size\r\n\r\n        except Exception:\r\n\r\n            face_count = 0\r\n\r\n        if face_count == 0:\r\n\r\n            try:\r\n\r\n                bb = solid.GetBoundingBox()\r\n\r\n                min_pt = clone_xyz(bb.Min)\r\n\r\n                max_pt = clone_xyz(bb.Max)\r\n\r\n                if min_pt is not None:\r\n\r\n                    pts.append(min_pt)\r\n\r\n                if max_pt is not None:\r\n\r\n                    pts.append(max_pt)\r\n\r\n            except Exception:\r\n\r\n                pass\r\n\r\n            continue\r\n\r\n        for face in solid.Faces:\r\n\r\n            try:\r\n\r\n                mesh = face.Triangulate()\r\n\r\n                mesh_pts, _ = collect_points_and_area_from_mesh(mesh)\r\n\r\n                pts.extend(mesh_pts)\r\n\r\n            except Exception:\r\n\r\n                pass\r\n\r\n    return pts, area\r\n\r\n\r\n\r\n\r\n\r\ndef union_solids(solids):\r\n\r\n    union_solid = None\r\n\r\n    failures = 0\r\n\r\n    for solid in solids:\r\n\r\n        if solid is None:\r\n\r\n            continue\r\n\r\n        try:\r\n\r\n            if union_solid is None:\r\n\r\n                union_solid = solid\r\n\r\n            else:\r\n\r\n                result = BooleanOperationsUtils.ExecuteBooleanOperation(\r\n\r\n                    union_solid,\r\n\r\n                    solid,\r\n\r\n                    BooleanOperationsType.Union,\r\n\r\n                )\r\n\r\n                if result is not None:\r\n\r\n                    union_solid = result\r\n\r\n                else:\r\n\r\n                    failures += 1\r\n\r\n        except Exception:\r\n\r\n            failures += 1\r\n\r\n    return union_solid, failures\r\n\r\n\r\n\r\n\r\n\r\ndef build_histograms(points, bbox, center, diag):\r\n\r\n    if not points:\r\n\r\n        points = [\r\n\r\n            bbox.Min,\r\n\r\n            bbox.Max,\r\n\r\n            XYZ(bbox.Min.X, bbox.Min.Y, bbox.Max.Z),\r\n\r\n            XYZ(bbox.Min.X, bbox.Max.Y, bbox.Min.Z),\r\n\r\n            XYZ(bbox.Max.X, bbox.Min.Y, bbox.Min.Z),\r\n\r\n            XYZ(bbox.Max.X, bbox.Max.Y, bbox.Min.Z),\r\n\r\n            XYZ(bbox.Max.X, bbox.Min.Y, bbox.Max.Z),\r\n\r\n            XYZ(bbox.Min.X, bbox.Max.Y, bbox.Max.Z),\r\n\r\n        ]\r\n\r\n    points = reduce_points(points)\r\n\r\n    radial = [0.0] * HIST_BINS_RADIAL\r\n\r\n    axis = [0.0] * (HIST_BINS_AXIS * 3)\r\n\r\n    sx, sy, sz = bbox_sizes(bbox)\r\n\r\n    sx = sx if sx > EPS else 1.0\r\n\r\n    sy = sy if sy > EPS else 1.0\r\n\r\n    sz = sz if sz > EPS else 1.0\r\n\r\n    diag = diag if diag > EPS else 1.0\r\n\r\n    center_xyz = to_xyz_tuple(center)\r\n\r\n    bbox_min = to_xyz_tuple(bbox.Min)\r\n\r\n    if center_xyz is None or bbox_min is None:\r\n\r\n        return radial, axis\r\n\r\n    for pt in points:\r\n\r\n        pt_xyz = to_xyz_tuple(pt)\r\n\r\n        if pt_xyz is None:\r\n\r\n            continue\r\n\r\n        dx = pt_xyz[0] - center_xyz[0]\r\n\r\n        dy = pt_xyz[1] - center_xyz[1]\r\n\r\n        dz = pt_xyz[2] - center_xyz[2]\r\n\r\n        dist = math.sqrt(dx * dx + dy * dy + dz * dz) / diag\r\n\r\n        radial_idx = min(HIST_BINS_RADIAL - 1, int(dist * HIST_BINS_RADIAL))\r\n\r\n        radial[radial_idx] += 1.0\r\n\r\n        nx = min(0.999999, max(0.0, (pt_xyz[0] - bbox_min[0]) / sx))\r\n\r\n        ny = min(0.999999, max(0.0, (pt_xyz[1] - bbox_min[1]) / sy))\r\n\r\n        nz = min(0.999999, max(0.0, (pt_xyz[2] - bbox_min[2]) / sz))\r\n\r\n        axis[min(HIST_BINS_AXIS - 1, int(nx * HIST_BINS_AXIS))] += 1.0\r\n\r\n        axis[HIST_BINS_AXIS + min(HIST_BINS_AXIS - 1, int(ny * HIST_BINS_AXIS))] += 1.0\r\n\r\n        axis[(HIST_BINS_AXIS * 2) + min(HIST_BINS_AXIS - 1, int(nz * HIST_BINS_AXIS))] += 1.0\r\n\r\n    radial_total = sum(radial) or 1.0\r\n\r\n    axis_total = sum(axis) or 1.0\r\n\r\n    radial = [v / radial_total for v in radial]\r\n\r\n    axis = [v / axis_total for v in axis]\r\n\r\n    return radial, axis\r\n\r\n\r\n\r\n\r\n\r\ndef build_signature(elem, label):\r\n\r\n    solids, meshes = collect_geometry(elem)\r\n\r\n    if not solids and not meshes:\r\n\r\n        return None\r\n\r\n    volume = 0.0\r\n\r\n    for solid in solids:\r\n\r\n        try:\r\n\r\n            volume += max(0.0, float(solid.Volume))\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n    solid_points, solid_area = collect_points_and_area_from_solids(solids)\r\n\r\n    mesh_points = []\r\n\r\n    mesh_area = 0.0\r\n\r\n    for mesh in meshes:\r\n\r\n        pts, area = collect_points_and_area_from_mesh(mesh)\r\n\r\n        mesh_points.extend(pts)\r\n\r\n        mesh_area += area\r\n\r\n    points = solid_points + mesh_points\r\n\r\n    bbox = bbox_from_points(points)\r\n\r\n    if bbox is None:\r\n\r\n        try:\r\n\r\n            bbox = elem.get_BoundingBox(None)\r\n\r\n        except Exception:\r\n\r\n            bbox = None\r\n\r\n    if bbox is None:\r\n\r\n        return None\r\n\r\n    center = bbox_center(bbox)\r\n\r\n    diag = bbox_diag(bbox)\r\n\r\n    radial_hist, axis_hist = build_histograms(points, bbox, center, diag)\r\n\r\n    union_solid, union_failures = union_solids(solids)\r\n\r\n    return {\r\n\r\n        \"label\": label,\r\n\r\n        \"bbox\": bbox,\r\n\r\n        \"center\": center,\r\n\r\n        \"bbox_sizes\": bbox_sizes(bbox),\r\n\r\n        \"bbox_sizes_sorted\": sorted(bbox_sizes(bbox)),\r\n\r\n        \"bbox_diag\": diag,\r\n\r\n        \"volume\": volume,\r\n\r\n        \"surface_area\": solid_area + mesh_area,\r\n\r\n        \"point_count\": len(points),\r\n\r\n        \"mesh_only\": bool((not solids) and meshes),\r\n\r\n        \"radial_hist\": radial_hist,\r\n\r\n        \"axis_hist\": axis_hist,\r\n\r\n        \"solid_union\": union_solid,\r\n\r\n        \"solid_union_failures\": union_failures,\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef try_boolean_shape_compare(sig_a, sig_b):\r\n\r\n    solid_a = sig_a.get(\"solid_union\")\r\n\r\n    solid_b = sig_b.get(\"solid_union\")\r\n\r\n    if solid_a is None or solid_b is None:\r\n\r\n        return None, None, None, None\r\n\r\n    try:\r\n\r\n        move_a = Transform.CreateTranslation(XYZ(-sig_a[\"center\"].X, -sig_a[\"center\"].Y, -sig_a[\"center\"].Z))\r\n\r\n        move_b = Transform.CreateTranslation(XYZ(-sig_b[\"center\"].X, -sig_b[\"center\"].Y, -sig_b[\"center\"].Z))\r\n\r\n        norm_a = SolidUtils.CreateTransformed(solid_a, move_a)\r\n\r\n        norm_b = SolidUtils.CreateTransformed(solid_b, move_b)\r\n\r\n        union_solid = BooleanOperationsUtils.ExecuteBooleanOperation(norm_a, norm_b, BooleanOperationsType.Union)\r\n\r\n        inter_solid = BooleanOperationsUtils.ExecuteBooleanOperation(norm_a, norm_b, BooleanOperationsType.Intersect)\r\n\r\n        if union_solid is None or union_solid.Volume <= EPS:\r\n\r\n            return None, None, None, None\r\n\r\n        union_volume = float(union_solid.Volume)\r\n\r\n        inter_volume = float(inter_solid.Volume) if inter_solid is not None else 0.0\r\n\r\n        revit_only_pct = None\r\n\r\n        ifc_only_pct = None\r\n\r\n        try:\r\n\r\n            diff_a = BooleanOperationsUtils.ExecuteBooleanOperation(norm_a, norm_b, BooleanOperationsType.Difference)\r\n\r\n            revit_only_pct = round_pct01((float(diff_a.Volume) if diff_a is not None else 0.0) / union_volume)\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n        try:\r\n\r\n            diff_b = BooleanOperationsUtils.ExecuteBooleanOperation(norm_b, norm_a, BooleanOperationsType.Difference)\r\n\r\n            ifc_only_pct = round_pct01((float(diff_b.Volume) if diff_b is not None else 0.0) / union_volume)\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n        return max(0.0, min(1.0, inter_volume / union_volume)), union_volume, revit_only_pct, ifc_only_pct\r\n\r\n    except Exception:\r\n\r\n        return None, None, None, None\r\n\r\n\r\n\r\n\r\n\r\ndef compare_signatures(sig_a, sig_b):\r\n\r\n    volume_score = list_similarity([sig_a[\"volume\"]], [sig_b[\"volume\"]]) if (sig_a[\"volume\"] > EPS and sig_b[\"volume\"] > EPS) else 0.5\r\n\r\n    area_score = list_similarity([sig_a[\"surface_area\"]], [sig_b[\"surface_area\"]]) if (sig_a[\"surface_area\"] > EPS and sig_b[\"surface_area\"] > EPS) else 0.5\r\n\r\n    bbox_score = list_similarity(sig_a[\"bbox_sizes_sorted\"], sig_b[\"bbox_sizes_sorted\"])\r\n\r\n    radial_score = cosine_similarity(sig_a[\"radial_hist\"], sig_b[\"radial_hist\"])\r\n\r\n    axis_score = cosine_similarity(sig_a[\"axis_hist\"], sig_b[\"axis_hist\"])\r\n\r\n    base_score = (0.18 * volume_score) + (0.14 * area_score) + (0.23 * bbox_score) + (0.27 * radial_score) + (0.18 * axis_score)\r\n\r\n    boolean_score, union_volume, revit_only_pct, ifc_only_pct = try_boolean_shape_compare(sig_a, sig_b)\r\n\r\n    final_score = base_score if boolean_score is None else ((0.65 * base_score) + (0.35 * boolean_score))\r\n\r\n    return {\r\n\r\n        \"score\": max(0.0, min(1.0, final_score)),\r\n\r\n        \"base_score\": max(0.0, min(1.0, base_score)),\r\n\r\n        \"boolean_jaccard\": None if boolean_score is None else round_pct01(boolean_score),\r\n\r\n        \"union_volume\": union_volume,\r\n\r\n        \"volume_delta_pct\": delta_pct(sig_a[\"volume\"], sig_b[\"volume\"]),\r\n\r\n        \"area_delta_pct\": delta_pct(sig_a[\"surface_area\"], sig_b[\"surface_area\"]),\r\n\r\n        \"bbox_delta_pct_max\": max(delta_pct(a, b) for a, b in zip(sig_a[\"bbox_sizes_sorted\"], sig_b[\"bbox_sizes_sorted\"])),\r\n\r\n        \"revit_only_pct\": revit_only_pct,\r\n\r\n        \"ifc_only_pct\": ifc_only_pct,\r\n\r\n        \"bbox_score\": round_pct01(bbox_score),\r\n\r\n        \"volume_score\": round_pct01(volume_score),\r\n\r\n        \"area_score\": round_pct01(area_score),\r\n\r\n        \"radial_score\": round_pct01(radial_score),\r\n\r\n        \"axis_score\": round_pct01(axis_score),\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef position_metrics(sig_a, sig_b):\r\n\r\n    dist_ft = sig_a[\"center\"].DistanceTo(sig_b[\"center\"])\r\n\r\n    max_diag = max(sig_a[\"bbox_diag\"], sig_b[\"bbox_diag\"], 0.1)\r\n\r\n    score = max(0.0, min(1.0, 1.0 - (dist_ft / max_diag)))\r\n\r\n    return dist_ft, score\r\n\r\n\r\n\r\n\r\n\r\ndef is_model_candidate(elem):\r\n\r\n    try:\r\n\r\n        if elem is None:\r\n\r\n            return False\r\n\r\n        if elem.ViewSpecific:\r\n\r\n            return False\r\n\r\n    except Exception:\r\n\r\n        pass\r\n\r\n    try:\r\n\r\n        cat = elem.Category\r\n\r\n        if cat is None:\r\n\r\n            return False\r\n\r\n        if cat.CategoryType != CategoryType.Model:\r\n\r\n            return False\r\n\r\n    except Exception:\r\n\r\n        return False\r\n\r\n    try:\r\n\r\n        bbox = elem.get_BoundingBox(None)\r\n\r\n        if bbox is None:\r\n\r\n            return False\r\n\r\n    except Exception:\r\n\r\n        return False\r\n\r\n    return True\r\n\r\n\r\n\r\n\r\n\r\ndef fast_bbox_row(elem):\r\n\r\n    bbox = elem.get_BoundingBox(None)\r\n\r\n    return {\r\n\r\n        \"element\": elem,\r\n\r\n        \"element_id\": elem.Id.IntegerValue,\r\n\r\n        \"unique_id\": get_param_string(elem, names=[\"UniqueId\"]) or as_string(getattr(elem, \"UniqueId\", \"\")),\r\n\r\n        \"name\": safe_name(elem),\r\n\r\n        \"category\": safe_category(elem),\r\n\r\n        \"ifc_guid\": get_param_string(elem, bip=BuiltInParameter.IFC_GUID, names=[\"IfcGUID\", \"IFCGUID\"], include_type=True),\r\n\r\n        \"bbox\": bbox,\r\n\r\n        \"bbox_sizes_sorted\": sorted(bbox_sizes(bbox)),\r\n\r\n        \"bbox_diag\": bbox_diag(bbox),\r\n\r\n        \"center\": bbox_center(bbox),\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef broad_bbox_match(base_sig, fast_row):\r\n\r\n    diag_ratio = fast_row[\"bbox_diag\"] / max(base_sig[\"bbox_diag\"], EPS)\r\n\r\n    if diag_ratio < 0.45 or diag_ratio > 2.20:\r\n\r\n        return False\r\n\r\n    bbox_score = list_similarity(base_sig[\"bbox_sizes_sorted\"], fast_row[\"bbox_sizes_sorted\"])\r\n\r\n    return bbox_score >= 0.55\r\n\r\n\r\n\r\n\r\n\r\ndef make_project_row(elem, signature):\r\n\r\n    return {\r\n\r\n        \"element\": elem,\r\n\r\n        \"element_id\": elem.Id.IntegerValue,\r\n\r\n        \"unique_id\": as_string(getattr(elem, \"UniqueId\", \"\")),\r\n\r\n        \"name\": safe_name(elem),\r\n\r\n        \"category\": safe_category(elem),\r\n\r\n        \"ifc_guid\": get_param_string(elem, bip=BuiltInParameter.IFC_GUID, names=[\"IfcGUID\", \"IFCGUID\"], include_type=True),\r\n\r\n        \"signature\": signature,\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef make_ifc_row(fast_row, signature):\r\n\r\n    fast_row = dict(fast_row)\r\n\r\n    fast_row[\"signature\"] = signature\r\n\r\n    fast_row[\"mesh_only\"] = bool(signature.get(\"mesh_only\"))\r\n\r\n    return fast_row\r\n\r\n\r\n\r\n\r\n\r\ndef build_match_row(project_row, ifc_row, compare, method):\r\n\r\n    pos_ft, pos_score = position_metrics(project_row[\"signature\"], ifc_row[\"signature\"])\r\n\r\n    pos_mm = round_mm(pos_ft)\r\n\r\n    perfect_pos_limit_mm = max(10.0, round_mm(max(project_row[\"signature\"][\"bbox_diag\"], ifc_row[\"signature\"][\"bbox_diag\"]) * 0.02))\r\n\r\n    perfect = compare[\"score\"] >= 0.995 and (compare[\"boolean_jaccard\"] is None or compare[\"boolean_jaccard\"] >= 99.0) and pos_mm <= perfect_pos_limit_mm\r\n\r\n    reasons = []\r\n\r\n    if compare[\"score\"] < 0.995:\r\n\r\n        reasons.append(\"shape {:.2f}%\".format(round_pct01(compare[\"score\"])))\r\n\r\n    if pos_mm > perfect_pos_limit_mm:\r\n\r\n        reasons.append(\"vị trí lệch {} mm\".format(pos_mm))\r\n\r\n    if compare[\"bbox_delta_pct_max\"] > 0.5:\r\n\r\n        reasons.append(\"bbox lệch max {}%\".format(compare[\"bbox_delta_pct_max\"]))\r\n\r\n    if compare[\"revit_only_pct\"] is not None and compare[\"revit_only_pct\"] > 0.5:\r\n\r\n        reasons.append(\"thiếu hình từ IFC {}%\".format(compare[\"revit_only_pct\"]))\r\n\r\n    if compare[\"ifc_only_pct\"] is not None and compare[\"ifc_only_pct\"] > 0.5:\r\n\r\n        reasons.append(\"IFC dư hình {}%\".format(compare[\"ifc_only_pct\"]))\r\n\r\n    verdict = \"TRUNG_100\" if perfect else \"CHUA_TRUNG\"\r\n\r\n    return {\r\n\r\n        \"verdict\": verdict,\r\n\r\n        \"matching_method\": method,\r\n\r\n        \"project_element_id\": project_row[\"element_id\"],\r\n\r\n        \"project_name\": project_row[\"name\"],\r\n\r\n        \"project_ifc_guid\": project_row[\"ifc_guid\"],\r\n\r\n        \"ifc_element_id\": ifc_row[\"element_id\"],\r\n\r\n        \"ifc_name\": ifc_row[\"name\"],\r\n\r\n        \"ifc_category\": ifc_row[\"category\"],\r\n\r\n        \"ifc_ifc_guid\": ifc_row[\"ifc_guid\"],\r\n\r\n        \"shape_percent\": round_pct01(compare[\"score\"]),\r\n\r\n        \"shape_signature_percent\": round_pct01(compare[\"base_score\"]),\r\n\r\n        \"boolean_jaccard_percent\": compare[\"boolean_jaccard\"],\r\n\r\n        \"position_delta_mm\": pos_mm,\r\n\r\n        \"position_score_percent\": round_pct01(pos_score),\r\n\r\n        \"volume_delta_pct\": compare[\"volume_delta_pct\"],\r\n\r\n        \"area_delta_pct\": compare[\"area_delta_pct\"],\r\n\r\n        \"bbox_delta_pct_max\": compare[\"bbox_delta_pct_max\"],\r\n\r\n        \"revit_only_pct\": compare[\"revit_only_pct\"],\r\n\r\n        \"ifc_only_pct\": compare[\"ifc_only_pct\"],\r\n\r\n        \"reason\": \"; \".join(reasons) if reasons else \"Khớp 100% theo shape + vị trí trong tolerance.\",\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef build_missing_row(project_row):\r\n\r\n    return {\r\n\r\n        \"verdict\": \"THIEU_TRONG_IFC\",\r\n\r\n        \"project_element_id\": project_row[\"element_id\"],\r\n\r\n        \"project_name\": project_row[\"name\"],\r\n\r\n        \"project_ifc_guid\": project_row[\"ifc_guid\"],\r\n\r\n        \"reason\": \"Không tìm thấy object IFC đủ giống shape để ghép với instance này.\",\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef build_foreign_row(ifc_row):\r\n\r\n    return {\r\n\r\n        \"verdict\": \"VAT_THE_LA_TRONG_IFC\",\r\n\r\n        \"ifc_element_id\": ifc_row[\"element_id\"],\r\n\r\n        \"ifc_name\": ifc_row[\"name\"],\r\n\r\n        \"ifc_category\": ifc_row[\"category\"],\r\n\r\n        \"ifc_ifc_guid\": ifc_row[\"ifc_guid\"],\r\n\r\n        \"reason\": \"Có object trong IFC giống family đã chọn nhưng không match với instance nào trong project.\",\r\n\r\n    }\r\n\r\n\r\n\r\n\r\n\r\ndef top_issue_lines(match_rows, missing_rows, foreign_rows):\r\n\r\n    lines = []\r\n\r\n    for row in match_rows:\r\n\r\n        if row[\"verdict\"] != \"TRUNG_100\":\r\n\r\n            lines.append(\"- Project #{0} -> IFC #{1}: {2}\".format(row[\"project_element_id\"], row[\"ifc_element_id\"], row[\"reason\"]))\r\n\r\n    for row in missing_rows:\r\n\r\n        lines.append(\"- Project #{0}: thiếu trong IFC\".format(row[\"project_element_id\"]))\r\n\r\n    for row in foreign_rows:\r\n\r\n        lines.append(\"- IFC #{0}: vật thể lạ / dư so với project\".format(row[\"ifc_element_id\"]))\r\n\r\n    return lines[:MAX_SMART_LINES]\r\n\r\n\r\n\r\n\r\n\r\nstarted = time.time()\r\n\r\nifc_doc = None\r\n\r\nwarnings = []\r\n\r\nOUT = None\r\n\r\n\r\n\r\n\r\n\r\ntry:\r\n\r\n    selected_input = UnwrapElement(IN[0]) if len(IN) > 0 else None\r\n\r\n    if isinstance(selected_input, list):\r\n\r\n        selected_input = selected_input[0] if selected_input else None\r\n\r\n    if selected_input is None:\r\n\r\n        OUT = {\r\n\r\n            \"status\": \"THIEU_INPUT\",\r\n\r\n            \"smart_watch\": [\"Chưa chọn Generic Model trong project.\"],\r\n\r\n            \"reason\": \"Input 1 cần là 1 instance Generic Model trong project hiện tại.\",\r\n\r\n        }\r\n\r\n    else:\r\n\r\n        try:\r\n\r\n            generic_model_cat_id = ElementId(BuiltInCategory.OST_GenericModel).IntegerValue\r\n\r\n            selected_cat_id = selected_input.Category.Id.IntegerValue if selected_input.Category else None\r\n\r\n        except Exception:\r\n\r\n            selected_cat_id = None\r\n\r\n        if selected_cat_id != generic_model_cat_id:\r\n\r\n            OUT = {\r\n\r\n                \"status\": \"SAI_INPUT_1\",\r\n\r\n                \"smart_watch\": [\"Element đã chọn không thuộc Generic Models.\"],\r\n\r\n                \"selected_name\": safe_name(selected_input),\r\n\r\n                \"selected_category\": safe_category(selected_input),\r\n\r\n                \"reason\": \"Graph này đang kỳ vọng chọn 1 Generic Model family instance.\",\r\n\r\n            }\r\n\r\n        elif not isinstance(selected_input, FamilyInstance):\r\n\r\n            OUT = {\r\n\r\n                \"status\": \"SAI_INPUT_1\",\r\n\r\n                \"smart_watch\": [\"Element đã chọn là Generic Model nhưng không phải FamilyInstance.\"],\r\n\r\n                \"selected_name\": safe_name(selected_input),\r\n\r\n                \"selected_category\": safe_category(selected_input),\r\n\r\n                \"reason\": \"Hiện graph đang gom scope theo Family + Type nên cần chọn FamilyInstance.\",\r\n\r\n            }\r\n\r\n        else:\r\n\r\n            raw_ifc_path = IN[1] if len(IN) > 1 else None\r\n\r\n            ifc_path = as_string(raw_ifc_path).strip().strip('\"')\r\n\r\n            if not ifc_path:\r\n\r\n                OUT = {\r\n\r\n                    \"status\": \"THIEU_INPUT\",\r\n\r\n                    \"smart_watch\": [\"Chưa chọn file IFC.\"],\r\n\r\n                    \"reason\": \"Input 2 cần là đường dẫn .ifc / .ifczip / .ifcxml.\",\r\n\r\n                }\r\n\r\n            elif not os.path.exists(ifc_path):\r\n\r\n                OUT = {\r\n\r\n                    \"status\": \"KHONG_TIM_THAY_FILE\",\r\n\r\n                    \"smart_watch\": [\"Không tìm thấy file IFC đã chọn.\"],\r\n\r\n                    \"ifc_file\": ifc_path,\r\n\r\n                    \"reason\": \"Kiểm tra lại File Path node.\",\r\n\r\n                }\r\n\r\n            elif not ifc_path.lower().endswith((\".ifc\", \".ifczip\", \".ifcxml\")):\r\n\r\n                OUT = {\r\n\r\n                    \"status\": \"SAI_INPUT_2\",\r\n\r\n                    \"smart_watch\": [\"Input 2 không phải file IFC hợp lệ.\"],\r\n\r\n                    \"ifc_file\": ifc_path,\r\n\r\n                    \"reason\": \"Graph hiện hỗ trợ .ifc / .ifczip / .ifcxml.\",\r\n\r\n                }\r\n\r\n            else:\r\n\r\n                if selected_input.Symbol is None:\r\n\r\n                    OUT = {\r\n\r\n                        \"status\": \"LOI_FAMILY_SYMBOL\",\r\n\r\n                        \"smart_watch\": [\"Element da chon khong co Family Symbol (co the bi loi).\"],\r\n\r\n                    }\r\n\r\n                else:\r\n\r\n                    family_name = as_string(selected_input.Symbol.Family.Name)\r\n\r\n                    type_name = as_string(selected_input.Symbol.Name)\r\n\r\n                    symbol_id = selected_input.Symbol.Id.IntegerValue\r\n\r\n\r\n\r\n                    project_elements = []\r\n\r\n                    collector = list(FilteredElementCollector(doc).OfClass(FamilyInstance).OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType())\r\n\r\n                    for item in collector:\r\n\r\n                        try:\r\n\r\n                            if item.Symbol and item.Symbol.Id.IntegerValue == symbol_id:\r\n\r\n                                project_elements.append(item)\r\n\r\n                        except Exception:\r\n\r\n                            pass\r\n\r\n                    if not project_elements:\r\n\r\n                        project_elements = [selected_input]\r\n\r\n                        warnings.append(\"Không gom được các instance cùng Type, graph fallback về đúng element đã chọn.\")\r\n\r\n\r\n\r\n                    project_rows = []\r\n\r\n                    for idx, elem in enumerate(project_elements):\r\n\r\n                        sig = build_signature(elem, \"project_{0}\".format(idx))\r\n\r\n                        if sig is None:\r\n\r\n                            warnings.append(\"Bỏ qua Project #{0} vì không đọc được geometry.\".format(elem.Id.IntegerValue))\r\n\r\n                            continue\r\n\r\n                        project_rows.append(make_project_row(elem, sig))\r\n\r\n\r\n\r\n                    if not project_rows:\r\n\r\n                        OUT = {\r\n\r\n                            \"status\": \"KHONG_DOC_DUOC_GEOMETRY_PROJECT\",\r\n\r\n                            \"smart_watch\": [\"Không đọc được geometry từ Generic Model đã chọn.\"],\r\n\r\n                            \"selected_family\": family_name,\r\n\r\n                            \"selected_type\": type_name,\r\n\r\n                        }\r\n\r\n                    else:\r\n\r\n                        ifc_options = IFCImportOptions()\r\n\r\n                        ifc_options.Action = IFCImportAction.Open\r\n\r\n                        ifc_options.Intent = IFCImportIntent.Reference\r\n\r\n                        ifc_options.ForceImport = True\r\n\r\n                        try:\r\n\r\n                            ifc_options.AutoJoin = False\r\n\r\n                        except Exception:\r\n\r\n                            pass\r\n\r\n                        try:\r\n\r\n                            ifc_options.AutocorrectOffAxisLines = False\r\n\r\n                        except Exception:\r\n\r\n                            pass\r\n\r\n\r\n\r\n                        ifc_doc = app.OpenIFCDocument(ifc_path, ifc_options)\r\n\r\n                        base_project = project_rows[0]\r\n\r\n                        raw_ifc_candidates = []\r\n\r\n                        ifc_elements = list(FilteredElementCollector(ifc_doc).WhereElementIsNotElementType())\r\n\r\n                        for elem in ifc_elements:\r\n\r\n                            if not is_model_candidate(elem):\r\n\r\n                                continue\r\n\r\n                            try:\r\n\r\n                                fast_row = fast_bbox_row(elem)\r\n\r\n                            except Exception:\r\n\r\n                                continue\r\n\r\n                            if not broad_bbox_match(base_project[\"signature\"], fast_row):\r\n\r\n                                continue\r\n\r\n                            signature = build_signature(elem, \"ifc_{0}\".format(fast_row[\"element_id\"]))\r\n\r\n                            if signature is None:\r\n\r\n                                continue\r\n\r\n                            quick_compare = compare_signatures(base_project[\"signature\"], signature)\r\n\r\n                            if quick_compare[\"score\"] < 0.78:\r\n\r\n                                continue\r\n\r\n                            raw_ifc_candidates.append(make_ifc_row(fast_row, signature))\r\n\r\n\r\n\r\n                        if not raw_ifc_candidates:\r\n\r\n                            OUT = {\r\n\r\n                                \"status\": \"KHONG_TIM_THAY_CANDIDATE_IFC\",\r\n\r\n                                \"smart_watch\": [\"Không tìm thấy object IFC nào đủ giống family đã chọn.\"],\r\n\r\n                                \"selected_family\": family_name,\r\n\r\n                                \"selected_type\": type_name,\r\n\r\n                                \"ifc_file\": ifc_path,\r\n\r\n                                \"stats\": {\r\n\r\n                                    \"project_instances\": len(project_rows),\r\n\r\n                                    \"ifc_shape_candidates\": 0,\r\n\r\n                                },\r\n\r\n                                \"warnings\": warnings,\r\n\r\n                            }\r\n\r\n                        else:\r\n\r\n                            ifc_by_guid = {}\r\n\r\n                            for row in raw_ifc_candidates:\r\n\r\n                                guid = row.get(\"ifc_guid\") or \"\"\r\n\r\n                                if guid:\r\n\r\n                                    ifc_by_guid.setdefault(guid, []).append(row)\r\n\r\n\r\n\r\n                            assigned_project = set()\r\n\r\n                            assigned_ifc = set()\r\n\r\n                            match_rows = []\r\n\r\n\r\n\r\n                            for project_row in project_rows:\r\n\r\n                                guid = project_row.get(\"ifc_guid\") or \"\"\r\n\r\n                                if not guid:\r\n\r\n                                    continue\r\n\r\n                                candidate_list = ifc_by_guid.get(guid, [])\r\n\r\n                                if not candidate_list:\r\n\r\n                                    continue\r\n\r\n                                best_candidate = None\r\n\r\n                                best_compare = None\r\n\r\n                                best_score = -1.0\r\n\r\n                                for candidate in candidate_list:\r\n\r\n                                    if candidate[\"element_id\"] in assigned_ifc:\r\n\r\n                                        continue\r\n\r\n                                    compare = compare_signatures(project_row[\"signature\"], candidate[\"signature\"])\r\n\r\n                                    if compare[\"score\"] > best_score:\r\n\r\n                                        best_candidate = candidate\r\n\r\n                                        best_compare = compare\r\n\r\n                                        best_score = compare[\"score\"]\r\n\r\n                                if best_candidate is not None:\r\n\r\n                                    assigned_project.add(project_row[\"element_id\"])\r\n\r\n                                    assigned_ifc.add(best_candidate[\"element_id\"])\r\n\r\n                                    match_rows.append(build_match_row(project_row, best_candidate, best_compare, \"IfcGUID\"))\r\n\r\n\r\n\r\n                            pair_candidates = []\r\n\r\n                            for project_row in project_rows:\r\n\r\n                                if project_row[\"element_id\"] in assigned_project:\r\n\r\n                                    continue\r\n\r\n                                for ifc_row in raw_ifc_candidates:\r\n\r\n                                    if ifc_row[\"element_id\"] in assigned_ifc:\r\n\r\n                                        continue\r\n\r\n                                    compare = compare_signatures(project_row[\"signature\"], ifc_row[\"signature\"])\r\n\r\n                                    if compare[\"score\"] < 0.78:\r\n\r\n                                        continue\r\n\r\n                                    pos_ft, _ = position_metrics(project_row[\"signature\"], ifc_row[\"signature\"])\r\n\r\n                                    max_diag = max(project_row[\"signature\"][\"bbox_diag\"], ifc_row[\"signature\"][\"bbox_diag\"], 0.1)\r\n\r\n                                    if pos_ft > max(max_diag * 4.0, 5.0):\r\n\r\n                                        continue\r\n\r\n                                    cost = (pos_ft / max_diag) + ((1.0 - compare[\"score\"]) * 2.0)\r\n\r\n                                    pair_candidates.append((cost, project_row, ifc_row, compare))\r\n\r\n\r\n\r\n                            pair_candidates.sort(key=lambda item: item[0])\r\n\r\n                            for _, project_row, ifc_row, compare in pair_candidates:\r\n\r\n                                if project_row[\"element_id\"] in assigned_project:\r\n\r\n                                    continue\r\n\r\n                                if ifc_row[\"element_id\"] in assigned_ifc:\r\n\r\n                                    continue\r\n\r\n                                assigned_project.add(project_row[\"element_id\"])\r\n\r\n                                assigned_ifc.add(ifc_row[\"element_id\"])\r\n\r\n                                match_rows.append(build_match_row(project_row, ifc_row, compare, \"Shape+Centroid\"))\r\n\r\n\r\n\r\n                            match_rows.sort(key=lambda row: row.get(\"project_element_id\", 0))\r\n\r\n                            missing_rows = [build_missing_row(row) for row in project_rows if row[\"element_id\"] not in assigned_project]\r\n\r\n                            foreign_rows = [build_foreign_row(row) for row in raw_ifc_candidates if row[\"element_id\"] not in assigned_ifc]\r\n\r\n\r\n\r\n                            perfect_count = len([row for row in match_rows if row[\"verdict\"] == \"TRUNG_100\"])\r\n\r\n                            partial_count = len(match_rows) - perfect_count\r\n\r\n                            overall_status = \"TRUNG_100\" if (partial_count == 0 and not missing_rows and not foreign_rows and len(match_rows) == len(project_rows)) else \"CHUA_TRUNG\"\r\n\r\n                            summary = \"{0} | {1}/{2} instance match 100%\".format(overall_status, perfect_count, len(project_rows))\r\n\r\n                            if missing_rows:\r\n\r\n                                summary += \" | Thiếu trong IFC: {0}\".format(len(missing_rows))\r\n\r\n                            if foreign_rows:\r\n\r\n                                summary += \" | Vật thể lạ trong IFC: {0}\".format(len(foreign_rows))\r\n\r\n                            if partial_count:\r\n\r\n                                summary += \" | Match chưa trùng hoàn toàn: {0}\".format(partial_count)\r\n\r\n\r\n\r\n                            smart_watch = [\r\n\r\n                                \"KẾT LUẬN: {0}\".format(overall_status),\r\n\r\n                                \"Family + Type đang so sánh: {0} | {1}\".format(family_name, type_name),\r\n\r\n                                \"Project instances: {0}\".format(len(project_rows)),\r\n\r\n                                \"IFC candidates cùng shape: {0}\".format(len(raw_ifc_candidates)),\r\n\r\n                                \"Match 100%: {0}\".format(perfect_count),\r\n\r\n                            ]\r\n\r\n                            if partial_count:\r\n\r\n                                smart_watch.append(\"Chưa trùng hoàn toàn: {0}\".format(partial_count))\r\n\r\n                            if missing_rows:\r\n\r\n                                smart_watch.append(\"Thiếu trong IFC: {0}\".format(len(missing_rows)))\r\n\r\n                            if foreign_rows:\r\n\r\n                                smart_watch.append(\"Vật thể lạ / dư trong IFC: {0}\".format(len(foreign_rows)))\r\n\r\n                            smart_watch.extend(top_issue_lines(match_rows, missing_rows, foreign_rows))\r\n\r\n                            if warnings:\r\n\r\n                                smart_watch.append(\"Warnings: {0}\".format(len(warnings)))\r\n\r\n\r\n\r\n                            OUT = {\r\n\r\n                                \"status\": overall_status,\r\n\r\n                                \"summary\": summary,\r\n\r\n                                \"smart_watch\": smart_watch,\r\n\r\n                                \"selected_scope\": \"Graph hiện gom tất cả instance cùng Family + Type của element đã chọn.\",\r\n\r\n                                \"selected_family\": family_name,\r\n\r\n                                \"selected_type\": type_name,\r\n\r\n                                \"ifc_file\": ifc_path,\r\n\r\n                                \"shape_check_logic\": \"3 tầng check shape: (1) bbox/diag filter, (2) signature từ mesh+solid (volume/area/radial/axis histogram), (3) boolean overlap nếu lấy được solid.\",\r\n\r\n                                \"stats\": {\r\n\r\n                                    \"project_instances\": len(project_rows),\r\n\r\n                                    \"ifc_shape_candidates\": len(raw_ifc_candidates),\r\n\r\n                                    \"matched_total\": len(match_rows),\r\n\r\n                                    \"perfect_matches\": perfect_count,\r\n\r\n                                    \"partial_matches\": partial_count,\r\n\r\n                                    \"missing_in_ifc\": len(missing_rows),\r\n\r\n                                    \"foreign_ifc_objects\": len(foreign_rows),\r\n\r\n                                },\r\n\r\n                                \"match_rows\": match_rows,\r\n\r\n                                \"missing_rows\": missing_rows,\r\n\r\n                                \"foreign_ifc_rows\": foreign_rows,\r\n\r\n                                \"warnings\": warnings,\r\n\r\n                                \"processing_seconds\": round(time.time() - started, 3),\r\n\r\n                            }\r\n\r\nfinally:\r\n\r\n    if ifc_doc is not None:\r\n\r\n        try:\r\n\r\n            ifc_doc.Close(False)\r\n\r\n        except Exception:\r\n\r\n            pass\r\n\r\n",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "Id": "71a0e3a189bc4283aea538c1379845c3",
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "c104954b430a4f43b13bf92d717baa18",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "30f75ef68960422790dc9a9da258dff9",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "c235499c20a84c4bb4c9f1d6a7aa9971",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 680.0,
+      "WatchHeight": 560.0,
+      "Id": "8b9ade891c9640e1ab149116ea9e3976",
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "84957cef6b1a41c681cbddbf4d6ddec8",
+          "Name": "",
+          "Description": "Node to show output from",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "cba51ccbd38545b4bfc2daa27cf0f3b2",
+          "Name": "",
+          "Description": "Node output",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualizes a node's output"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "c096c2d990b1465a95c40581f5af9d79",
+      "End": "c104954b430a4f43b13bf92d717baa18",
+      "Id": "56ea97131a6d4a93b2bf54d41c959770",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "f63edd299f10415f8b61c9deadf8b741",
+      "End": "30f75ef68960422790dc9a9da258dff9",
+      "Id": "18bfc0d90cf34ef689facca0f024dc37",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "c235499c20a84c4bb4c9f1d6a7aa9971",
+      "End": "84957cef6b1a41c681cbddbf4d6ddec8",
+      "Id": "c41221d69bc54ad1b4211711abd99874",
+      "IsHidden": "False"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Thumbnail": "",
+  "GraphDocumentationURL": null,
+  "ExtensionWorkspaceData": [
+    {
+      "ExtensionGuid": "28992e1d-abb9-417f-8b1b-05e053bee670",
+      "Name": "Properties",
+      "Version": "2.19",
+      "Data": {}
+    },
+    {
+      "ExtensionGuid": "DFBD9CC0-DB40-457A-939E-8C8555555A9D",
+      "Name": "Generative Design",
+      "Version": "6.1",
+      "Data": {}
+    }
+  ],
+  "Author": "DynaRevit Dev Assistant",
+  "Linting": {
+    "activeLinter": "None",
+    "activeLinterId": "7b75fb44-43fd-4631-a878-29f4d5d8399a",
+    "warningCount": 0,
+    "errorCount": 0
+  },
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.19.3.6394",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "_Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "ConnectorPins": [],
+    "NodeViews": [
+      {
+        "Id": "57ccce56187843aeadd0e4fc017d04d4",
+        "Name": "Select Model Element",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 42.0,
+        "Y": 113.0
+      },
+      {
+        "Id": "653ae2aafe6c4456bc85e9041b4bf538",
+        "Name": "File Path",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 71.0,
+        "Y": 269.0
+      },
+      {
+        "Id": "71a0e3a189bc4283aea538c1379845c3",
+        "Name": "Python Script",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 413.0,
+        "Y": 136.0
+      },
+      {
+        "Id": "8b9ade891c9640e1ab149116ea9e3976",
+        "Name": "Watch",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 710.8499329374623,
+        "Y": 91.78913335054506
+      }
+    ],
+    "Annotations": [],
+    "X": 140.84284621320413,
+    "Y": 252.83540251562493,
+    "Zoom": 0.5937671406250001
+  }
+}
